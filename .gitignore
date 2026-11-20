@@ -1,0 +1,40 @@
+# 복구 결과물, 디스크 덤프, 로그는 절대 커밋하지 않는다
+recovered/
+*.dmg
+*.img
+*.raw
+*.dd
+*.bin
+dump/
+dumps/
+out/
+
+# 미디어 파일
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.cr2
+*.cr3
+*.nef
+*.arw
+*.dng
+*.raf
+*.orf
+*.rw2
+*.mp4
+*.mov
+*.m4v
+*.avi
+*.mts
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# 기타
+.DS_Store
+node_modules/
