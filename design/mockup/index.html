@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APFS 복구 시안</title>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --text:#1c2430; --muted:#5b6678; --line:#dfe3ea;
+  --accent:#2457d6; --accent-t:#ffffff; --ok:#17703a; --ok-bg:#e3f4ea;
+  --warn:#8a5a00; --warn-bg:#fff2d6; --bad:#a3261f; --bad-bg:#fde7e5; --bar:#e8ebf1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#12161c; --panel:#1b212b; --text:#e6e9ef; --muted:#9aa5b8; --line:#2c3441;
+    --accent:#6e96ff; --accent-t:#0c1220; --ok:#6fd49a; --ok-bg:#16301f;
+    --warn:#f0c36a; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3b1c1a; --bar:#2a3240;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#12161c; --panel:#1b212b; --text:#e6e9ef; --muted:#9aa5b8; --line:#2c3441;
+  --accent:#6e96ff; --accent-t:#0c1220; --ok:#6fd49a; --ok-bg:#16301f;
+  --warn:#f0c36a; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3b1c1a; --bar:#2a3240;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text);
+  font:15px/1.55 -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+.wrap { max-width:960px; margin:0 auto; padding:0 16px 48px; }
+.safe { background:var(--ok-bg); color:var(--ok); padding:8px 16px; font-weight:600; text-align:center; }
+.example { background:var(--warn-bg); color:var(--warn); padding:6px 16px; text-align:center; font-size:13px; }
+header { display:flex; justify-content:space-between; align-items:center; padding:20px 0 8px; }
+h1 { font-size:20px; margin:0; }
+h2 { font-size:18px; margin:0 0 12px; }
+h3 { font-size:14px; margin:20px 0 8px; color:var(--muted); font-weight:600; }
+.steps { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 20px; padding:0; list-style:none; }
+.steps button { border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px;
+  padding:6px 14px; font:inherit; cursor:pointer; }
+.steps button[aria-current="step"] { background:var(--accent); color:var(--accent-t); border-color:var(--accent); font-weight:600; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; }
+.screen { display:none; } .screen.on { display:block; }
+button.primary { background:var(--accent); color:var(--accent-t); border:0; border-radius:8px; padding:10px 18px;
+  font:inherit; font-weight:600; cursor:pointer; }
+button.primary:disabled { opacity:.45; cursor:not-allowed; }
+button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); border-radius:8px;
+  padding:9px 16px; font:inherit; cursor:pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.spread { justify-content:space-between; }
+.muted { color:var(--muted); }
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+th { color:var(--muted); font-weight:600; font-size:13px; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.tag { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+.tag.ok { background:var(--ok-bg); color:var(--ok); }
+.tag.warn { background:var(--warn-bg); color:var(--warn); }
+.tag.bad { background:var(--bad-bg); color:var(--bad); }
+.bar { height:12px; background:var(--bar); border-radius:999px; overflow:hidden; }
+.bar > i { display:block; height:100%; background:var(--accent); width:0; transition:width .3s; }
+.kv { display:grid; grid-template-columns:160px 1fr; gap:6px 12px; }
+.kv dt { color:var(--muted); } .kv dd { margin:0; }
+.disk { display:flex; gap:12px; align-items:center; border:2px solid var(--accent); border-radius:10px; padding:14px; }
+.callout { border-left:4px solid var(--accent); background:var(--bg); padding:10px 14px; border-radius:6px; }
+.callout.warn { border-color:var(--warn); } .callout.bad { border-color:var(--bad); background:var(--bad-bg); }
+.callout.ok { border-color:var(--ok); background:var(--ok-bg); }
+label { display:block; font-weight:600; margin:10px 0 4px; }
+input[type=text], input[type=number], select { width:100%; padding:9px 10px; border:1px solid var(--line);
+  border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+.checks label { display:flex; gap:8px; align-items:center; font-weight:400; margin:6px 0; }
+.months { display:flex; align-items:flex-end; gap:4px; height:90px; }
+.months div { flex:1; background:var(--accent); opacity:.75; border-radius:3px 3px 0 0; min-width:6px; }
+.mono { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; } @media (max-width:700px){ .grid2 { grid-template-columns:1fr; } }
+footer.nav { display:flex; justify-content:space-between; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="safe" role="status">🔒 읽기 전용 — 원본 디스크에는 아무것도 쓰지 않습니다</div>
+<div class="example">시안입니다. 화면의 숫자와 이름은 모두 <b>예시 값</b>이며 실제 디스크 결과가 아닙니다.</div>
+
+<div class="wrap">
+<header>
+  <h1>APFS 복구 도구</h1>
+  <button class="ghost" id="theme" aria-label="테마 전환">🌓 테마</button>
+</header>
+
+<ol class="steps" id="steps">
+  <li><button data-go="0">① 디스크</button></li>
+  <li><button data-go="1">② 검사</button></li>
+  <li><button data-go="2">③ 결과</button></li>
+  <li><button data-go="3">④ 계획</button></li>
+  <li><button data-go="4">⑤ 복구</button></li>
+  <li><button data-go="5">⑥ 검증</button></li>
+</ol>
+
+<!-- 1. 디스크 -->
+<section class="screen card" id="s0">
+  <h2>1. 디스크 선택</h2>
+  <p class="muted">외장 디스크만 표시됩니다. 내장·시스템 디스크는 보여 주지 않습니다.</p>
+  <div class="disk">
+    <div style="font-size:30px">💾</div>
+    <div style="flex:1">
+      <b>Example Drive 5TB</b> <span class="tag ok">USB 연결됨</span><br>
+      <span class="muted mono">disk5s2 · 5.0 TB · APFS 파티션 · 마운트되지 않음</span>
+    </div>
+  </div>
+  <h3>인식 결과</h3>
+  <dl class="kv">
+    <dt>파일시스템</dt><dd>APFS 컨테이너 인식됨, <b>볼륨 0개</b> <span class="tag warn">의심</span></dd>
+    <dt>암호화 흔적</dt><dd>없음 <span class="tag ok">확인됨</span></dd>
+  </dl>
+  <div class="callout" style="margin-top:14px">검사는 디스크를 읽기만 합니다. 1TB 미만 데이터 기준 약 1시간 걸립니다.</div>
+  <footer class="nav"><button class="ghost">새로고침</button><button class="primary" data-go="1" data-run="scan">검사 시작</button></footer>
+</section>
+
+<!-- 2. 검사 -->
+<section class="screen card" id="s1">
+  <h2>2. 검사 중</h2>
+  <p class="muted" id="phase">단계: 구조 확인 → 데이터 분포 → 파일 찾기</p>
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="scanbar"><i id="scanfill"></i></div>
+  <dl class="kv" style="margin-top:14px">
+    <dt>진행</dt><dd id="scanpct">0%</dd>
+    <dt>읽은 양</dt><dd id="scangb">0 / 560 GB</dd>
+    <dt>속도 / 남은 시간</dt><dd>143 MB/s · <span id="scaneta">약 1시간</span></dd>
+    <dt>찾은 파일</dt><dd id="scanfound">0개</dd>
+  </dl>
+  <div class="callout ok" style="margin-top:14px">언제든 취소해도 디스크에는 영향이 없습니다. 케이블이 빠지면 자동으로 멈추고 이어서 할 수 있습니다.</div>
+  <footer class="nav"><button class="ghost" data-go="0">취소</button><button class="primary" id="skipscan" data-go="2">(시안) 결과 보기</button></footer>
+</section>
+
+<!-- 3. 결과 -->
+<section class="screen card" id="s2">
+  <h2>3. 검사 결과</h2>
+  <div class="callout ok"><b>사진·영상 15,710개(약 198 GB)를 찾았습니다.</b> 원래 파일명과 폴더 구조는 복구할 수 없습니다. 촬영일과 카메라 정보로 정리합니다.</div>
+  <h3>종류별</h3>
+  <table>
+    <thead><tr><th>종류</th><th class="num">개수</th><th class="num">용량</th><th>구조 점검</th></tr></thead>
+    <tbody>
+      <tr><td>JPEG 사진</td><td class="num">12,400</td><td class="num">28 GB</td><td><span class="tag ok">확인됨 12,310</span> <span class="tag warn">의심 90</span></td></tr>
+      <tr><td>RAW (CR3)</td><td class="num">3,100</td><td class="num">74 GB</td><td><span class="tag ok">확인됨 3,095</span> <span class="tag warn">의심 5</span></td></tr>
+      <tr><td>영상 (MP4)</td><td class="num">210</td><td class="num">96 GB</td><td><span class="tag ok">확인됨 150</span> <span class="tag warn">의심 60</span></td></tr>
+    </tbody>
+  </table>
+  <h3>촬영일 분포 (월별, 예시)</h3>
+  <div class="months" aria-label="월별 막대 그래프 예시" id="months"></div>
+  <div class="muted" style="font-size:13px">2023-01 ← → 2024-12 · 촬영일을 읽지 못한 파일 4% (날짜불명 폴더로 이동)</div>
+  <h3>알려진 한계</h3>
+  <ul class="muted">
+    <li>지워진 옛 파일이 섞여 있을 수 있습니다. 구분할 방법이 없어 <b>불명</b>으로 표시합니다.</li>
+    <li>큰 영상은 조각나 있으면 일부가 깨질 수 있습니다. <b>의심</b> 항목이 여기에 해당합니다.</li>
+    <li>CR3와 영상 RAW(CRM)의 구분은 아직 검증되지 않았습니다.</li>
+  </ul>
+  <footer class="nav"><button class="ghost">결과 저장</button><button class="primary" data-go="3">복구 계획 세우기</button></footer>
+</section>
+
+<!-- 4. 계획 -->
+<section class="screen card" id="s3">
+  <h2>4. 복구 계획</h2>
+  <div class="grid2">
+    <div>
+      <h3>무엇을</h3>
+      <div class="checks">
+        <label><input type="checkbox" class="kind" data-gb="28" data-n="12400" checked> JPEG 사진 (12,400개 · 28 GB)</label>
+        <label><input type="checkbox" class="kind" data-gb="74" data-n="3100" checked> RAW (3,100개 · 74 GB)</label>
+        <label><input type="checkbox" class="kind" data-gb="96" data-n="210"> 영상 (210개 · 96 GB)</label>
+        <label><input type="checkbox" id="suspect"> <span>‘의심’ 항목 포함</span></label>
+      </div>
+      <h3>얼마씩</h3>
+      <div class="row">
+        <input type="number" id="batch" value="50" min="1" style="width:110px">
+        <select id="unit" style="width:90px"><option value="gb">GB</option><option value="n">개</option></select>
+        <span class="muted">씩 나눠서 꺼냅니다</span>
+      </div>
+      <p id="batchinfo" class="muted"></p>
+    </div>
+    <div>
+      <h3>어디에</h3>
+      <label for="dest">저장 폴더</label>
+      <input type="text" id="dest" value="/Users/me/Documents/recovered" spellcheck="false">
+      <label for="space">(시안) 이 폴더가 있는 저장소</label>
+      <select id="space">
+        <option value="120">맥북 내장 — 여유 120 GB</option>
+        <option value="600">회사 PC — 여유 600 GB</option>
+        <option value="20">작은 USB — 여유 20 GB</option>
+      </select>
+      <div id="check" class="callout" style="margin-top:12px"></div>
+      <h3>폴더 구조 미리보기</h3>
+      <div class="mono muted">2024-03-06/<br>&nbsp;&nbsp;jpg_000123_blk25792.jpg<br>&nbsp;&nbsp;cr3_000045_blk215424.cr3<br>날짜불명/</div>
+    </div>
+  </div>
+  <footer class="nav"><button class="ghost" data-go="2">결과로</button><button class="primary" id="startbatch" data-go="4" data-run="extract">이 묶음 복구 시작</button></footer>
+</section>
+
+<!-- 5. 복구 -->
+<section class="screen card" id="s4">
+  <h2>5. 복구 중 <span class="muted" id="batchno" style="font-size:14px"></span></h2>
+  <div class="bar"><i id="exfill"></i></div>
+  <dl class="kv" style="margin-top:14px">
+    <dt>진행</dt><dd id="expct">0%</dd>
+    <dt>파일 / 용량</dt><dd id="exfiles">0 / 0</dd>
+    <dt>속도</dt><dd>138 MB/s</dd>
+  </dl>
+  <h3>최근 꺼낸 파일</h3>
+  <table><tbody id="recent"></tbody></table>
+  <div class="callout" style="margin-top:14px">묶음이 끝나면 폴더의 파일을 다른 곳으로 옮기고 비운 뒤 <b>다음 묶음</b>을 이어서 할 수 있습니다.</div>
+  <footer class="nav"><button class="ghost">일시정지</button><button class="primary" data-go="5">(시안) 검증으로</button></footer>
+</section>
+
+<!-- 6. 검증 -->
+<section class="screen card" id="s5">
+  <h2>6. 검증 결과</h2>
+  <div class="callout warn"><b>열림 확인 4,912개 · 실패 31개 · 미검사 0개</b> (예시)</div>
+  <h3>실패 목록</h3>
+  <table>
+    <thead><tr><th>파일</th><th>이유</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">mp4_000012_blk882376.mp4</td><td><span class="tag bad">잘림</span> 영상 데이터가 중간에 끊김</td></tr>
+      <tr><td class="mono">jpg_001870_blk9912112.jpg</td><td><span class="tag bad">구조 오류</span> 이미지 데이터가 손상됨</td></tr>
+    </tbody>
+  </table>
+  <h3>검증 범위</h3>
+  <ul class="muted">
+    <li>JPEG: 전체 디코딩 확인</li>
+    <li>RAW: 헤더·구조 확인 (현상 프로그램에서 열리는지는 확인하지 못함)</li>
+    <li>영상: 구조 확인까지만. 재생 확인은 하지 못함</li>
+  </ul>
+  <footer class="nav"><button class="ghost">실패 파일 폴더 열기</button><button class="primary">보고서 저장 (개인정보 가림)</button></footer>
+</section>
+</div>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s), $$ = (s, r=document) => [...r.querySelectorAll(s)];
+let timers = [];
+function go(i) {
+  timers.forEach(clearInterval); timers = [];
+  $$('.screen').forEach((s, k) => s.classList.toggle('on', k === i));
+  $$('#steps button').forEach((b, k) => k === i ? b.setAttribute('aria-current', 'step') : b.removeAttribute('aria-current'));
+  window.scrollTo(0, 0);
+  if (i === 1) runScan(); if (i === 4) runExtract(); if (i === 3) updatePlan();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (b && !b.disabled) go(+b.dataset.go);
+});
+function runScan() {
+  let p = 0; const f = $('#scanfill');
+  timers.push(setInterval(() => {
+    p = Math.min(100, p + 2);
+    f.style.width = p + '%'; $('#scanbar').setAttribute('aria-valuenow', p);
+    $('#scanpct').textContent = p + '%'; $('#scangb').textContent = Math.round(560 * p / 100) + ' / 560 GB';
+    $('#scanfound').textContent = Math.round(15710 * p / 100).toLocaleString() + '개';
+    $('#scaneta').textContent = p >= 100 ? '완료' : '약 ' + Math.max(1, Math.round(60 * (100 - p) / 100)) + '분';
+    if (p >= 100) { clearInterval(timers[0]); setTimeout(() => go(2), 600); }
+  }, 120));
+}
+const names = ['jpg_000123_blk25792.jpg', 'jpg_000124_blk26496.jpg', 'cr3_000045_blk215424.cr3', 'jpg_000125_blk27136.jpg', 'cr3_000046_blk221504.cr3'];
+function runExtract() {
+  const plan = calc(); let p = 0;
+  $('#batchno').textContent = '(묶음 1/' + plan.batches + ')';
+  timers.push(setInterval(() => {
+    p = Math.min(100, p + 3); $('#exfill').style.width = p + '%'; $('#expct').textContent = p + '%';
+    $('#exfiles').textContent = Math.round(plan.nfiles * p / 100).toLocaleString() + ' / ' + plan.nfiles.toLocaleString() + ' 개  ·  ' + (plan.batchGb * p / 100).toFixed(1) + ' / ' + plan.batchGb.toFixed(1) + ' GB';
+    $('#recent').innerHTML = names.slice(0, 1 + Math.floor(p / 20)).reverse().map(n => '<tr><td class="mono">' + n + '</td><td><span class="tag ok">저장됨</span></td></tr>').join('');
+    if (p >= 100) clearInterval(timers[0]);
+  }, 120));
+}
+function calc() {
+  const k = $$('.kind:checked'); const totalGb = k.reduce((a, c) => a + +c.dataset.gb, 0), totalN = k.reduce((a, c) => a + +c.dataset.n, 0);
+  const size = Math.max(1, +$('#batch').value || 1), unit = $('#unit').value;
+  const batches = unit === 'gb' ? Math.ceil(totalGb / size) : Math.ceil(totalN / size);
+  const batchGb = unit === 'gb' ? Math.min(size, totalGb) : totalGb * Math.min(size, totalN) / Math.max(1, totalN);
+  const nfiles = unit === 'n' ? Math.min(size, totalN) : Math.round(totalN * Math.min(size, totalGb) / Math.max(1, totalGb));
+  return { totalGb, totalN, batches, batchGb, nfiles };
+}
+function updatePlan() {
+  const c = calc(), free = +$('#space').value, margin = Math.max(5, 0.1 * c.batchGb), need = c.batchGb + margin;
+  const dest = $('#dest').value.trim(), reasons = [];
+  if (/\/Volumes\/Example Drive/i.test(dest)) reasons.push('원본 디스크 안에는 저장할 수 없습니다.');
+  if (/RecoveryHDD/i.test(dest)) reasons.push('프로젝트(저장소) 폴더 안에는 저장할 수 없습니다.');
+  if (/^(\/System|\/usr|C:\\Windows)/i.test(dest)) reasons.push('시스템 폴더에는 저장할 수 없습니다.');
+  if (!dest) reasons.push('저장 폴더를 입력하세요.');
+  if (c.totalN === 0) reasons.push('복구할 종류를 하나 이상 고르세요.');
+  if (free < need) reasons.push('여유 공간이 부족합니다. 필요 ' + need.toFixed(1) + ' GB(마진 포함), 여유 ' + free + ' GB. 묶음 크기를 줄이세요.');
+  $('#batchinfo').textContent = c.totalN ? '전체 ' + c.totalN.toLocaleString() + '개 · ' + c.totalGb + ' GB → ' + c.batches + '개 묶음 (한 묶음 약 ' + c.batchGb.toFixed(1) + ' GB, ' + c.nfiles.toLocaleString() + '개)' : '';
+  const box = $('#check'); box.className = 'callout ' + (reasons.length ? 'bad' : 'ok');
+  box.innerHTML = reasons.length ? '<b>시작할 수 없습니다</b><ul style="margin:6px 0 0 18px">' + reasons.map(r => '<li>' + r + '</li>').join('') + '</ul>'
+    : '<b>저장 가능</b> — 여유 ' + free + ' GB, 필요 ' + need.toFixed(1) + ' GB(마진 포함)';
+  $('#startbatch').disabled = reasons.length > 0;
+}
+['change', 'input'].forEach(ev => $('#s3').addEventListener(ev, updatePlan));
+$('#months').innerHTML = [3,4,6,5,8,9,7,6,10,14,12,9,6,5,7,11,15,18,16,12,9,7,8,10].map(h => '<div style="height:' + h * 5 + 'px"></div>').join('');
+$('#theme').onclick = () => {
+  const r = document.documentElement, cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  r.dataset.theme = cur === 'dark' ? 'light' : 'dark';
+};
+go(0);
+</script>
+</body>
+</html>

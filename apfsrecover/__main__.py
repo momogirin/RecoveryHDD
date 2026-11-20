@@ -1,7 +1,9 @@
 """사용법 (모두 읽기 전용):
   python3 -m apfsrecover inspect /dev/rdisk4s2
   python3 -m apfsrecover scan /dev/rdisk4s2 <시작블록> <끝블록> <출력.jsonl>
-  python3 -m apfsrecover survey /dev/rdisk4s2 <총바이트> <샘플간격MB> <구간GB>"""
+  python3 -m apfsrecover survey /dev/rdisk4s2 <총바이트> <샘플간격MB> <구간GB>
+  python3 -m apfsrecover catalog <장치> <세션폴더> <시작블록> <끝블록>   (파일 목록 만들기, 이어하기 지원)
+  python3 -m apfsrecover summary <세션폴더>                              (목록 요약)"""
 import sys
 
 from .blockdev import ReadOnlyDevice
@@ -66,6 +68,15 @@ def inspect(path: str) -> int:
 def main(argv):
     if len(argv) == 3 and argv[1] == "inspect":
         return inspect(argv[2])
+    if len(argv) == 6 and argv[1] == "catalog":
+        from .catalog import catalog
+        return catalog(argv[2], argv[3], int(argv[4]), int(argv[5]))
+    if len(argv) == 3 and argv[1] == "summary":
+        from .catalog import print_summary
+        return print_summary(argv[2])
+    if len(argv) == 8 and argv[1] == "carve-sample":
+        from .carve import carve_sample
+        return carve_sample(argv[2], int(argv[3]), int(argv[4]), argv[5], int(argv[6]), int(argv[7]))
     if len(argv) == 4 and argv[1] == "auto":
         from .auto import auto
         return auto(argv[2], argv[3])
