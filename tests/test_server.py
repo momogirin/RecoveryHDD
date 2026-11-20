@@ -240,3 +240,61 @@ class AutoTest(unittest.TestCase):
             c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=2)
             c.request("GET", "/api/devices")
             c.getresponse()
+
+
+class DiskIdentityTest(unittest.TestCase):
+    """검사했던 디스크가 아닌 디스크에서는 복구/이어하기를 거부한다."""
+
+    @classmethod
+    def setUpClass(cls):
+        os.environ["TZ"] = "Asia/Seoul"
+        time.tzset()
+        cls.tmp = tempfile.TemporaryDirectory()
+        r = random.Random(33)
+        a = [(2, synth.make_jpeg(r, 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35")))]
+        b = [(2, synth.make_jpeg(random.Random(99), 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35")))]
+        cls.img_a = os.path.join(cls.tmp.name, "a.img")
+        cls.img_b = os.path.join(cls.tmp.name, "b.img")
+        synth.build_image(cls.img_a, a, 400)
+        synth.build_image(cls.img_b, b, 400)
+        cls.session = os.path.join(cls.tmp.name, "sess")
+        cls.dest = os.path.join(cls.tmp.name, "out")
+        cls.app = App(cls.session, images={"a": cls.img_a, "b": cls.img_b}, sample_step=64 * 1024)
+        cls.httpd, _ = serve(cls.app, 0)
+        cls.port = cls.app.port
+        threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.shutdown()
+        cls.httpd.server_close()
+        cls.tmp.cleanup()
+
+    call = ServerTest.call
+    wait_job = ServerTest.wait_job
+
+    def test_other_disk_is_refused(self):
+        st, _ = self.call("POST", "/api/scan/start", {"device_id": "image:a"})
+        self.assertEqual(st, 200)
+        self.assertEqual(self.wait_job()["state"], "done")
+        st, d = self.call("GET", "/api/devices")
+        match = {x["id"]: x["matches_session"] for x in d["devices"]}
+        self.assertEqual(match, {"image:a": True, "image:b": False})
+        plan = {"dest": self.dest, "kinds": ["jpeg"], "batch": {"unit": "n", "size": 5}}
+        st, e = self.call("POST", "/api/extract/start", {"device_id": "image:b", "plan": plan})
+        self.assertEqual(st, 400)
+        self.assertIn("검사했던 디스크와 다릅니다", e["error"])
+        self.assertFalse(os.path.exists(self.dest))  # 아무것도 꺼내지 않았다
+        # 이어서 검사도 다른 디스크면 거부 (끝나지 않은 검사로 만들어 둔다)
+        dj = json.load(open(os.path.join(self.session, "device.json")))
+        dj["finished"] = False
+        json.dump(dj, open(os.path.join(self.session, "device.json"), "w"))
+        st, _ = self.call("POST", "/api/scan/start", {"device_id": "image:b", "resume": True})
+        self.assertEqual(st, 200)
+        job = self.wait_job()
+        self.assertEqual(job["state"], "refused")
+        self.assertIn("다릅니다", job["error"])
+        # 같은 디스크는 통과
+        st, _ = self.call("POST", "/api/extract/start", {"device_id": "image:a", "plan": plan})
+        self.assertEqual(st, 200)
+        self.assertEqual(self.wait_job()["state"], "done")

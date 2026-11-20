@@ -17,6 +17,7 @@ from collections import Counter
 
 from .extract import load_catalog, load_extracted
 from .formats import BMFF_TYPES, jpeg_parse
+from .jsonl import read_jsonl
 
 MAX_WHOLE_READ = 256 << 20
 
@@ -164,11 +165,9 @@ def load_failures(session, limit=200):
     if not os.path.exists(p):
         return []
     out = []
-    with open(p, encoding="utf-8") as f:
-        for l in f:
-            r = json.loads(l)
-            if r["status"] == "fail":
-                out.append(r)
-                if len(out) >= limit:
-                    break
+    for r in read_jsonl(p):
+        if r["status"] == "fail":
+            out.append(r)
+            if len(out) >= limit:
+                break
     return out

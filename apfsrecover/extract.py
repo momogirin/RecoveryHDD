@@ -9,21 +9,27 @@ import hashlib
 import json
 import os
 import shutil
+import time
 
 from .blockdev import ReadOnlyDevice
 from .guards import check_dest, margin_for
+from .jsonl import read_jsonl
 from .scan import BS
 from .timeutil import local_date
 
 KIND_EXT = {"jpeg": "jpg", "raw-cr3": "cr3", "video-mp4": "mp4", "video-mov": "mov",
             "heic": "heic", "unknown-bmff": "bin"}
 COPY_CHUNK = 8 * 1024 * 1024
+READ_TRIES = 3          # 읽기 오류(EIO)는 이만큼 다시 시도한다
+RETRY_DELAY = 0.5       # 초. 시도마다 늘어난다
+MAX_CONSECUTIVE_FAILS = 5   # 연속으로 이만큼 못 읽으면 디스크가 불안정하다고 보고 멈춘다
+RECHECK_LAST = 20       # 비정상 종료 뒤 이어할 때 마지막으로 기록된 파일을 다시 확인하는 개수
+UNCLEAN = ("running", "disconnected", "error", "nospace", "unstable")
 UNDATED = "날짜불명"
 
 
 def load_catalog(session):
-    with open(os.path.join(session, "catalog.jsonl"), encoding="utf-8") as f:
-        return [json.loads(l) for l in f if l.strip()]
+    return read_jsonl(os.path.join(session, "catalog.jsonl"))
 
 
 def load_extracted(session):
@@ -31,11 +37,11 @@ def load_extracted(session):
     if not os.path.exists(path):
         return {}
     done = {}
-    with open(path, encoding="utf-8") as f:
-        for l in f:
-            if l.strip():
-                r = json.loads(l)
-                done[r["id"]] = r
+    for r in read_jsonl(path):
+        if r.get("invalid"):  # 이어하기 때 다시 확인해 보니 파일이 이상해서 무효로 표시한 항목
+            done.pop(r["id"], None)
+        else:
+            done[r["id"]] = r
     return done
 
 
@@ -89,13 +95,19 @@ def next_batch(selected, done_ids, batch):
     return out
 
 
-def overview(records, plan, done):
+def load_failed(session):
+    path = os.path.join(session, "failed.jsonl")
+    return {r["id"] for r in read_jsonl(path)} if os.path.exists(path) else set()
+
+
+def overview(records, plan, done, failed=frozenset()):
     sel = select(records, plan)
-    pending = [r for r in sel if r["id"] not in done]
-    nb = next_batch(sel, set(done), plan.get("batch", {"unit": "gb", "size": 50}))
+    skip = set(done) | set(failed)
+    pending = [r for r in sel if r["id"] not in skip]
+    nb = next_batch(sel, skip, plan.get("batch", {"unit": "gb", "size": 50}))
     batches = 0
     rest = list(sel)
-    seen = set(done)
+    seen = set(skip)
     while True:
         b = next_batch(rest, seen, plan.get("batch", {"unit": "gb", "size": 50}))
         if not b:
@@ -103,7 +115,8 @@ def overview(records, plan, done):
         seen |= {r["id"] for r in b}
         batches += 1
     return {"files": len(sel), "bytes": sum(r["length"] for r in sel),
-            "done_files": len(sel) - len(pending), "pending_files": len(pending),
+            "done_files": sum(1 for r in sel if r["id"] in done),
+            "failed_files": sum(1 for r in sel if r["id"] in failed), "pending_files": len(pending),
             "pending_bytes": sum(r["length"] for r in pending),
             "next_files": len(nb), "next_bytes": sum(r["length"] for r in nb),
             "batches_remaining": batches}
@@ -112,7 +125,7 @@ def overview(records, plan, done):
 def check_plan(session, plan, forbidden=()):
     records = load_catalog(session)
     done = load_extracted(session)
-    ov = overview(records, plan, done)
+    ov = overview(records, plan, done, load_failed(session))
     res = check_dest(plan.get("dest"), forbidden, ov["next_bytes"])
     if not plan.get("kinds"):
         res["ok"] = False
@@ -127,24 +140,120 @@ def check_plan(session, plan, forbidden=()):
     return res
 
 
+class SourceGone(Exception):
+    """원본 장치가 사라짐(케이블 분리 등)."""
+
+
+class SourceUnreadable(Exception):
+    """원본의 이 위치를 읽지 못함(불량 섹터 등). 장치는 아직 있다."""
+
+
+def _read(dev, off, ln):
+    last = None
+    for i in range(READ_TRIES):
+        try:
+            data = dev.read_at(off, ln)
+            if data:
+                return data
+            last = OSError(errno.EIO, "빈 응답")
+        except OSError as e:
+            if e.errno in (errno.ENXIO, errno.ENODEV):
+                raise SourceGone() from e
+            last = e
+        if i + 1 < READ_TRIES:
+            time.sleep(RETRY_DELAY * (i + 1))
+    raise SourceUnreadable(str(last))
+
+
+def _fsync(f):
+    """전원이 갑자기 나가도 '저장됨'으로 기록한 파일이 덜 써져 있지 않도록 디스크에 확실히 쓴다."""
+    f.flush()
+    try:
+        import fcntl
+        if hasattr(fcntl, "F_FULLFSYNC"):  # macOS: 일반 fsync 는 드라이브 캐시까지 비우지 않는다
+            fcntl.fcntl(f.fileno(), fcntl.F_FULLFSYNC)
+            return
+    except (ImportError, OSError):
+        pass
+    os.fsync(f.fileno())
+
+
+def _write_json(path, obj):
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=1)
+        _fsync(f)
+    os.replace(tmp, path)
+
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _recheck_recent(dest, session, done, log, deep):
+    """이어하기 시작할 때 마지막으로 기록된 파일들이 실제로 온전한지 확인한다.
+    비정상 종료(전원 차단 등) 직전의 파일은 기록은 있어도 내용이 덜 써졌을 수 있다.
+    이상하면 무효로 표시해서 이번에 다시 꺼낸다. 반환: 무효로 표시한 개수"""
+    bad = 0
+    for it in list(done.values())[-RECHECK_LAST:]:
+        path = os.path.join(dest, it["path"])
+        why = None
+        if not os.path.exists(path):
+            why = "파일이 없음"
+        elif os.path.getsize(path) != it["bytes"]:
+            why = "크기가 다름"
+        elif deep and _sha256_file(path) != it["sha256"]:
+            why = "내용이 기록과 다름"
+        if why:
+            bad += 1
+            _rm(path)
+            done.pop(it["id"], None)
+            log.write(json.dumps({"id": it["id"], "invalid": True, "reason": why}) + "\n")
+            log.flush()
+    return bad
+
+
 def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, should_cancel=None):
-    """다음 묶음을 꺼낸다. 반환 dict: {"state", "files", "bytes", "error"}
-    state: done | cancelled | disconnected | nospace | refused | error"""
+    """다음 묶음을 꺼낸다. 반환 dict: {"state", "files", "bytes", "failed", "error"}
+    state: done | cancelled | disconnected | nospace | unstable | refused | error"""
+    # 1) 저장 폴더가 안전한지 먼저 본다(원본 디스크·저장소·시스템 폴더는 거부). 이 검사 전에는 아무것도 지우지 않는다
+    early = check_dest(plan.get("dest"), forbidden, 0)
+    if not early["ok"]:
+        return {"state": "refused", "files": 0, "bytes": 0, "failed": 0, "error": " / ".join(early["reasons"])}
+    dest = early["dest"]
+    os.makedirs(dest, exist_ok=True)
+    state_path = os.path.join(session, "run_state.json")
+    prev = None
+    if os.path.exists(state_path):
+        try:
+            with open(state_path, encoding="utf-8") as f:
+                prev = json.load(f).get("state")
+        except ValueError:
+            prev = "running"  # 상태 파일이 깨졌다면 비정상 종료로 본다
+    # 2) 이전에 기록된 마지막 파일들이 온전한지 확인한다(비정상 종료 뒤에는 해시까지)
+    with open(os.path.join(session, "extracted.jsonl"), "a", encoding="utf-8") as log:
+        _recheck_recent(dest, session, load_extracted(session), log, deep=prev in UNCLEAN)
+    # 3) 계획 점검(공간 포함)
     chk = check_plan(session, plan, forbidden)
     if not chk["ok"]:
-        return {"state": "refused", "files": 0, "bytes": 0, "error": " / ".join(chk["reasons"])}
-    dest = chk["dest"]
-    os.makedirs(dest, exist_ok=True)
+        return {"state": "refused", "files": 0, "bytes": 0, "failed": 0, "error": " / ".join(chk["reasons"])}
     records = load_catalog(session)
     done = load_extracted(session)
-    batch = next_batch(select(records, plan), set(done), plan.get("batch", {"unit": "gb", "size": 50}))
-    total_bytes = sum(r["length"] for r in batch)
-    got_files = got_bytes = 0
+    failed_ids = load_failed(session)
+    got_files = got_bytes = n_failed = consecutive = 0
     state, error = "done", None
-    with open(os.path.join(session, "plan.json"), "w", encoding="utf-8") as f:
-        json.dump(dict(plan, dest=dest), f, ensure_ascii=False, indent=1)
+    _write_json(os.path.join(session, "plan.json"), dict(plan, dest=dest))
+    _write_json(state_path, {"state": "running", "started": time.time()})
     with ReadOnlyDevice(device_path) as dev, \
-            open(os.path.join(session, "extracted.jsonl"), "a", encoding="utf-8") as log:
+            open(os.path.join(session, "extracted.jsonl"), "a", encoding="utf-8") as log, \
+            open(os.path.join(session, "failed.jsonl"), "a", encoding="utf-8") as flog:
+        batch = next_batch(select(records, plan), set(done) | failed_ids,
+                           plan.get("batch", {"unit": "gb", "size": 50}))
+        total_bytes = sum(r["length"] for r in batch)
         for rec in batch:
             if should_cancel and should_cancel():
                 state = "cancelled"
@@ -152,18 +261,16 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
             rel = dest_relpath(rec)
             final = os.path.join(dest, rel)
             part = final + ".part"
-            os.makedirs(os.path.dirname(final), exist_ok=True)
-            if shutil.disk_usage(os.path.dirname(final)).free < rec["length"] + margin_for(rec["length"]):
-                state, error = "nospace", "저장 공간이 부족해 중단했습니다."
-                break
             try:
+                os.makedirs(os.path.dirname(final), exist_ok=True)
+                if shutil.disk_usage(os.path.dirname(final)).free < rec["length"] + margin_for(rec["length"]):
+                    state, error = "nospace", "저장 공간이 부족해 중단했습니다."
+                    break
                 h = hashlib.sha256()
                 written = 0
                 with open(part, "wb") as out:
                     while written < rec["length"]:
-                        chunk = dev.read_at(rec["offset"] + written, min(COPY_CHUNK, rec["length"] - written))
-                        if not chunk:
-                            raise EOFError("짧게 읽힘: %d/%d" % (written, rec["length"]))
+                        chunk = _read(dev, rec["offset"] + written, min(COPY_CHUNK, rec["length"] - written))
                         out.write(chunk)
                         h.update(chunk)
                         written += len(chunk)
@@ -171,26 +278,38 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
                             on_progress({"files": got_files, "bytes": got_bytes + written,
                                          "total_files": len(batch), "total_bytes": total_bytes,
                                          "current": rel})
+                    _fsync(out)
                 os.replace(part, final)
-            except OSError as e:
+            except SourceGone:
+                _rm(part)
+                state, error = "disconnected", "장치 연결이 끊겼습니다. 케이블을 다시 꽂고 이어서 하세요."
+                break
+            except SourceUnreadable as e:
+                _rm(part)  # 이 파일만 건너뛴다. 원본 디스크의 불량 구간일 수 있다
+                n_failed += 1
+                consecutive += 1
+                flog.write(json.dumps({"id": rec["id"], "path": rel, "error": str(e)}, ensure_ascii=False) + "\n")
+                flog.flush()
+                if consecutive >= MAX_CONSECUTIVE_FAILS:
+                    state, error = "unstable", "연속으로 %d개를 읽지 못해 중단했습니다. 디스크나 케이블 상태를 확인하세요." % consecutive
+                    break
+                continue
+            except OSError as e:  # 저장 폴더 쪽 문제 (원본이 아니다)
                 _rm(part)
                 if e.errno == errno.ENOSPC:
                     state, error = "nospace", "저장 공간이 부족해 중단했습니다."
-                elif e.errno in (errno.ENXIO, errno.ENODEV, errno.EIO):
-                    state, error = "disconnected", "장치 연결이 끊겼습니다. 케이블을 다시 꽂고 이어서 하세요."
                 else:
-                    state, error = "error", "%s: %s" % (rel, e)
+                    state, error = "error", "저장 폴더에 쓰지 못했습니다(저장 장치가 빠졌거나 권한 문제일 수 있습니다): %s" % e
                 break
-            except EOFError as e:
-                _rm(part)
-                state, error = "disconnected", "%s: %s" % (rel, e)
-                break
+            consecutive = 0
             log.write(json.dumps({"id": rec["id"], "path": rel, "bytes": rec["length"],
                                   "sha256": h.hexdigest(), "kind": rec["kind"]}, ensure_ascii=False) + "\n")
             log.flush()
+            os.fsync(log.fileno())
             got_files += 1
             got_bytes += rec["length"]
-    return {"state": state, "files": got_files, "bytes": got_bytes, "error": error}
+    _write_json(state_path, {"state": state, "finished": time.time()})
+    return {"state": state, "files": got_files, "bytes": got_bytes, "failed": n_failed, "error": error}
 
 
 def _rm(path):

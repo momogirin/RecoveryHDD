@@ -84,7 +84,13 @@ def gui(args):
     for item in a.image:
         name, _, path = item.partition("=")
         images[name] = os.path.realpath(expand(path))
+    from . import lock
     app = App(a.session, images=images, sample_step=(64 * 1024 if images else 128 * 1024 * 1024))
+    try:
+        lockfile = lock.acquire(app.session)
+    except RuntimeError as e:
+        print(str(e), flush=True)
+        return 1
     httpd, url = serve(app, a.port)
     if hasattr(os, "geteuid") and os.geteuid() != 0 and not images:
         print("주의: 관리자 권한이 아니라서 원본 디스크를 읽지 못할 수 있습니다. sudo 로 다시 실행하세요.")
@@ -97,6 +103,8 @@ def gui(args):
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\n종료합니다.")
+    finally:
+        lock.release(lockfile)
     return 0
 
 

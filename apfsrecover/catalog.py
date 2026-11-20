@@ -14,6 +14,7 @@ from collections import Counter
 
 from .blockdev import ReadOnlyDevice
 from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe)
+from .jsonl import read_jsonl
 from .ownership import expand
 from .scan import BS, CHUNK, REPO
 from .timeutil import local_month
@@ -37,8 +38,8 @@ def _check_session(session):
     return session
 
 
-SESSION_FILES = ("catalog.jsonl", "progress.json", "extracted.jsonl", "plan.json",
-                 "verify.jsonl", "verify_summary.json")
+SESSION_FILES = ("catalog.jsonl", "progress.json", "extracted.jsonl", "failed.jsonl", "run_state.json",
+                 "plan.json", "verify.jsonl", "verify_summary.json")
 
 
 def archive_session(session):
@@ -57,6 +58,18 @@ def archive_session(session):
     return dst
 
 
+def _repair_catalog(cat_path, pos):
+    """갑자기 꺼진 뒤 이어하기: 진행 위치(pos) 이후에 적힌 항목과 잘린 줄을 버린다.
+    (그 구간은 이어서 다시 읽으므로, 남겨 두면 같은 파일이 두 번 기록된다.)"""
+    recs = [r for r in read_jsonl(cat_path) if r.get("offset", 0) < pos]
+    tmp = cat_path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        for r in recs:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    os.replace(tmp, cat_path)
+    return len(recs), (max(r["id"] for r in recs) + 1 if recs else 1)
+
+
 def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None, fresh=False):
     """반환 코드: 0 완료, 3 취소, 4 장치 끊김.
     같은 범위의 진행 기록이 있으면 이어서 한다. 범위가 다르거나 fresh=True 면 옛 세션을 보관(archive)하고 새로 시작한다."""
@@ -69,7 +82,8 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
         with open(prog_path) as f:
             st = json.load(f)
         if st.get("start_block") == start_block and st.get("end_block") == end_block:
-            pos, next_id, found = st["next_pos"], st["next_id"], st["found"]
+            pos = st["next_pos"]
+            found, next_id = _repair_catalog(cat_path, pos)
             resumed = True
             print("이어하기: 오프셋 %d (%.1f GB)부터" % (pos, pos / 1e9))
     if not resumed:
@@ -182,10 +196,7 @@ def summarize(session):
     models = Counter()
     undated = 0
     total = 0
-    with open(os.path.join(session, "catalog.jsonl")) as fh:
-        lines = fh.readlines()
-    for line in lines:
-        r = json.loads(line)
+    for r in read_jsonl(os.path.join(session, "catalog.jsonl")):
         total += 1
         kinds[r["kind"]] += 1
         sizes[r["kind"]] += r["length"]

@@ -16,9 +16,11 @@ from urllib.parse import parse_qs, urlparse
 
 from . import devices as devmod
 from . import extract as ex
-from . import guards
+from . import fsbrowse, guards
 from . import verify as vf
 from .blockdev import ReadOnlyDevice
+from .identity import fingerprint
+from .power import on_battery
 from .catalog import BS, catalog, summarize
 from .ownership import chown_tree, expand, real_home
 from .survey import estimate_extent
@@ -104,6 +106,62 @@ class App:
                     out += d["mounts"]
         return out
 
+    def fingerprint(self, dev):
+        try:
+            return fingerprint(dev["path"], dev["size"])
+        except OSError:
+            return None
+
+    def session_device(self):
+        p = os.path.join(self.session, "device.json")
+        if not os.path.exists(p):
+            return None
+        try:
+            with open(p, encoding="utf-8") as f:
+                return json.load(f)
+        except ValueError:
+            return None
+
+    WRONG_DISK = ("이 디스크는 검사했던 디스크와 다릅니다. 디스크를 바꿨다면 다시 검사하세요. "
+                  "같은 디스크인데 이 메시지가 나오면 연결 상태를 확인하세요.")
+
+    def disk_mismatch(self, dev):
+        """검사했던 디스크와 다르면 사람이 읽을 메시지, 같거나 비교할 수 없으면 None."""
+        dj = self.session_device()
+        if not dj or not dj.get("fingerprint"):
+            return None
+        fp = self.fingerprint(dev)
+        if fp is None:
+            return "디스크를 읽지 못해 검사했던 디스크인지 확인할 수 없습니다. 연결과 권한을 확인하세요."
+        return None if fp == dj["fingerprint"] else self.WRONG_DISK
+
+    def interrupted(self):
+        """작업이 실행 중이 아닌데 디스크에 '실행 중/연결 끊김'으로 남아 있으면 비정상 종료로 본다."""
+        if self.job and self.job.state == "running":
+            return None
+        try:
+            p = os.path.join(self.session, "progress.json")
+            dj = self.session_device() or {}
+            if os.path.exists(p) and dj.get("finished") is False:
+                with open(p, encoding="utf-8") as f:
+                    st = json.load(f)
+                if st.get("state") in ("running", "disconnected"):
+                    return {"kind": "scan", "state": st["state"], "found": st.get("found", 0)}
+            p = os.path.join(self.session, "run_state.json")
+            if os.path.exists(p):
+                with open(p, encoding="utf-8") as f:
+                    st = json.load(f)
+                if st.get("state") in ex.UNCLEAN:
+                    plan = None
+                    pp = os.path.join(self.session, "plan.json")
+                    if os.path.exists(pp):
+                        with open(pp, encoding="utf-8") as f:
+                            plan = json.load(f)
+                    return {"kind": "extract", "state": st["state"], "plan": plan}
+        except (OSError, ValueError):
+            return {"kind": "unknown", "state": "broken"}
+        return None
+
     # ---- 작업 ----
     def start_job(self, kind, target):
         with self.lock:
@@ -140,15 +198,23 @@ class App:
         size = dev["size"]
         end_bytes = size
         prev = None
+        fp = self.fingerprint(dev)
         djp = os.path.join(self.session, "device.json")
         if resume and os.path.exists(djp):
             with open(djp, encoding="utf-8") as f:
                 prev = json.load(f)
+            if prev.get("fingerprint") and fp and prev["fingerprint"] != fp:
+                return "wrongdisk", {}
             if prev.get("size") == size and prev.get("scanned_bytes") and not prev.get("finished"):
                 end_bytes = prev["scanned_bytes"]
                 full = True  # 샘플링을 다시 하지 않고 이전 범위로 이어서 검사
             else:
                 prev = None
+        if prev is None:  # 처음부터 시작할 때: 어느 단계에서 끊겨도 같은 디스크인지 알아볼 수 있게 먼저 기록한다
+            os.makedirs(self.session, exist_ok=True)
+            with open(djp, "w", encoding="utf-8") as f:
+                json.dump({"device": dev["id"], "size": size, "fingerprint": fp, "finished": False,
+                           "scanned_bytes": None, "full": bool(full)}, f)
         if not full:
             job.set_phase("sampling")
             with ReadOnlyDevice(dev["path"]) as d:
@@ -167,7 +233,7 @@ class App:
                      on_progress=lambda p: job.update(done_bytes=p["pos"], total_bytes=p["total"], found=p["found"]),
                      should_cancel=job.cancel.is_set, fresh=not resume)
         with open(os.path.join(self.session, "device.json"), "w", encoding="utf-8") as f:
-            json.dump({"device": dev["id"], "size": size, "scanned_bytes": end_bytes,
+            json.dump({"device": dev["id"], "size": size, "scanned_bytes": end_bytes, "fingerprint": fp,
                        "full": bool(full) and prev is None, "finished": rc == 0}, f)
         return {0: "done", 3: "cancelled"}.get(rc, "disconnected"), {"end_bytes": end_bytes}
 
@@ -180,6 +246,8 @@ class App:
                 job.finish("done", error="디스크에서 데이터를 찾지 못했습니다(샘플링 기준).", found=0, end_bytes=0)
             elif state == "disconnected":
                 job.finish("disconnected", self.DISCONNECT_MSG)
+            elif state == "wrongdisk":
+                job.finish("refused", self.WRONG_DISK)
             else:
                 job.finish(state)
         return target
@@ -193,6 +261,8 @@ class App:
                 return job.finish("nodata", "디스크에서 데이터를 찾지 못했습니다(샘플링 기준). '전체 검사'로 다시 시도해 보세요.")
             if state == "disconnected":
                 return job.finish("disconnected", self.DISCONNECT_MSG)
+            if state == "wrongdisk":
+                return job.finish("refused", self.WRONG_DISK)
             if state != "done":
                 return job.finish(state)
             summ = summarize(self.session)
@@ -210,17 +280,20 @@ class App:
             dest = chk["dest"]
             if r["state"] != "done":
                 return job.finish(r["state"], r["error"] or (self.DISCONNECT_MSG if r["state"] == "disconnected" else None),
-                                  files=r["files"], bytes=r["bytes"], dest=dest, catalog=summ)
+                                  files=r["files"], bytes=r["bytes"], failed=r["failed"], dest=dest, catalog=summ)
             job.set_phase("verifying")
             v = vf.verify_session(self.session, dest,
                                   on_progress=lambda p: job.update(done=p["done"], total=p["total"], ok=p["ok"], fail=p["fail"]),
                                   should_cancel=job.cancel.is_set, deep=True)
-            job.finish("cancelled" if v["cancelled"] else "done", files=r["files"], bytes=r["bytes"], dest=dest,
-                       verify=v, catalog=summ)
+            job.finish("cancelled" if v["cancelled"] else "done", files=r["files"], bytes=r["bytes"],
+                       failed=r["failed"], dest=dest, verify=v, catalog=summ)
         return target
 
     def extract_target(self, dev, plan):
         def target(job):
+            bad = self.disk_mismatch(dev)
+            if bad:
+                return job.finish("refused", bad)
             job.set_phase("extracting")
             r = ex.extract_batch(
                 dev["path"], self.session, plan, forbidden=self.forbidden_mounts(dev),
@@ -229,7 +302,7 @@ class App:
                                                  current=p["current"]),
                 should_cancel=job.cancel.is_set)
             dest = os.path.realpath(expand(plan["dest"])) if r["state"] != "refused" else None
-            job.finish(r["state"], r["error"], files=r["files"], bytes=r["bytes"], dest=dest)
+            job.finish(r["state"], r["error"], files=r["files"], bytes=r["bytes"], failed=r["failed"], dest=dest)
         return target
 
     def verify_target(self, dest, deep):
@@ -339,7 +412,12 @@ def make_handler(app):
                     with open(UI_PATH, "rb") as f:
                         return self._send(200, f.read(), "text/html; charset=utf-8")
                 if u.path == "/api/devices":
-                    return self._send(200, {"devices": app.devices(), "images": bool(app.images),
+                    devs = app.devices()
+                    dj = app.session_device()
+                    for d in devs:
+                        d["matches_session"] = bool(dj and dj.get("fingerprint") and d["readable"]
+                                                    and app.fingerprint(d) == dj["fingerprint"])
+                    return self._send(200, {"devices": devs, "images": bool(app.images),
                                             "is_root": hasattr(os, "geteuid") and os.geteuid() == 0})
                 if u.path == "/api/session":
                     has = os.path.exists(os.path.join(app.session, "catalog.jsonl"))
@@ -350,7 +428,17 @@ def make_handler(app):
                             dev = json.load(f)
                     return self._send(200, {"session": app.session.replace(real_home(), "~"),
                                             "has_catalog": has, "device": dev,
-                                            "dest": app.saved_dest(), "tools": vf.available_tools()})
+                                            "dest": app.saved_dest(), "tools": vf.available_tools(),
+                                            "interrupted": app.interrupted(), "on_battery": on_battery()})
+                if u.path in ("/api/fs/places", "/api/fs/list"):
+                    dev = app.find_device((q.get("device_id") or [""])[0]) if q.get("device_id") else None
+                    forb = app.forbidden_mounts(dev)
+                    if u.path == "/api/fs/places":
+                        return self._send(200, {"places": fsbrowse.places(forb)})
+                    try:
+                        return self._send(200, fsbrowse.list_dir((q.get("path") or [""])[0], forb))
+                    except FileNotFoundError as e:
+                        return self._err(404, str(e))
                 if u.path == "/api/job":
                     return self._send(200, {"job": app.job.to_dict() if app.job else None})
                 if u.path == "/api/catalog/summary":
@@ -414,6 +502,13 @@ def make_handler(app):
                 self._send(200, {"ok": True})
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return
+            if path == "/api/fs/mkdir":
+                dev = app.find_device(body.get("device_id")) if body.get("device_id") else None
+                try:
+                    made = fsbrowse.make_dir(body.get("parent"), body.get("name"), app.forbidden_mounts(dev))
+                except ValueError as e:
+                    return self._err(400, str(e))
+                return self._send(200, {"path": made})
             if path == "/api/job/cancel":
                 if app.job and app.job.state == "running":
                     app.job.cancel.set()
@@ -429,6 +524,9 @@ def make_handler(app):
                 if not dev:
                     return
                 plan = body.get("plan") or {}
+                bad = app.disk_mismatch(dev)
+                if bad:
+                    return self._err(400, bad)
                 chk = ex.check_plan(app.session, plan, app.forbidden_mounts(dev))
                 if not chk["ok"]:
                     return self._err(400, " / ".join(chk["reasons"]))

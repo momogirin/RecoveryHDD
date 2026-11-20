@@ -146,3 +146,32 @@ class ParserTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CrashRecoveryTest(Base):
+    def test_resume_after_crash_leaves_no_duplicates_or_broken_lines(self):
+        cat.CHUNK = 64 * BS
+        self.addCleanup(setattr, cat, "CHUNK", 8 * 1024 * 1024)
+        _, full = self.run_catalog(session=os.path.join(self.tmp.name, "full"))
+        want = [(r["offset"], r["length"]) for r in self.records(full)]
+        sess = os.path.join(self.tmp.name, "crash")
+        calls = {"n": 0}
+
+        def cancel():
+            calls["n"] += 1
+            return calls["n"] > 12  # 중간까지 진행
+        self.run_catalog(session=sess, should_cancel=cancel)
+        st = json.load(open(os.path.join(sess, "progress.json")))
+        # 갑자기 꺼진 상황 흉내: (1) 진행 기록보다 뒤의 항목이 이미 목록에 적혀 있음 (2) 마지막 줄이 잘림
+        later = [r for r in [json.loads(l) for l in open(os.path.join(full, "catalog.jsonl"))]
+                 if r["offset"] >= st["next_pos"]]
+        with open(os.path.join(sess, "catalog.jsonl"), "a") as f:
+            if later:
+                f.write(json.dumps(later[0]) + "\n")
+            f.write('{"id": 99, "kind": "jpe')  # 잘린 줄
+        rc, _ = self.run_catalog(session=sess)
+        self.assertEqual(rc, 0)
+        got = [(r["offset"], r["length"]) for r in self.records(sess)]
+        self.assertEqual(got, want)
+        ids = [r["id"] for r in self.records(sess)]
+        self.assertEqual(ids, list(range(1, len(ids) + 1)))

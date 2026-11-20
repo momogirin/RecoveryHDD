@@ -133,3 +133,113 @@ class ExtractTest(ExtractBase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RobustnessTest(ExtractBase):
+    def setUp(self):
+        super().setUp()
+        self._delay = ex.RETRY_DELAY
+        ex.RETRY_DELAY = 0  # 테스트에서는 재시도 사이에 기다리지 않는다
+        self.addCleanup(setattr, ex, "RETRY_DELAY", self._delay)
+        self.all_plan = dict(self.plan, kinds=["jpeg", "video-mp4"], include_suspect=True,
+                             batch={"unit": "n", "size": 10})
+
+    def _patch_read(self, fail_offsets, err):
+        real = ex.ReadOnlyDevice.read_at
+
+        def fake(self_, off, ln):
+            if off in fail_offsets:
+                raise OSError(err, "simulated")
+            return real(self_, off, ln)
+        return mock.patch.object(ex.ReadOnlyDevice, "read_at", fake)
+
+    def test_unreadable_file_is_skipped_and_the_rest_continue(self):
+        recs = ex.select(ex.load_catalog(self.session), self.all_plan)
+        bad = recs[1]
+        with self._patch_read({bad["offset"]}, 5):  # EIO: 불량 섹터
+            r = self.run_batch(self.all_plan)
+        self.assertEqual((r["state"], r["files"], r["failed"]), ("done", len(recs) - 1, 1))
+        self.assertEqual(ex.load_failed(self.session), {bad["id"]})
+        self.assertNotIn(bad["id"], ex.load_extracted(self.session))
+        # 실패한 파일 때문에 같은 묶음이 계속 반복되지 않는다
+        ov = ex.check_plan(self.session, self.all_plan)
+        self.assertFalse(ov["ok"])
+        self.assertEqual((ov["overview"]["failed_files"], ov["overview"]["pending_files"]), (1, 0))
+        self.assertEqual([f for _, _, fs in os.walk(self.dest) for f in fs if f.endswith(".part")], [])
+
+    def test_transient_read_error_is_retried(self):
+        recs = ex.select(ex.load_catalog(self.session), self.all_plan)
+        real = ex.ReadOnlyDevice.read_at
+        calls = {"n": 0}
+
+        def flaky(self_, off, ln):
+            if off == recs[0]["offset"]:
+                calls["n"] += 1
+                if calls["n"] < 3:
+                    raise OSError(5, "일시적 오류")
+            return real(self_, off, ln)
+        with mock.patch.object(ex.ReadOnlyDevice, "read_at", flaky):
+            r = self.run_batch(self.all_plan)
+        self.assertEqual((r["state"], r["failed"], r["files"]), ("done", 0, len(recs)))
+
+    def test_many_consecutive_failures_stop_as_unstable(self):
+        recs = ex.select(ex.load_catalog(self.session), self.all_plan)
+        with self._patch_read({r["offset"] for r in recs}, 5):
+            r = self.run_batch(self.all_plan)
+        self.assertEqual(r["state"], "unstable")
+        self.assertEqual(r["failed"], ex.MAX_CONSECUTIVE_FAILS)
+
+    def test_destination_error_is_not_reported_as_source_disconnect(self):
+        real_open = open
+
+        def fake_open(path, mode="r", *a, **kw):
+            if str(path).endswith(".part"):
+                raise OSError(5, "저장 장치 오류")
+            return real_open(path, mode, *a, **kw)
+        with mock.patch("builtins.open", fake_open):
+            r = self.run_batch()
+        self.assertEqual(r["state"], "error")
+        self.assertIn("저장 폴더", r["error"])
+
+    def test_run_state_written(self):
+        self.run_batch(self.all_plan)
+        st = json.load(open(os.path.join(self.session, "run_state.json")))
+        self.assertEqual(st["state"], "done")
+
+    def test_torn_log_line_does_not_break_resume(self):
+        self.run_batch()
+        with open(os.path.join(self.session, "extracted.jsonl"), "a") as f:
+            f.write('{"id": 77, "path": "x", "by')  # 전원이 나가서 잘린 줄
+        self.assertEqual(len(ex.load_extracted(self.session)), 2)
+        r = self.run_batch()
+        self.assertEqual(r["state"], "done")
+
+    def test_after_crash_last_file_with_wrong_content_is_extracted_again(self):
+        self.run_batch(self.all_plan)  # 전부 꺼냄
+        done = ex.load_extracted(self.session)
+        victim = list(done.values())[-1]
+        p = os.path.join(self.dest, victim["path"])
+        good = open(p, "rb").read()
+        with open(p, "r+b") as f:  # 크기는 같고 내용만 덜 써진 상황(전원 차단)
+            f.seek(len(good) // 2)
+            f.write(b"\0" * 64)
+        json.dump({"state": "running"}, open(os.path.join(self.session, "run_state.json"), "w"))  # 비정상 종료 표시
+        r = self.run_batch(self.all_plan)
+        self.assertEqual((r["state"], r["files"]), ("done", 1))
+        self.assertEqual(open(p, "rb").read(), good)
+        self.assertEqual(ex.load_extracted(self.session)[victim["id"]]["sha256"], hashlib.sha256(good).hexdigest())
+
+    def test_after_crash_missing_last_file_is_extracted_again_even_if_plan_looked_complete(self):
+        self.run_batch(self.all_plan)
+        victim = list(ex.load_extracted(self.session).values())[-1]
+        os.remove(os.path.join(self.dest, victim["path"]))
+        r = self.run_batch(self.all_plan)
+        self.assertEqual((r["state"], r["files"]), ("done", 1))
+        self.assertTrue(os.path.exists(os.path.join(self.dest, victim["path"])))
+
+    def test_recheck_never_touches_files_outside_a_safe_destination(self):
+        self.run_batch(self.all_plan)
+        before = sorted(f for _, _, fs in os.walk(self.dest) for f in fs)
+        r = self.run_batch(dict(self.all_plan, dest=os.path.join(ex.check_dest.__globals__["REPO"], "evil")))
+        self.assertEqual(r["state"], "refused")
+        self.assertEqual(sorted(f for _, _, fs in os.walk(self.dest) for f in fs), before)
