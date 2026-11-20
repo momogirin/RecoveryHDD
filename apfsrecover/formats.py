@@ -164,7 +164,9 @@ def bmff_meta(kind, moov):
             secs = struct.unpack_from(">I" if ver == 0 else ">Q", moov, i + 8)[0]
             t = datetime(1904, 1, 1) + timedelta(seconds=secs)
             if t.year >= 1990:
-                meta.setdefault("taken", t.strftime("%Y-%m-%dT%H:%M:%S"))
+                if "taken" not in meta:
+                    meta["taken"] = t.strftime("%Y-%m-%dT%H:%M:%S")
+                    meta["taken_utc"] = True  # mvhd 는 UTC
         except (struct.error, OverflowError):
             pass
     return meta

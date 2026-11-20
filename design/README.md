@@ -5,6 +5,7 @@
 | [01-plan.md](01-plan.md) | 목표, 원칙, 구조, 단계별 계획, 위험, 미정 사항 |
 | [02-ui-spec.md](02-ui-spec.md) | 화면 6개의 흐름과 상태, 문구 규칙 |
 | [03-engine-api.md](03-engine-api.md) | 엔진/서버 인터페이스, 데이터 형식(catalog, plan, progress) |
+| [04-distribution.md](04-distribution.md) | 맥용·윈도우용 배포 방식과 미구현·미검증 항목 |
 | [mockup/index.html](mockup/index.html) | 클릭해 볼 수 있는 시안 (브라우저로 열기, 서버 불필요) |
 
 시안의 숫자는 모두 **예시 값**이다. 실제 디스크 결과가 아니다.

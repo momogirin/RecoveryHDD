@@ -14,7 +14,9 @@ from collections import Counter
 
 from .blockdev import ReadOnlyDevice
 from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe)
+from .ownership import expand
 from .scan import BS, CHUNK, REPO
+from .timeutil import local_month
 
 MIN_JPEG = 20_000
 MIN_BMFF = 50_000
@@ -26,7 +28,7 @@ def _align_up(x, a=BS):
 
 
 def _check_session(session):
-    session = os.path.realpath(os.path.expanduser(session))
+    session = os.path.realpath(expand(session))
     if session == REPO or session.startswith(REPO + os.sep):
         raise ValueError("세션 폴더가 저장소 안입니다: %s" % session)
     os.makedirs(session, exist_ok=True)
@@ -35,28 +37,54 @@ def _check_session(session):
     return session
 
 
-def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None):
-    """반환 코드: 0 완료, 3 취소, 4 장치 끊김."""
+SESSION_FILES = ("catalog.jsonl", "progress.json", "extracted.jsonl", "plan.json",
+                 "verify.jsonl", "verify_summary.json")
+
+
+def archive_session(session):
+    """옛 세션 파일을 지우지 않고 archive_<시각>/ 으로 옮긴다. 옮긴 게 있으면 그 경로를 반환."""
+    moving = [f for f in SESSION_FILES if os.path.exists(os.path.join(session, f))]
+    if not moving:
+        return None
+    dst = os.path.join(session, time.strftime("archive_%Y%m%d_%H%M%S"))
+    n = 1
+    while os.path.exists(dst):
+        n += 1
+        dst = os.path.join(session, time.strftime("archive_%Y%m%d_%H%M%S") + "_%d" % n)
+    os.makedirs(dst)
+    for f in moving:
+        os.replace(os.path.join(session, f), os.path.join(dst, f))
+    return dst
+
+
+def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None, fresh=False):
+    """반환 코드: 0 완료, 3 취소, 4 장치 끊김.
+    같은 범위의 진행 기록이 있으면 이어서 한다. 범위가 다르거나 fresh=True 면 옛 세션을 보관(archive)하고 새로 시작한다."""
     session = _check_session(session)
     cat_path = os.path.join(session, "catalog.jsonl")
     prog_path = os.path.join(session, "progress.json")
     pos, next_id, found = start_block * BS, 1, 0
-    if os.path.exists(prog_path) and os.path.exists(cat_path):
-        st = json.load(open(prog_path))
+    resumed = False
+    if not fresh and os.path.exists(prog_path) and os.path.exists(cat_path):
+        with open(prog_path) as f:
+            st = json.load(f)
         if st.get("start_block") == start_block and st.get("end_block") == end_block:
             pos, next_id, found = st["next_pos"], st["next_id"], st["found"]
+            resumed = True
             print("이어하기: 오프셋 %d (%.1f GB)부터" % (pos, pos / 1e9))
-    elif os.path.exists(cat_path):
-        os.remove(cat_path)
+    if not resumed:
+        old = archive_session(session)
+        if old:
+            print("이전 세션 파일을 보관했습니다: %s" % old)
     end = end_block * BS
     skip_until = pos
     t0, read_bytes, consecutive = time.time(), 0, 0
 
     def save(next_pos, state):
         tmp = prog_path + ".tmp"
-        json.dump({"start_block": start_block, "end_block": end_block, "next_pos": next_pos,
-                   "next_id": next_id, "found": found, "state": state, "updated": time.time()},
-                  open(tmp, "w"))
+        with open(tmp, "w") as f:
+            json.dump({"start_block": start_block, "end_block": end_block, "next_pos": next_pos,
+                       "next_id": next_id, "found": found, "state": state, "updated": time.time()}, f)
         os.replace(tmp, prog_path)
 
     result = 0
@@ -146,7 +174,7 @@ def _final(rec):
 
 def summarize(session):
     """catalog.jsonl 을 요약한다 (UI 결과 화면용)."""
-    session = os.path.realpath(os.path.expanduser(session))
+    session = os.path.realpath(expand(session))
     kinds = Counter()
     sizes = Counter()
     structure = {}
@@ -154,14 +182,17 @@ def summarize(session):
     models = Counter()
     undated = 0
     total = 0
-    for line in open(os.path.join(session, "catalog.jsonl")):
+    with open(os.path.join(session, "catalog.jsonl")) as fh:
+        lines = fh.readlines()
+    for line in lines:
         r = json.loads(line)
         total += 1
         kinds[r["kind"]] += 1
         sizes[r["kind"]] += r["length"]
         structure.setdefault(r["kind"], Counter())[r["structure"]] += 1
-        if r.get("taken"):
-            months[r["taken"][:7]] += 1
+        month = local_month(r)
+        if month:
+            months[month] += 1
         else:
             undated += 1
         if r.get("model"):

@@ -6,14 +6,14 @@ python3 -m apfsrecover inspect <장치>                       # 구현됨
 python3 -m apfsrecover scan <장치> <시작블록> <끝블록> <출력>  # 구현됨
 python3 -m apfsrecover survey <장치> <총바이트> <간격MB> <구간GB>  # 구현됨
 python3 -m apfsrecover carve-sample ...                     # 구현됨 (테스트용)
-python3 -m apfsrecover catalog <장치> <세션폴더>              # P1
-python3 -m apfsrecover extract <세션폴더>                     # P4  plan.json 대로 추출
-python3 -m apfsrecover verify <저장폴더>                      # P5
-python3 -m apfsrecover gui                                   # P2  서버 시작
+python3 -m apfsrecover catalog <장치> <세션폴더> <시작블록> <끝블록>  # P1 구현됨
+# extract / verify 는 현재 `gui` 화면과 서버 API 로 실행한다 (명령줄 단독 명령은 미구현)
+python3 -m apfsrecover gui [--session 폴더] [--image 이름=경로]  # P2~P5 구현됨
 ```
 모든 명령은 장치를 읽기 전용으로만 연다.
 
-## 2. 세션 폴더 (저장 폴더 아래 `.session/`, 저장소 밖)
+## 2. 세션 폴더 (작업 상태 저장소, 기본 `~/Documents/recovered/session`, 저장소 밖)
+`gui --session`으로 지정한다. 복구된 사진·영상을 두는 **저장 폴더(dest)와는 별개**다. 다시 검사하면 옛 파일은 `archive_<시각>/`으로 보관한다.
 | 파일 | 내용 |
 |---|---|
 | `device.json` | 선택한 디스크, 크기, 파티션 오프셋, 검사 시각 |

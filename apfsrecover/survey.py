@@ -41,3 +41,24 @@ def survey(path: str, total_bytes: int, step_mb: int, bucket_gb: int) -> int:
             k * bucket_gb, (k + 1) * bucket_gb, b["samples"],
             100.0 * b["data"] / b["samples"], b["jpeg"], b["ftyp"]))
     return 0
+
+
+def estimate_extent(dev, total_bytes, step, on_progress=None, should_cancel=None):
+    """step 바이트 간격으로 4KB 를 읽어 데이터가 있는 가장 끝 위치를 추정한다(읽기 전용).
+
+    샘플링이라 듬성듬성한 뒤쪽 데이터는 놓칠 수 있다. 호출하는 쪽이 여유(margin)를 더하고,
+    사용자가 '전체 검사'를 고를 수 있게 해야 한다.
+    반환: {"last_data_offset": int|None, "samples": n, "nonzero": n, "cancelled": bool}
+    """
+    last, nonzero, n = None, 0, 0
+    for off in range(0, max(0, total_bytes - BS), step):
+        if should_cancel and should_cancel():
+            return {"last_data_offset": last, "samples": n, "nonzero": nonzero, "cancelled": True}
+        blk = dev.read_at(off, BS)
+        n += 1
+        if any(blk):
+            nonzero += 1
+            last = off
+        if on_progress and n % 200 == 0:
+            on_progress({"pos": off, "total": total_bytes})
+    return {"last_data_offset": last, "samples": n, "nonzero": nonzero, "cancelled": False}

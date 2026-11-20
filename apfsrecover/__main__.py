@@ -3,7 +3,8 @@
   python3 -m apfsrecover scan /dev/rdisk4s2 <시작블록> <끝블록> <출력.jsonl>
   python3 -m apfsrecover survey /dev/rdisk4s2 <총바이트> <샘플간격MB> <구간GB>
   python3 -m apfsrecover catalog <장치> <세션폴더> <시작블록> <끝블록>   (파일 목록 만들기, 이어하기 지원)
-  python3 -m apfsrecover summary <세션폴더>                              (목록 요약)"""
+  python3 -m apfsrecover summary <세션폴더>                              (목록 요약)
+  python3 -m apfsrecover gui [--session 폴더] [--port N]                (웹 화면, 관리자 권한 필요)"""
 import sys
 
 from .blockdev import ReadOnlyDevice
@@ -65,7 +66,43 @@ def inspect(path: str) -> int:
     return 0
 
 
+def gui(args):
+    import argparse
+    import os
+    import threading
+    import webbrowser
+    from .server import App, serve
+    from .ownership import expand
+    ap = argparse.ArgumentParser(prog="apfsrecover gui")
+    ap.add_argument("--port", type=int, default=0)
+    ap.add_argument("--session", default="~/Documents/recovered/session")
+    ap.add_argument("--image", action="append", default=[], metavar="이름=경로",
+                    help="시연/테스트용 디스크 이미지 파일 등록(읽기 전용)")
+    ap.add_argument("--no-open", action="store_true")
+    a = ap.parse_args(args)
+    images = {}
+    for item in a.image:
+        name, _, path = item.partition("=")
+        images[name] = os.path.realpath(expand(path))
+    app = App(a.session, images=images, sample_step=(64 * 1024 if images else 128 * 1024 * 1024))
+    httpd, url = serve(app, a.port)
+    if hasattr(os, "geteuid") and os.geteuid() != 0 and not images:
+        print("주의: 관리자 권한이 아니라서 원본 디스크를 읽지 못할 수 있습니다. sudo 로 다시 실행하세요.")
+    print("읽기 전용 복구 도구가 시작되었습니다. 브라우저에서 아래 주소를 여세요(이 컴퓨터에서만 접속 가능):", flush=True)
+    print("  " + url, flush=True)
+    print("종료: Ctrl+C", flush=True)
+    if not a.no_open:
+        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\n종료합니다.")
+    return 0
+
+
 def main(argv):
+    if len(argv) >= 2 and argv[1] == "gui":
+        return gui(argv[2:])
     if len(argv) == 3 and argv[1] == "inspect":
         return inspect(argv[2])
     if len(argv) == 6 and argv[1] == "catalog":

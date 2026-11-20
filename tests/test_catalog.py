@@ -87,6 +87,26 @@ class CatalogTest(Base):
         strip = lambda rs: [(r["offset"], r["length"], r["kind"], r["structure"]) for r in rs]
         self.assertEqual(strip(self.records(sess)), strip(self.records(full)))
 
+    def test_rescan_with_other_range_archives_old_session(self):
+        rc, s = self.run_catalog()
+        n_before = len(self.records(s))
+        open(os.path.join(s, "extracted.jsonl"), "w").write('{"id": 1}\n')
+        rc = cat.catalog(self.img, s, 0, 1000, on_progress=lambda p: None)  # 다른 범위
+        self.assertEqual(rc, 0)
+        archives = [d for d in os.listdir(s) if d.startswith("archive_")]
+        self.assertEqual(len(archives), 1)
+        self.assertEqual(len(self.records(os.path.join(s, archives[0]))), n_before)
+        self.assertTrue(os.path.exists(os.path.join(s, archives[0], "extracted.jsonl")))
+        self.assertFalse(os.path.exists(os.path.join(s, "extracted.jsonl")))
+        ids = [r["id"] for r in self.records(s)]
+        self.assertEqual(ids, list(range(1, len(ids) + 1)))  # 번호가 새로 1부터
+
+    def test_fresh_flag_forces_new_scan(self):
+        rc, s = self.run_catalog()
+        rc = cat.catalog(self.img, s, 0, self.total, on_progress=lambda p: None, fresh=True)
+        self.assertEqual(rc, 0)
+        self.assertEqual(len([d for d in os.listdir(s) if d.startswith("archive_")]), 1)
+
     def test_summary(self):
         _, s = self.run_catalog()
         sm = cat.summarize(s)

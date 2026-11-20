@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APFS 복구 도구</title>
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --text:#1c2430; --muted:#5b6678; --line:#dfe3ea;
+  --accent:#2457d6; --accent-t:#ffffff; --ok:#17703a; --ok-bg:#e3f4ea;
+  --warn:#8a5a00; --warn-bg:#fff2d6; --bad:#a3261f; --bad-bg:#fde7e5; --bar:#e8ebf1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#12161c; --panel:#1b212b; --text:#e6e9ef; --muted:#9aa5b8; --line:#2c3441;
+    --accent:#6e96ff; --accent-t:#0c1220; --ok:#6fd49a; --ok-bg:#16301f;
+    --warn:#f0c36a; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3b1c1a; --bar:#2a3240;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#12161c; --panel:#1b212b; --text:#e6e9ef; --muted:#9aa5b8; --line:#2c3441;
+  --accent:#6e96ff; --accent-t:#0c1220; --ok:#6fd49a; --ok-bg:#16301f;
+  --warn:#f0c36a; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3b1c1a; --bar:#2a3240;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text);
+  font:15px/1.55 -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
+.wrap { max-width:980px; margin:0 auto; padding:0 16px 48px; }
+.safe { background:var(--ok-bg); color:var(--ok); padding:8px 16px; font-weight:600; text-align:center; }
+header { display:flex; justify-content:space-between; align-items:center; padding:20px 0 8px; }
+h1 { font-size:20px; margin:0; } h2 { font-size:18px; margin:0 0 12px; }
+h3 { font-size:14px; margin:20px 0 8px; color:var(--muted); font-weight:600; }
+.steps { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 20px; padding:0; list-style:none; }
+.steps button { border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px;
+  padding:6px 14px; font:inherit; cursor:pointer; }
+.steps button[aria-current="step"] { background:var(--accent); color:var(--accent-t); border-color:var(--accent); font-weight:600; }
+.steps button:disabled { opacity:.45; cursor:not-allowed; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; }
+.screen { display:none; } .screen.on { display:block; }
+button.primary { background:var(--accent); color:var(--accent-t); border:0; border-radius:8px; padding:10px 18px;
+  font:inherit; font-weight:600; cursor:pointer; }
+button.primary:disabled { opacity:.45; cursor:not-allowed; }
+button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); border-radius:8px;
+  padding:9px 16px; font:inherit; cursor:pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.muted { color:var(--muted); }
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { color:var(--muted); font-weight:600; font-size:13px; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.tag { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600; margin-right:4px; }
+.tag.ok { background:var(--ok-bg); color:var(--ok); } .tag.warn { background:var(--warn-bg); color:var(--warn); }
+.tag.bad { background:var(--bad-bg); color:var(--bad); }
+.bar { height:12px; background:var(--bar); border-radius:999px; overflow:hidden; }
+.bar > i { display:block; height:100%; background:var(--accent); width:0; transition:width .3s; }
+.kv { display:grid; grid-template-columns:160px 1fr; gap:6px 12px; } .kv dt { color:var(--muted); } .kv dd { margin:0; }
+.disk { display:flex; gap:12px; align-items:center; border:2px solid var(--line); border-radius:10px; padding:14px; margin:8px 0; cursor:pointer; }
+.disk.sel { border-color:var(--accent); }
+.callout { border-left:4px solid var(--accent); background:var(--bg); padding:10px 14px; border-radius:6px; margin:12px 0; }
+.callout.warn { border-color:var(--warn); background:var(--warn-bg); } .callout.bad { border-color:var(--bad); background:var(--bad-bg); }
+.callout.ok { border-color:var(--ok); background:var(--ok-bg); }
+label { display:block; font-weight:600; margin:10px 0 4px; }
+.checks label { display:flex; gap:8px; align-items:center; font-weight:400; margin:6px 0; }
+input[type=text], input[type=number], select { width:100%; padding:9px 10px; border:1px solid var(--line);
+  border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
+.months { display:flex; align-items:flex-end; gap:3px; height:90px; }
+.months div { flex:1; background:var(--accent); opacity:.75; border-radius:3px 3px 0 0; min-width:4px; }
+.mono { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; word-break:break-all; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; } @media (max-width:760px){ .grid2 { grid-template-columns:1fr; } }
+footer.nav { display:flex; justify-content:space-between; gap:8px; margin-top:16px; flex-wrap:wrap; }
+pre { white-space:pre-wrap; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--line); }
+ul.plain { margin:6px 0 0 18px; padding:0; }
+</style>
+</head>
+<body>
+<div class="safe" role="status">🔒 읽기 전용 — 원본 디스크에는 아무것도 쓰지 않습니다</div>
+<div class="wrap">
+<header><h1>APFS 복구 도구</h1><span class="row"><button class="ghost" id="quit" title="관리자 권한으로 실행 중인 도구를 끕니다">⏻ 도구 종료</button><button class="ghost" id="theme" aria-label="테마 전환">🌓 테마</button></span></header>
+<ol class="steps" id="steps"></ol>
+<div id="banner"></div>
+
+<section class="screen card" id="s0">
+  <h2>1. 디스크 선택</h2>
+  <p class="muted">외장 디스크만 표시됩니다. 내장·시스템 디스크는 보여 주지 않습니다.</p>
+  <div id="devlist"></div>
+  <label class="checks" style="margin-top:12px"><span style="display:flex;gap:8px;align-items:center;font-weight:400">
+    <input type="checkbox" id="fullscan"> 디스크 전체를 검사 (느림). 기본은 데이터가 있는 구간까지만 읽습니다.</span></label>
+  <h3>간편 복구 — 이 두 가지만 정하고 시작하면 검사 → 복구 → 검증을 알아서 끝까지 합니다</h3>
+  <div class="checks" id="autokinds">
+    <label><input type="checkbox" value="photo" checked> 사진 (JPEG · HEIC)</label>
+    <label><input type="checkbox" value="raw" checked> RAW (CR3)</label>
+    <label><input type="checkbox" value="video" checked> 영상 (MP4 · MOV)</label>
+  </div>
+  <label for="autodest">저장 폴더 (원본 디스크·프로젝트·시스템 폴더는 안 됩니다)</label>
+  <input type="text" id="autodest" spellcheck="false" placeholder="예: ~/Documents/recovered/photos">
+  <p class="muted" style="font-size:13px">저장 공간이 모자라면 복구를 시작하기 전에 멈추고 알려 드립니다. 그때 묶음으로 나눠서 꺼낼 수 있습니다.</p>
+  <div id="sessioninfo" class="muted" style="margin-top:8px"></div>
+  <footer class="nav">
+    <span class="row"><button class="ghost" id="refresh">새로고침</button><button class="ghost" id="startscan" disabled>검사만 하기 (단계별)</button></span>
+    <span class="row"><button class="ghost" id="resume" hidden>이어서 검사</button>
+    <button class="primary" id="startauto" disabled>자동 복구 시작</button></span>
+  </footer>
+</section>
+
+<section class="screen card" id="s6">
+  <h2>자동 복구</h2>
+  <ol id="autosteps" class="plain" style="list-style:none;margin:0 0 12px;padding:0"></ol>
+  <div class="bar"><i id="autofill"></i></div>
+  <dl class="kv" style="margin-top:14px" id="autokv"></dl>
+  <div id="automsg"></div>
+  <footer class="nav"><button class="ghost" id="autocancel">중단</button>
+    <span class="row"><button class="ghost" id="autoplan" hidden>계획 화면으로</button><button class="ghost" id="autoverify" hidden>검증 결과 보기</button><button class="primary" id="autoback" hidden>처음으로</button></span></footer>
+</section>
+
+<section class="screen card" id="s1">
+  <h2>2. 검사</h2>
+  <p id="scanphase" class="muted"></p>
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="scanbar"><i id="scanfill"></i></div>
+  <dl class="kv" style="margin-top:14px" id="scankv"></dl>
+  <div id="scanmsg"></div>
+  <footer class="nav"><button class="ghost" id="scancancel">취소</button><span></span></footer>
+</section>
+
+<section class="screen card" id="s2">
+  <h2>3. 검사 결과</h2>
+  <div id="resultbox"><p class="muted">검사 결과가 없습니다. 먼저 검사를 실행하세요.</p></div>
+  <footer class="nav"><button class="ghost" data-go="0">디스크 선택</button><button class="primary" id="toplan" data-go="3" disabled>복구 계획 세우기</button></footer>
+</section>
+
+<section class="screen card" id="s3">
+  <h2>4. 복구 계획</h2>
+  <div class="grid2">
+    <div>
+      <h3>무엇을</h3><div class="checks" id="kinds"></div>
+      <label class="checks"><span style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="suspect"> ‘의심’ 항목도 포함 (조각나서 깨졌을 수 있음)</span></label>
+      <h3>얼마씩</h3>
+      <div class="row"><input type="number" id="batch" value="50" min="0.001" step="any" style="width:120px">
+        <select id="unit" style="width:90px"><option value="gb">GB</option><option value="n">개</option></select>
+        <span class="muted">씩 나눠서 꺼냅니다</span></div>
+    </div>
+    <div>
+      <h3>어디에</h3>
+      <label for="dest">저장 폴더 (원본 디스크·프로젝트·시스템 폴더는 안 됩니다)</label>
+      <input type="text" id="dest" spellcheck="false" placeholder="예: ~/Documents/recovered/photos">
+      <div id="planinfo" class="muted" style="margin-top:12px"></div>
+      <div id="plancheck"></div>
+      <h3>폴더 구조</h3>
+      <div class="mono muted">촬영일/종류_번호_위치.확장자<br>예) 2024-03-06/jpg_000123_blk25792.jpg<br>촬영일을 모르면 날짜불명/</div>
+    </div>
+  </div>
+  <footer class="nav"><button class="ghost" data-go="2">결과로</button><button class="primary" id="startextract" disabled>이 묶음 복구 시작</button></footer>
+</section>
+
+<section class="screen card" id="s4">
+  <h2>5. 복구</h2>
+  <div class="bar"><i id="exfill"></i></div>
+  <dl class="kv" style="margin-top:14px" id="exkv"></dl>
+  <div id="exmsg"></div>
+  <footer class="nav"><button class="ghost" id="excancel">중단</button>
+    <span class="row"><button class="ghost" id="nextbatch" hidden>다음 묶음</button><button class="primary" id="toverify" data-go="5">검증으로</button></span></footer>
+</section>
+
+<section class="screen card" id="s5">
+  <h2>6. 검증</h2>
+  <p class="muted">꺼낸 파일을 열어서 확인합니다. 저장 폴더의 파일만 읽습니다.</p>
+  <label class="checks"><span style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="deep" checked> 깊은 검증 (사진 디코딩 포함, 시간이 더 걸림)</span></label>
+  <div id="tools" class="muted"></div>
+  <div class="bar" style="margin-top:12px"><i id="vfill"></i></div>
+  <div id="vbox"></div>
+  <footer class="nav"><button class="ghost" id="report">보고서 보기</button><span class="row"><button class="ghost" id="vcancel" hidden>중단</button><button class="primary" id="startverify">검증 시작</button></span></footer>
+  <pre id="reportbox" hidden></pre>
+</section>
+</div>
+
+<script>
+const T = new URLSearchParams(location.search).get('token') || '';
+const $ = (s, r = document) => r.querySelector(s);
+const STEPS = ['① 디스크', '② 검사', '③ 결과', '④ 계획', '⑤ 복구', '⑥ 검증'];
+const KIND = { 'jpeg': 'JPEG 사진', 'raw-cr3': 'RAW (CR3)', 'heic': 'HEIC 사진', 'video-mp4': '영상 (MP4)',
+  'video-mov': '영상 (MOV)', 'unknown-bmff': '알 수 없는 형식' };
+const REASON_STATE = { cancelled: '중단했습니다.', disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.',
+  refused: '시작할 수 없습니다.', error: '오류가 발생했습니다.' };
+let S = { autoPlan: null, devices: [], sel: null, session: null, summary: null, job: null, seenFinished: null, screen: 0, canResume: false, lastCheck: null };
+
+// ---- 안전한 DOM 생성 (서버 문자열은 항상 textContent 로만 넣는다) ----
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else e.setAttribute(k, v); }
+  for (const c of kids.flat()) e.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return e;
+}
+const clear = e => { while (e.firstChild) e.removeChild(e.firstChild); return e; };
+const gb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : (b / 1e6).toFixed(1) + ' MB';
+const eta = s => s == null ? '' : s < 90 ? '약 ' + s + '초' : s < 5400 ? '약 ' + Math.round(s / 60) + '분' : '약 ' + (s / 3600).toFixed(1) + '시간';
+const tag = (cls, t) => h('span', { class: 'tag ' + cls }, t);
+const callout = (cls, ...kids) => h('div', { class: 'callout ' + cls }, ...kids);
+
+async function api(path, body) {
+  const opt = { headers: { 'X-Token': T } };
+  if (body !== undefined) { opt.method = 'POST'; opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  const ct = r.headers.get('content-type') || '';
+  const data = ct.includes('json') ? await r.json() : await r.text();
+  if (!r.ok) { const e = new Error((data && data.error) || r.statusText); e.status = r.status; throw e; }
+  return data;
+}
+function banner(kind, text) { const b = clear($('#banner')); if (text) b.append(callout(kind, text)); }
+
+// ---- 화면 전환 ----
+function renderSteps() {
+  const ol = clear($('#steps'));
+  STEPS.forEach((t, i) => {
+    const b = h('button', { 'data-go': i }, t);
+    if (i === S.screen) b.setAttribute('aria-current', 'step');
+    if (i >= 2 && !S.session?.has_catalog) b.disabled = true;
+    ol.append(h('li', {}, b));
+  });
+}
+function go(i) {
+  S.screen = i;
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's' + i));  // HTML 순서가 아니라 id 로 찾는다
+  renderSteps(); window.scrollTo(0, 0);
+  if (i === 0) loadDevices();
+  if (i === 2) loadResult();
+  if (i === 3) initPlan();
+  if (i === 5) loadVerify();
+  renderJob();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b && !b.disabled) go(+b.dataset.go); });
+
+// ---- 1. 디스크 ----
+async function loadDevices() {
+  try {
+    const [d, s] = await Promise.all([api('/api/devices'), api('/api/session')]);
+    S.devices = d.devices; S.session = s;
+    S.canResume = !!(s.device && s.device.finished === false);
+    renderSteps();
+    const box = clear($('#devlist'));
+    if (!S.devices.length) box.append(callout('warn', '연결된 외장 디스크가 없습니다. 케이블을 확인하고 [새로고침]을 누르세요.'));
+    if (S.sel && !S.devices.find(x => x.id === S.sel)) S.sel = null;
+    S.devices.forEach(dv => {
+      const el = h('div', { class: 'disk' + (dv.id === S.sel ? ' sel' : ''), tabindex: 0, role: 'radio', 'aria-checked': String(dv.id === S.sel) },
+        h('div', { style: 'font-size:28px' }, '💾'),
+        h('div', { style: 'flex:1' }, h('b', {}, dv.id + ' · ' + gb(dv.size)), ' ',
+          dv.readable ? tag('ok', '읽을 수 있음') : tag('bad', '관리자 권한 필요'),
+          h('br'), h('span', { class: 'muted mono' }, dv.content + (dv.label ? ' · ' + dv.label : '') + (dv.mounts.length ? ' · 마운트됨' : ' · 마운트되지 않음'))));
+      const pick = () => { S.sel = dv.id; loadDevices(); };
+      el.onclick = pick; el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } };
+      box.append(el);
+    });
+    const dv = S.devices.find(x => x.id === S.sel);
+    $('#startscan').disabled = !(dv && dv.readable);
+    $('#startauto').disabled = !(dv && dv.readable);
+    if (!$('#autodest').value) $('#autodest').value = (s.dest || '~/Documents/recovered/photos');
+    $('#resume').hidden = !(S.canResume && dv);
+    $('#sessioninfo').textContent = '작업 폴더: ' + s.session + (s.has_catalog ? ' · 이전 검사 결과가 있습니다.' : '');
+    if (!d.is_root && !d.images) banner('warn', '관리자 권한이 아닙니다. 원본 디스크를 읽으려면 sudo 로 다시 실행해야 합니다.'); else banner('', '');
+  } catch (e) { banner('bad', '서버와 통신하지 못했습니다: ' + e.message); }
+}
+async function startScan(resume) {
+  try {
+    await api('/api/scan/start', { device_id: S.sel, full: $('#fullscan').checked, resume });
+    S.seenFinished = null; go(1); poll();
+  } catch (e) { banner('bad', e.message); }
+}
+const KINDMAP = { photo: ['jpeg', 'heic'], raw: ['raw-cr3'], video: ['video-mp4', 'video-mov'] };
+function autoPlan() {
+  const kinds = [...document.querySelectorAll('#autokinds input:checked')].flatMap(i => KINDMAP[i.value]);
+  return { dest: $('#autodest').value.trim(), kinds, include_suspect: false };
+}
+async function startAuto(resume) {
+  const plan = autoPlan();
+  if (!plan.kinds.length) { banner('bad', '복구할 종류를 하나 이상 고르세요.'); return; }
+  if (!plan.dest) { banner('bad', '저장 폴더를 입력하세요.'); return; }
+  try {
+    await api('/api/auto/start', { device_id: S.sel, plan, full: $('#fullscan').checked, resume });
+    S.autoPlan = plan; S.seenFinished = null; banner('', ''); go(6); poll();
+  } catch (e) { banner('bad', e.message); }
+}
+$('#startauto').onclick = () => startAuto(false);
+$('#startscan').onclick = () => startScan(false);
+$('#resume').onclick = () => (S.autoPlan ? startAuto(true) : startScan(true));
+$('#refresh').onclick = loadDevices;
+
+// ---- 작업 진행 (검사 / 복구 / 검증 공통) ----
+async function poll() {
+  try { S.job = (await api('/api/job')).job; } catch (e) { return; }
+  renderJob();
+  if (S.job && S.job.state === 'running') setTimeout(poll, 700);
+  else if (S.job && S.seenFinished !== S.job.id) { S.seenFinished = S.job.id; await onFinished(S.job); }
+}
+function renderJob() {
+  const j = S.job; if (!j) return;
+  const p = j.progress || {}; const pct = p.total_bytes ? Math.min(100, 100 * p.done_bytes / p.total_bytes) : (p.total ? 100 * p.done / p.total : 0);
+  if (j.kind === 'scan' && S.screen === 1) {
+    $('#scanphase').textContent = j.phase === 'sampling' ? '1/2 데이터가 있는 구간을 확인하는 중 (듬성듬성 읽기)' : '2/2 사진·영상 파일을 찾는 중';
+    $('#scanfill').style.width = pct + '%'; $('#scanbar').setAttribute('aria-valuenow', Math.round(pct));
+    const kv = clear($('#scankv'));
+    const rows = [['진행', pct.toFixed(1) + '%'], ['읽은 양', p.total_bytes ? gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes) : '-'],
+      ['속도 / 남은 시간', (p.rate_mb_s || 0) + ' MB/s · ' + (j.state === 'running' ? eta(p.eta_s) : '')]];
+    if (p.found != null) rows.push(['찾은 파일', p.found + '개']);
+    rows.forEach(([k, v]) => kv.append(h('dt', {}, k), h('dd', {}, v)));
+    $('#scancancel').disabled = j.state !== 'running';
+  }
+  if (j.kind === 'auto' && S.screen === 6) {
+    const order = { sampling: 0, cataloging: 0, extracting: 1, verifying: 2 }; const cur = order[j.phase] ?? 0;
+    const labels = ['1. 검사 — ' + (j.phase === 'sampling' ? '데이터 위치 확인' : '사진·영상 찾기'), '2. 복구 — 저장 폴더로 꺼내기', '3. 검증 — 열리는지 확인'];
+    const ol = clear($('#autosteps'));
+    labels.forEach((t, i) => ol.append(h('li', { style: 'padding:3px 0;' + (i === cur && j.state === 'running' ? 'font-weight:700' : '') + (i > cur ? ';color:var(--muted)' : '') },
+      (i < cur || (j.state === 'done') ? '✅ ' : i === cur && j.state === 'running' ? '▶ ' : '· ') + t)));
+    $('#autofill').style.width = pct + '%';
+    const kv = clear($('#autokv')); let rows = [];
+    if (cur < 2) rows = [['진행', pct.toFixed(1) + '%'], ['읽은 양', p.total_bytes ? gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes) : '-']].concat(p.found != null ? [['찾은 파일', p.found + '개']] : []);
+    if (cur === 1) rows = [['진행', pct.toFixed(1) + '%'], ['파일', (p.files || 0) + ' / ' + (p.total_files || 0) + ' 개'], ['용량', gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes || 0)], ['지금 파일', p.current || '-']];
+    if (cur === 2) rows = [['검사함', (p.done || 0) + ' / ' + (p.total || 0)], ['정상 / 실패', (p.ok || 0) + ' / ' + (p.fail || 0)]];
+    if (cur < 2 || cur === 1) rows.push(['속도 / 남은 시간', (p.rate_mb_s || 0) + ' MB/s · ' + (j.state === 'running' ? eta(p.eta_s) : '')]);
+    rows.forEach(([k, v]) => kv.append(h('dt', {}, k), h('dd', { class: k === '지금 파일' ? 'mono' : '' }, v)));
+    $('#autocancel').disabled = j.state !== 'running';
+  }
+  if (j.kind === 'extract' && S.screen === 4) {
+    $('#exfill').style.width = pct + '%';
+    const kv = clear($('#exkv'));
+    [['진행', pct.toFixed(1) + '%'], ['파일', (p.files || 0) + ' / ' + (p.total_files || 0) + ' 개'],
+      ['용량', gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes || 0)], ['속도 / 남은 시간', (p.rate_mb_s || 0) + ' MB/s · ' + (j.state === 'running' ? eta(p.eta_s) : '')],
+      ['지금 파일', p.current || '-']].forEach(([k, v]) => kv.append(h('dt', {}, k), h('dd', { class: k === '지금 파일' ? 'mono' : '' }, v)));
+    $('#excancel').disabled = j.state !== 'running';
+  }
+  if (j.kind === 'verify' && S.screen === 5) {
+    $('#vfill').style.width = (p.total ? 100 * p.done / p.total : 0) + '%';
+    $('#vcancel').hidden = j.state !== 'running'; $('#startverify').disabled = j.state === 'running';
+    if (j.state === 'running') { const b = clear($('#vbox')); b.append(h('p', {}, (p.done || 0) + ' / ' + (p.total || 0) + ' 검사함 · 정상 ' + (p.ok || 0) + ' · 실패 ' + (p.fail || 0))); }
+  }
+}
+async function onFinished(j) {
+  await loadSession();
+  if (j.kind === 'scan') {
+    if (j.state === 'done' && !(j.result && j.result.found === 0)) { go(2); return; }
+    const m = clear($('#scanmsg'));
+    if (j.state === 'done') m.append(callout('warn', j.error || '파일을 찾지 못했습니다.'));
+    else m.append(callout(j.state === 'cancelled' ? '' : 'bad', (REASON_STATE[j.state] || j.state) + ' ' + (j.error || ''), j.state === 'cancelled' ? ' 디스크에는 영향이 없습니다.' : ''));
+    $('#scancancel').textContent = '디스크 선택으로'; $('#scancancel').onclick = () => { $('#scancancel').textContent = '취소'; $('#autocancel').onclick = cancelJob; $('#scancancel').onclick = cancelJob; go(0); };
+    $('#scancancel').disabled = false;
+  }
+  if (j.kind === 'auto') {
+    const m = clear($('#automsg')); const r = j.result || {}; $('#autocancel').disabled = true;
+    ['autoplan', 'autoverify', 'autoback'].forEach(id => $('#' + id).hidden = true);
+    if (j.state === 'done') {
+      const v = r.verify || {};
+      m.append(callout(v.fail ? 'warn' : 'ok', h('b', {}, '완료: ' + (r.files || 0).toLocaleString() + '개(' + gb(r.bytes || 0) + ')를 꺼냈고 열림 확인 ' + (v.ok || 0).toLocaleString() + ' · 실패 ' + (v.fail || 0).toLocaleString() + ' 입니다.'),
+        h('br'), '저장 위치: ', h('span', { class: 'mono' }, r.dest || '')));
+      m.append(h('p', { class: 'muted' }, '검증 수준: ' + Object.entries(v.levels || {}).map(([k, n]) => k + ' ' + n).join(', ') + ' (structure=구조만, decode=이미지 디코딩). 재생·현상 프로그램에서의 열림은 확인하지 못했습니다.'));
+      $('#autoverify').hidden = false; $('#autoback').hidden = false;
+    } else if (j.state === 'needs_plan') {
+      const ov = r.overview || {};
+      m.append(callout('warn', h('b', {}, '복구를 시작하기 전에 멈췄습니다.'), h('br'), j.error || '', h('br'),
+        '선택한 파일 ' + (ov.files || 0).toLocaleString() + '개 · ' + gb(ov.bytes || 0) + ' — 검사 결과는 저장되어 있어서 다시 검사하지 않아도 됩니다.'));
+      $('#autoplan').hidden = false; $('#autoback').hidden = false;
+    } else if (j.state === 'cancelled') {
+      m.append(callout('', '중단했습니다. 디스크에는 영향이 없습니다. 이미 꺼낸 파일은 저장 폴더에 남아 있습니다.')); $('#autoback').hidden = false;
+    } else {
+      m.append(callout('bad', (REASON_STATE[j.state] || j.state) + ' ' + (j.error || '')));
+      if (r.files) m.append(h('p', { class: 'muted' }, '여기까지 ' + r.files + '개를 꺼냈습니다. 다시 시작하면 이어서 합니다.'));
+      $('#autoback').hidden = false;
+    }
+  }
+  if (j.kind === 'extract') {
+    const m = clear($('#exmsg')); const r = j.result || {};
+    m.append(callout(j.state === 'done' ? 'ok' : 'warn', (j.state === 'done' ? '이번 묶음을 꺼냈습니다. ' : (REASON_STATE[j.state] || j.state) + ' ') + (r.files || 0) + '개(' + gb(r.bytes || 0) + ') 저장됨. ' + (j.error || '')));
+    const chk = await checkPlan().catch(() => null);
+    $('#nextbatch').hidden = !(chk && chk.ok);
+    if (j.state === 'done' && chk && !chk.ok) m.append(callout('ok', '이 계획의 파일을 모두 꺼냈습니다. [검증으로]를 눌러 열리는지 확인하세요.'));
+    if (j.state === 'done' && chk && chk.ok) m.append(callout('', '다음 묶음이 남아 있습니다. 저장 폴더의 파일을 다른 곳으로 옮겨 공간을 비운 뒤 [다음 묶음]을 눌러도 됩니다.'));
+    $('#excancel').disabled = true;
+  }
+  if (j.kind === 'verify') { loadVerify(); }
+}
+async function loadSession() { try { S.session = await api('/api/session'); renderSteps(); } catch (e) { } }
+$('#autoplan').onclick = () => go(3);
+$('#autoverify').onclick = () => go(5);
+$('#autoback').onclick = () => go(0);
+const cancelJob = () => api('/api/job/cancel', {}).catch(() => { });
+$('#scancancel').onclick = cancelJob; $('#excancel').onclick = cancelJob; $('#vcancel').onclick = cancelJob;
+
+// ---- 3. 결과 ----
+async function loadResult() {
+  const box = clear($('#resultbox'));
+  try { S.summary = await api('/api/catalog/summary'); } catch (e) { box.append(h('p', { class: 'muted' }, '검사 결과가 없습니다. 먼저 검사를 실행하세요.')); $('#toplan').disabled = true; return; }
+  const s = S.summary; const total = Object.values(s.bytes).reduce((a, b) => a + b, 0);
+  $('#toplan').disabled = s.total === 0;
+  box.append(callout(s.total ? 'ok' : 'warn', h('b', {}, '사진·영상 ' + s.total.toLocaleString() + '개(약 ' + gb(total) + ')를 찾았습니다.'),
+    ' 원래 파일명과 폴더 구조는 복구할 수 없습니다. 촬영일과 카메라 정보로 정리합니다.'));
+  const tb = h('tbody');
+  Object.keys(s.kinds).sort().forEach(k => {
+    const st = s.structure[k] || {};
+    tb.append(h('tr', {}, h('td', {}, KIND[k] || k), h('td', { class: 'num' }, s.kinds[k].toLocaleString()), h('td', { class: 'num' }, gb(s.bytes[k])),
+      h('td', {}, st.ok ? tag('ok', '확인됨 ' + st.ok.toLocaleString()) : '', st.suspect ? tag('warn', '의심 ' + st.suspect.toLocaleString()) : '')));
+  });
+  box.append(h('h3', {}, '종류별'), h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, '종류'), h('th', { class: 'num' }, '개수'), h('th', { class: 'num' }, '용량'), h('th', {}, '구조 점검'))), tb));
+  const months = Object.entries(s.months);
+  if (months.length) {
+    const mx = Math.max(...months.map(m => m[1])); const bars = h('div', { class: 'months', role: 'img', 'aria-label': '월별 촬영 수' });
+    months.forEach(([m, n]) => bars.append(h('div', { style: 'height:' + Math.max(3, 90 * n / mx) + 'px', title: m + ': ' + n + '개' })));
+    box.append(h('h3', {}, '촬영일 분포 (월별)'), bars, h('div', { class: 'muted', style: 'font-size:13px' }, months[0][0] + ' ~ ' + months[months.length - 1][0] + ' · 촬영일 없음 ' + s.undated.toLocaleString() + '개 (날짜불명 폴더)'));
+  }
+  const models = Object.entries(s.models); if (models.length) box.append(h('h3', {}, '카메라'), h('div', {}, models.map(([m, n]) => m + ' (' + n.toLocaleString() + ')').join(', ')));
+  box.append(h('h3', {}, '알려진 한계'), h('ul', { class: 'plain muted' },
+    h('li', {}, '지워진 옛 파일이 섞여 있을 수 있습니다. 구분할 방법이 없습니다.'),
+    h('li', {}, '큰 영상은 조각나 있으면 일부가 깨질 수 있습니다. ‘의심’ 항목이 해당합니다.'),
+    h('li', {}, '‘확인됨’은 파일 구조가 맞다는 뜻이며, 실제로 열리는지는 6단계 검증에서 확인합니다.')));
+}
+
+// ---- 4. 계획 ----
+function currentPlan() {
+  const kinds = [...document.querySelectorAll('#kinds input:checked')].map(i => i.value);
+  return { dest: $('#dest').value.trim(), kinds, include_suspect: $('#suspect').checked,
+    batch: { unit: $('#unit').value, size: parseFloat($('#batch').value) || 0 } };
+}
+async function initPlan() {
+  if (!S.summary) { try { S.summary = await api('/api/catalog/summary'); } catch (e) { return; } }
+  const box = clear($('#kinds'));
+  Object.keys(S.summary.kinds).sort().forEach(k => {
+    const cb = h('input', { type: 'checkbox', value: k }); cb.checked = k !== 'unknown-bmff'; cb.onchange = schedCheck;
+    box.append(h('label', {}, cb, (KIND[k] || k) + ' (' + S.summary.kinds[k].toLocaleString() + '개 · ' + gb(S.summary.bytes[k]) + ')'));
+  });
+  if (S.autoPlan) {
+    const ap = S.autoPlan; document.querySelectorAll('#kinds input').forEach(i => { i.checked = ap.kinds.includes(i.value); });
+    $('#dest').value = ap.dest; $('#suspect').checked = !!ap.include_suspect; $('#batch').value = 50; $('#unit').value = 'gb';
+  }
+  if (!$('#dest').value && S.session && S.session.dest) $('#dest').value = S.session.dest;
+  schedCheck();
+}
+let ct = null;
+function schedCheck() { clearTimeout(ct); ct = setTimeout(async () => { try { await checkPlan(true); } catch (e) { } }, 250); }
+async function checkPlan(render) {
+  const r = await api('/api/plan/check', { device_id: S.sel, plan: currentPlan() });
+  S.lastCheck = r;
+  if (render) {
+    const ov = r.overview; const info = clear($('#planinfo'));
+    info.append('선택한 파일 ' + ov.files.toLocaleString() + '개 · ' + gb(ov.bytes) + ' → 남은 묶음 ' + ov.batches_remaining + '개 (다음 묶음 ' + ov.next_files.toLocaleString() + '개, ' + gb(ov.next_bytes) + ')' + (ov.done_files ? ' · 이미 꺼낸 파일 ' + ov.done_files.toLocaleString() + '개' : ''));
+    const c = clear($('#plancheck'));
+    c.append(r.ok ? callout('ok', h('b', {}, '저장 가능'), ' — 여유 ' + gb(r.free) + ', 필요 ' + gb(r.need + r.margin) + '(마진 포함)')
+      : callout('bad', h('b', {}, '시작할 수 없습니다'), h('ul', { class: 'plain' }, r.reasons.map(x => h('li', {}, x)))));
+    $('#startextract').disabled = !r.ok;
+  }
+  return r;
+}
+['dest', 'batch', 'unit', 'suspect'].forEach(id => { $('#' + id).addEventListener('input', schedCheck); $('#' + id).addEventListener('change', schedCheck); });
+$('#startextract').onclick = async () => {
+  if (!S.sel) { banner('bad', '원본 디스크가 선택되지 않았습니다. 1단계에서 디스크를 다시 선택하세요(재연결하면 번호가 바뀔 수 있습니다).'); go(0); return; }
+  try { await api('/api/extract/start', { device_id: S.sel, plan: currentPlan() }); S.seenFinished = null; clear($('#exmsg')); $('#nextbatch').hidden = true; go(4); poll(); }
+  catch (e) { banner('bad', e.message); }
+};
+$('#nextbatch').onclick = () => $('#startextract').onclick();
+
+// ---- 6. 검증 ----
+async function loadVerify() {
+  try {
+    const [v, s] = await Promise.all([api('/api/verify/summary'), api('/api/session')]);
+    S.session = s;
+    const t = s.tools; $('#tools').textContent = '사용할 수 있는 도구: ' + [t.pillow && 'Pillow(사진 디코딩)', t.sips && 'sips(사진 디코딩)', t.ffprobe && 'ffprobe(영상 확인)'].filter(Boolean).join(', ') + (t.pillow || t.sips || t.ffprobe ? '' : '없음 — 구조 확인만 합니다') + (!t.ffprobe ? ' · 영상은 구조 확인까지만 합니다.' : '');
+    const box = clear($('#vbox')); if (!v.summary) return;
+    const m = v.summary; $('#vfill').style.width = '100%';
+    box.append(callout(m.fail ? 'warn' : 'ok', h('b', {}, '열림 확인 ' + m.ok.toLocaleString() + ' · 실패 ' + m.fail.toLocaleString() + ' · 미검사 ' + m.unchecked.toLocaleString()), m.cancelled ? ' (중단됨)' : ''));
+    box.append(h('p', { class: 'muted' }, '검증 수준: ' + Object.entries(m.levels).map(([k, n]) => k + ' ' + n).join(', ') + ' — structure=구조만, decode=이미지 디코딩, probe=영상 정보 읽기. 재생·현상 프로그램에서의 열림은 확인하지 못했습니다.'));
+    if (v.failures.length) {
+      const tb = h('tbody'); v.failures.forEach(f => tb.append(h('tr', {}, h('td', { class: 'mono' }, f.path), h('td', {}, tag('bad', '실패'), f.reason))));
+      box.append(h('h3', {}, '실패 목록 (최대 200개)'), h('table', {}, tb));
+    }
+  } catch (e) { }
+}
+$('#startverify').onclick = async () => {
+  try { await api('/api/verify/start', { deep: $('#deep').checked }); S.seenFinished = null; clear($('#vbox')); poll(); } catch (e) { banner('bad', e.message); }
+};
+$('#report').onclick = async () => { const p = $('#reportbox'); try { p.textContent = await api('/api/report'); p.hidden = false; } catch (e) { banner('bad', e.message); } };
+
+$('#quit').onclick = async () => {
+  if (!confirm('복구 도구를 종료할까요? 꺼낸 파일과 검사 결과는 그대로 남습니다.')) return;
+  try { await api('/api/shutdown', {}); document.body.replaceChildren(h('div', { class: 'wrap' }, h('p', {}, '도구를 종료했습니다. 이 창을 닫아도 됩니다.'))); }
+  catch (e) { banner('bad', e.message); }
+};
+$('#theme').onclick = () => { const r = document.documentElement; const cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.dataset.theme = cur === 'dark' ? 'light' : 'dark'; };
+
+(async function init() {
+  await loadSession();
+  try { const j = (await api('/api/job')).job; if (j && j.state === 'running') { S.job = j; go(j.kind === 'scan' ? 1 : j.kind === 'extract' ? 4 : j.kind === 'auto' ? 6 : 5); poll(); return; } } catch (e) { }
+  go(0);
+})();
+</script>
+</body>
+</html>
