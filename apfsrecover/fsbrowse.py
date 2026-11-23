@@ -8,6 +8,7 @@ from .guards import check_dest
 from .ownership import chown_tree, expand, real_home
 
 MAX_ENTRIES = 1000
+WIN_RESERVED = {"CON", "PRN", "AUX", "NUL"} | {"COM%d" % i for i in range(1, 10)} | {"LPT%d" % i for i in range(1, 10)}
 
 
 def _free(path):
@@ -29,6 +30,14 @@ def places(forbidden=()):
         p = os.path.join(home, sub) if sub else home
         if os.path.isdir(p):
             out.append({"name": name, "path": p, "external": False, "free": _free(p),
+                        "problems": _problems(p, forbidden)})
+    if os.name == "nt":
+        sysdrive = os.environ.get("SystemDrive", "C:").upper()
+        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            p = letter + ":\\"
+            if letter + ":" == sysdrive or not os.path.isdir(p):
+                continue
+            out.append({"name": "드라이브 " + letter + ":", "path": p, "external": True, "free": _free(p),
                         "problems": _problems(p, forbidden)})
     if sys.platform == "darwin" and os.path.isdir("/Volumes"):
         try:
@@ -64,7 +73,9 @@ def make_dir(parent, name, forbidden=()):
     name = (name or "").strip()
     if not name or len(name) > 100 or name in (".", "..") or name.startswith("."):
         raise ValueError("폴더 이름이 올바르지 않습니다.")
-    if any(c in name for c in "/\\\0") or any(ord(c) < 32 for c in name):
+    if any(c in name for c in "/\\\0") or any(ord(c) < 32 for c in name) or (
+            os.name == "nt" and (any(c in name for c in '<>:"|?*') or name.rstrip(". ") != name
+                                 or name.split(".")[0].upper() in WIN_RESERVED)):
         raise ValueError("폴더 이름에 쓸 수 없는 문자가 있습니다.")
     target = os.path.join(os.path.realpath(expand(parent)), name)
     problems = _problems(target, forbidden)

@@ -37,10 +37,10 @@ def auto(path: str, outdir: str) -> int:
         sb = parse_nxsb(dev.read_at(0, 4096))
     total = sb["block_count"] * sb["block_size"]
     try:
-        with open(os.path.join(outdir, "1_inspect.txt"), "w") as f, contextlib.redirect_stdout(f):
+        with open(os.path.join(outdir, "1_inspect.txt"), "w", encoding="utf-8") as f, contextlib.redirect_stdout(f):
             inspect(path)
         print("1/3 inspect 완료", flush=True)
-        with open(os.path.join(outdir, "2_survey.txt"), "w") as f, contextlib.redirect_stdout(f):
+        with open(os.path.join(outdir, "2_survey.txt"), "w", encoding="utf-8") as f, contextlib.redirect_stdout(f):
             survey(path, total, 128, 250)
         print("2/3 survey 완료 → 2_survey.txt", flush=True)
         r = scan(path, 0, sb["block_count"], os.path.join(outdir, "3_scan_full.jsonl"))

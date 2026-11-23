@@ -18,8 +18,9 @@ from . import devices as devmod
 from . import extract as ex
 from . import fsbrowse, guards
 from . import verify as vf
-from .blockdev import ReadOnlyDevice
+from .blockdev import ReadOnlyDevice, device_gone
 from .identity import fingerprint
+from .privilege import is_admin
 from .power import on_battery
 from .catalog import BS, catalog, summarize
 from .ownership import chown_tree, expand, real_home
@@ -83,10 +84,11 @@ class App:
         self.job = None
         self.lock = threading.Lock()
         self.port = None
+        self.all_disks = False  # 윈도우: 내장 버스(NVMe/SATA) 디스크도 목록에 표시
 
     # ---- 장치 ----
     def devices(self):
-        return devmod.list_devices(self.images)
+        return devmod.list_devices(self.images, all_disks=self.all_disks)
 
     def find_device(self, device_id):
         for d in self.devices():
@@ -174,9 +176,9 @@ class App:
             try:
                 target(job)
             except PermissionError:
-                job.finish("error", "이 장치를 읽을 권한이 없습니다. 관리자 권한(sudo)으로 다시 실행하세요.")
+                job.finish("error", "이 장치를 읽을 권한이 없습니다. 관리자 권한으로 다시 실행하세요(맥: RecoveryTool.command, 윈도우: RecoveryTool.bat).")
             except OSError as e:
-                if e.errno in (errno.ENXIO, errno.ENODEV):
+                if device_gone(e):
                     job.finish("disconnected", "장치 연결이 끊겼습니다. 원본은 읽기만 했으므로 안전합니다. "
                                "케이블을 다시 꽂고 장치를 다시 선택한 뒤 이어서 하세요.")
                 else:
@@ -280,13 +282,14 @@ class App:
             dest = chk["dest"]
             if r["state"] != "done":
                 return job.finish(r["state"], r["error"] or (self.DISCONNECT_MSG if r["state"] == "disconnected" else None),
-                                  files=r["files"], bytes=r["bytes"], failed=r["failed"], dest=dest, catalog=summ)
+                                  files=r["files"], bytes=r["bytes"], failed=r["failed"], duplicates=r["duplicates"], dest=dest,
+                                  catalog=summ)
             job.set_phase("verifying")
             v = vf.verify_session(self.session, dest,
                                   on_progress=lambda p: job.update(done=p["done"], total=p["total"], ok=p["ok"], fail=p["fail"]),
                                   should_cancel=job.cancel.is_set, deep=True)
             job.finish("cancelled" if v["cancelled"] else "done", files=r["files"], bytes=r["bytes"],
-                       failed=r["failed"], dest=dest, verify=v, catalog=summ)
+                       failed=r["failed"], duplicates=r["duplicates"], dest=dest, verify=v, catalog=summ)
         return target
 
     def extract_target(self, dev, plan):
@@ -302,7 +305,8 @@ class App:
                                                  current=p["current"]),
                 should_cancel=job.cancel.is_set)
             dest = os.path.realpath(expand(plan["dest"])) if r["state"] != "refused" else None
-            job.finish(r["state"], r["error"], files=r["files"], bytes=r["bytes"], failed=r["failed"], dest=dest)
+            job.finish(r["state"], r["error"], files=r["files"], bytes=r["bytes"], failed=r["failed"],
+                       duplicates=r["duplicates"], dest=dest)
         return target
 
     def verify_target(self, dest, deep):
@@ -418,7 +422,7 @@ def make_handler(app):
                         d["matches_session"] = bool(dj and dj.get("fingerprint") and d["readable"]
                                                     and app.fingerprint(d) == dj["fingerprint"])
                     return self._send(200, {"devices": devs, "images": bool(app.images),
-                                            "is_root": hasattr(os, "geteuid") and os.geteuid() == 0})
+                                            "is_root": is_admin()})
                 if u.path == "/api/session":
                     has = os.path.exists(os.path.join(app.session, "catalog.jsonl"))
                     dev = None
@@ -479,7 +483,7 @@ def make_handler(app):
                 if not dev:
                     return
                 if not dev["readable"]:
-                    return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한(sudo)으로 다시 실행하세요.")
+                    return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한으로 다시 실행하세요(맥: RecoveryTool.command, 윈도우: RecoveryTool.bat).")
                 job = app.start_job("scan", app.scan_target(dev, bool(body.get("full")), bool(body.get("resume"))))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/auto/start":
@@ -487,7 +491,7 @@ def make_handler(app):
                 if not dev:
                     return
                 if not dev["readable"]:
-                    return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한(sudo)으로 다시 실행하세요.")
+                    return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한으로 다시 실행하세요(맥: RecoveryTool.command, 윈도우: RecoveryTool.bat).")
                 plan = body.get("plan") or {}
                 if not plan.get("kinds"):
                     return self._err(400, "복구할 종류를 하나 이상 고르세요.")

@@ -79,6 +79,7 @@ def gui(args):
     ap.add_argument("--image", action="append", default=[], metavar="이름=경로",
                     help="시연/테스트용 디스크 이미지 파일 등록(읽기 전용)")
     ap.add_argument("--no-open", action="store_true")
+    ap.add_argument("--all-disks", action="store_true", help="윈도우: 내장 버스(NVMe/SATA) 디스크도 표시")
     a = ap.parse_args(args)
     images = {}
     for item in a.image:
@@ -86,14 +87,30 @@ def gui(args):
         images[name] = os.path.realpath(expand(path))
     from . import lock
     app = App(a.session, images=images, sample_step=(64 * 1024 if images else 128 * 1024 * 1024))
+    app.all_disks = a.all_disks
     try:
         lockfile = lock.acquire(app.session)
     except RuntimeError as e:
         print(str(e), flush=True)
         return 1
     httpd, url = serve(app, a.port)
-    if hasattr(os, "geteuid") and os.geteuid() != 0 and not images:
-        print("주의: 관리자 권한이 아니라서 원본 디스크를 읽지 못할 수 있습니다. sudo 로 다시 실행하세요.")
+    from .privilege import is_admin, keep_awake
+    if not is_admin() and not images:
+        print("주의: 관리자 권한이 아니라서 원본 디스크를 읽지 못할 수 있습니다. 맥은 sudo, 윈도우는 RecoveryTool.bat 로 다시 실행하세요.")
+    keep_awake()  # 윈도우: 작업 중 잠자기 방지(맥은 caffeinate)
+    if os.name == "nt":
+        print("=" * 64)
+        print(" 읽기 전용 복구 도구 (원본 디스크에는 아무것도 쓰지 않습니다)")
+        print()
+        print(" [중요] Windows 가 \"디스크를 초기화/포맷해야 합니다\" 라고 물어도")
+        print("        절대 누르지 마세요. 누르면 복구할 데이터가 지워집니다.")
+        from .verify import available_tools
+        if not available_tools()["pillow"]:
+            print()
+            print(" 사진 열림 검사를 쓰려면 한 번만:  py -3 -m pip install pillow")
+            print(" (없어도 복구는 되지만 사진을 끝까지 열어 보는 검증은 못 합니다)")
+        print(" 끌 때는 화면 오른쪽 위의 '도구 종료' 버튼을 누르세요.")
+        print("=" * 64, flush=True)
     print("읽기 전용 복구 도구가 시작되었습니다. 브라우저에서 아래 주소를 여세요(이 컴퓨터에서만 접속 가능):", flush=True)
     print("  " + url, flush=True)
     print("종료: Ctrl+C", flush=True)

@@ -32,9 +32,12 @@ class SafetyTest(unittest.TestCase):
 
     def test_write_attempt_fails(self):
         import tempfile
-        with tempfile.NamedTemporaryFile() as f:
-            f.write(b"x" * 4096); f.flush()
-            dev = ReadOnlyDevice(f.name)
+        # 윈도우는 열린 임시 파일을 다시 열 수 없으므로 닫은 뒤 쓴다
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "img")
+            with open(p, "wb") as f:
+                f.write(b"x" * 4096)
+            dev = ReadOnlyDevice(p)
             with self.assertRaises(OSError):
                 os.write(dev._fd, b"nope")  # O_RDONLY 이므로 실패해야 한다
             dev.close()

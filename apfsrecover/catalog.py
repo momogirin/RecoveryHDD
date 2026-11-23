@@ -12,7 +12,8 @@ import shutil
 import time
 from collections import Counter
 
-from .blockdev import ReadOnlyDevice
+from . import atomic
+from .blockdev import ReadOnlyDevice, device_gone
 from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe)
 from .jsonl import read_jsonl
 from .ownership import expand
@@ -39,7 +40,7 @@ def _check_session(session):
 
 
 SESSION_FILES = ("catalog.jsonl", "progress.json", "extracted.jsonl", "failed.jsonl", "run_state.json",
-                 "plan.json", "verify.jsonl", "verify_summary.json")
+                 "plan.json", "verify.jsonl", "verify_summary.json", "duplicates.jsonl")
 
 
 def archive_session(session):
@@ -66,7 +67,7 @@ def _repair_catalog(cat_path, pos):
     with open(tmp, "w", encoding="utf-8") as f:
         for r in recs:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
-    os.replace(tmp, cat_path)
+    atomic.replace(tmp, cat_path)
     return len(recs), (max(r["id"] for r in recs) + 1 if recs else 1)
 
 
@@ -79,7 +80,7 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
     pos, next_id, found = start_block * BS, 1, 0
     resumed = False
     if not fresh and os.path.exists(prog_path) and os.path.exists(cat_path):
-        with open(prog_path) as f:
+        with open(prog_path, encoding="utf-8") as f:
             st = json.load(f)
         if st.get("start_block") == start_block and st.get("end_block") == end_block:
             pos = st["next_pos"]
@@ -96,13 +97,13 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
 
     def save(next_pos, state):
         tmp = prog_path + ".tmp"
-        with open(tmp, "w") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump({"start_block": start_block, "end_block": end_block, "next_pos": next_pos,
                        "next_id": next_id, "found": found, "state": state, "updated": time.time()}, f)
-        os.replace(tmp, prog_path)
+        atomic.replace(tmp, prog_path)
 
     result = 0
-    with ReadOnlyDevice(path) as dev, open(cat_path, "a") as out:
+    with ReadOnlyDevice(path) as dev, open(cat_path, "a", encoding="utf-8") as out:
         while pos < end:
             if should_cancel and should_cancel():
                 save(pos, "cancelled"); result = 3; break
@@ -113,7 +114,7 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
             except OSError as e:
                 consecutive += 1
                 print("\n읽기 오류 offset %d: %s" % (pos, e), flush=True)
-                if e.errno in (errno.ENXIO, errno.ENODEV) or consecutive >= 5:
+                if device_gone(e) or consecutive >= 5:
                     save(pos, "disconnected"); result = 4
                     print("장치 연결이 끊긴 것으로 보여 중단합니다. 같은 명령으로 이어서 실행하세요.")
                     break

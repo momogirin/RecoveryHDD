@@ -29,7 +29,7 @@ def check_dest(dest, forbidden=(), need_bytes=0):
     real = os.path.realpath(expand(str(dest).strip()))
     if _under(real, REPO):
         reasons.append("프로젝트(저장소) 폴더 안에는 저장할 수 없습니다.")
-    if real == os.sep or real.lower().rstrip("\\") in ("c:", "c:\\"):
+    if real == os.sep or os.path.splitdrive(real)[1] in ("", "\\", "/"):  # 어느 드라이브든 최상위
         reasons.append("디스크 최상위에는 저장할 수 없습니다.")
     if any(_under(real, p) for p in SYSTEM_PREFIXES) or real.lower().startswith(WINDOWS_PREFIXES):
         reasons.append("시스템 폴더에는 저장할 수 없습니다.")

@@ -15,8 +15,9 @@ NO_TOOLS = {"pillow": False, "sips": False, "ffprobe": False}
 
 class VerifyTest(unittest.TestCase):
     def setUp(self):
-        os.environ["TZ"] = "Asia/Seoul"
-        time.tzset()
+        if hasattr(time, "tzset"):  # 윈도우는 TZ 환경변수를 이 형식으로 이해하지 못해 시간대가 흔들린다
+            os.environ["TZ"] = "Asia/Seoul"
+            time.tzset()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.r = random.Random(3)

@@ -11,7 +11,7 @@ import struct
 import sys
 import time
 
-from .blockdev import ReadOnlyDevice
+from .blockdev import ReadOnlyDevice, device_gone
 from .nxsb import fletcher64_ok, obj_header, parse_nxsb
 
 BS = 4096
@@ -43,7 +43,7 @@ def scan(path: str, start_block: int, end_block: int, out_path: str) -> int:
     found = 0
     consecutive_errors = 0
     t0 = time.time()
-    with ReadOnlyDevice(path) as dev, open(out_path, "w") as out:
+    with ReadOnlyDevice(path) as dev, open(out_path, "w", encoding="utf-8") as out:
         pos = start_block * BS
         end = end_block * BS
         while pos < end:
@@ -54,7 +54,7 @@ def scan(path: str, start_block: int, end_block: int, out_path: str) -> int:
                 print("\n읽기 오류 offset %d: %s" % (pos, e), flush=True)
                 out.write(json.dumps({"kind": "READ_ERROR", "offset": pos, "error": str(e)}) + "\n")
                 consecutive_errors += 1
-                if e.errno in (errno.ENXIO, errno.ENODEV) or consecutive_errors >= 5:
+                if device_gone(e) or consecutive_errors >= 5:
                     msg = "장치 연결이 끊긴 것으로 보여 중단합니다. 재연결 후 시작 블록=%d 로 이어서 스캔하세요." % (pos // BS)
                     print(msg, flush=True)
                     out.write(json.dumps({"kind": "ABORTED", "resume_block": pos // BS}) + "\n")

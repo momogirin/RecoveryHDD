@@ -17,8 +17,9 @@ from .synth import BS
 
 class ExtractBase(unittest.TestCase):
     def setUp(self):
-        os.environ["TZ"] = "Asia/Seoul"
-        time.tzset()
+        if hasattr(time, "tzset"):  # 윈도우는 TZ 환경변수를 이 형식으로 이해하지 못해 시간대가 흔들린다
+            os.environ["TZ"] = "Asia/Seoul"
+            time.tzset()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         r = random.Random(7)
@@ -67,10 +68,21 @@ class ExtractTest(ExtractBase):
     def test_layout_dates_use_local_time_for_video(self):
         self.run_batch(dict(self.plan, batch={"unit": "n", "size": 10}))
         paths = sorted(r["path"] for r in ex.load_extracted(self.session).values())
-        days = sorted({p.split(os.sep)[0] for p in paths})
-        # JPEG 2개(03-06, 03-07), 영상은 UTC 03-06 16:30 → KST 03-07, EXIF 없는 JPEG → 날짜불명
-        self.assertEqual(days, ["2024-03-06", "2024-03-07", ex.UNDATED])
-        self.assertTrue(any(p.startswith("2024-03-07") and p.endswith(".mp4") for p in paths))
+        days = sorted({p.split(os.sep)[1] for p in paths})
+        # 영상의 촬영 시각은 UTC 03-06 16:30 이고, 폴더 날짜는 이 컴퓨터의 시간대로 바꾼 값이다(KST 면 03-07)
+        video_day = ex.local_date({"taken": "2024-03-06T16:30:00", "taken_utc": True})
+        # JPEG 2개(03-06, 03-07), EXIF 없는 JPEG → 날짜불명
+        self.assertEqual(days, sorted({"2024-03-06", "2024-03-07", ex.UNDATED, video_day}))
+        self.assertTrue(any(p.startswith(os.path.join("영상", video_day)) and p.endswith(".mp4") for p in paths))
+        self.assertTrue(all(p.split(os.sep)[0] in ("사진", "영상") for p in paths))  # 종류별이 맨 위
+
+    def test_suspect_goes_to_its_own_folder(self):
+        self.run_batch(dict(self.plan, include_suspect=True, batch={"unit": "n", "size": 10}))
+        paths = [r["path"] for r in ex.load_extracted(self.session).values()]
+        sus = [p for p in paths if ex.SUSPECT_DIR in p.split(os.sep)]
+        self.assertEqual(len(sus), 1)
+        self.assertTrue(sus[0].startswith(os.path.join("영상", ex.SUSPECT_DIR)))
+        self.assertFalse(any(ex.SUSPECT_DIR in p for p in paths if p not in sus))
 
     def test_suspect_only_when_requested(self):
         self.run_batch(dict(self.plan, include_suspect=True, batch={"unit": "n", "size": 10}))
@@ -115,7 +127,8 @@ class ExtractTest(ExtractBase):
         self.assertEqual(hashlib.sha256(open(self.img, "rb").read()).hexdigest(), before)
 
     def test_refuses_bad_destinations(self):
-        for bad in (os.path.join(guards.REPO, "recovered"), "/System/x", "/", ""):
+        sysdir = r"C:\Windows\x" if os.name == "nt" else "/System/x"
+        for bad in (os.path.join(guards.REPO, "recovered"), sysdir, os.path.abspath(os.sep), ""):
             r = self.run_batch(dict(self.plan, dest=bad))
             self.assertEqual(r["state"], "refused", bad)
         r = self.run_batch(dict(self.plan, dest=os.path.join(self.tmp.name, "mnt", "x")),
@@ -243,3 +256,32 @@ class RobustnessTest(ExtractBase):
         r = self.run_batch(dict(self.all_plan, dest=os.path.join(ex.check_dest.__globals__["REPO"], "evil")))
         self.assertEqual(r["state"], "refused")
         self.assertEqual(sorted(f for _, _, fs in os.walk(self.dest) for f in fs), before)
+
+
+class DuplicateTest(unittest.TestCase):
+    """내용이 완전히 같은 파일(지웠던 옛 사본 등)은 하나만 꺼낸다."""
+
+    def test_identical_content_is_extracted_once(self):
+        r = random.Random(3)
+        a = synth.make_jpeg(r, 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35"))
+        b = synth.make_jpeg(r, 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:07 10:00:00"))
+        with tempfile.TemporaryDirectory() as tmp:
+            img = os.path.join(tmp, "d.img")
+            synth.build_image(img, [(1, a), (200, b), (400, a)], 700)  # 1번과 400번이 같은 내용
+            sess = os.path.join(tmp, "sess")
+            cat.catalog(img, sess, 0, 700, on_progress=lambda p: None)
+            plan = {"dest": os.path.join(tmp, "out"), "kinds": ["jpeg"], "include_suspect": False,
+                    "batch": {"unit": "n", "size": 10}}
+            res = ex.extract_batch(img, sess, plan)
+            self.assertEqual((res["state"], res["files"], res["duplicates"]), ("done", 2, 1))
+            files = [f for _, _, fs in os.walk(plan["dest"]) for f in fs]
+            self.assertEqual(len(files), 2)
+            dups = ex.load_dups(sess)
+            self.assertEqual(len(dups), 1)
+            self.assertIn(list(dups.values())[0], [r["path"] for r in ex.load_extracted(sess).values()])
+            # 다시 실행하면 중복을 또 꺼내지 않고 "모두 꺼냈습니다"가 된다
+            self.assertFalse(ex.check_plan(sess, plan)["ok"])
+            self.assertEqual(ex.check_plan(sess, plan)["overview"]["duplicate_files"], 1)
+            res2 = ex.extract_batch(img, sess, plan)
+            self.assertEqual(res2["files"], 0)
+            self.assertEqual(len([f for _, _, fs in os.walk(plan["dest"]) for f in fs]), 2)

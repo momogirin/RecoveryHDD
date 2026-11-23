@@ -17,8 +17,9 @@ from . import synth
 class ServerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        os.environ["TZ"] = "Asia/Seoul"
-        time.tzset()
+        if hasattr(time, "tzset"):  # 윈도우는 TZ 환경변수를 이 형식으로 이해하지 못해 시간대가 흔들린다
+            os.environ["TZ"] = "Asia/Seoul"
+            time.tzset()
         cls.tmp = tempfile.TemporaryDirectory()
         r = random.Random(11)
         files = [(2, synth.make_jpeg(r, 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35"))),
@@ -134,9 +135,14 @@ class ServerTest(unittest.TestCase):
 
     def test_second_job_rejected_while_running(self):
         import apfsrecover.server as sv
-        job = self.app.start_job("scan", lambda j: (time.sleep(0.4), j.finish("done")))
-        st, e = self.call("POST", "/api/scan/start", {"device_id": "image:demo"})
-        self.assertEqual(st, 409)
+        import threading
+        release = threading.Event()  # 시간이 아니라 신호로 "실행 중" 상태를 붙잡는다(느린 컴퓨터에서도 안정)
+        job = self.app.start_job("scan", lambda j: (release.wait(30), j.finish("done")))
+        try:
+            st, e = self.call("POST", "/api/scan/start", {"device_id": "image:demo"})
+            self.assertEqual(st, 409)
+        finally:
+            release.set()
         while job.state == "running":
             time.sleep(0.05)
 
@@ -150,8 +156,9 @@ class AutoTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.environ["TZ"] = "Asia/Seoul"
-        time.tzset()
+        if hasattr(time, "tzset"):  # 윈도우는 TZ 환경변수를 이 형식으로 이해하지 못해 시간대가 흔들린다
+            os.environ["TZ"] = "Asia/Seoul"
+            time.tzset()
         cls.tmp = tempfile.TemporaryDirectory()
         r = random.Random(21)
         files = [(2, synth.make_jpeg(r, 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35"))),
@@ -247,8 +254,9 @@ class DiskIdentityTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        os.environ["TZ"] = "Asia/Seoul"
-        time.tzset()
+        if hasattr(time, "tzset"):  # 윈도우는 TZ 환경변수를 이 형식으로 이해하지 못해 시간대가 흔들린다
+            os.environ["TZ"] = "Asia/Seoul"
+            time.tzset()
         cls.tmp = tempfile.TemporaryDirectory()
         r = random.Random(33)
         a = [(2, synth.make_jpeg(r, 200_000, synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35")))]

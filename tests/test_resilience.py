@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import threading
 import unittest
@@ -20,7 +21,7 @@ class LockTest(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 lock.acquire(d)
             # 죽은 프로세스의 잠금은 이어받는다
-            p = subprocess.Popen(["true"])
+            p = subprocess.Popen([sys.executable, "-c", "pass"])
             p.wait()
             with open(os.path.join(d, ".lock"), "w") as f:
                 f.write(str(p.pid))

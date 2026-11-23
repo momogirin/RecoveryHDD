@@ -3,8 +3,30 @@ import subprocess
 import sys
 
 
+def _win_on_battery():
+    """GetSystemPowerStatus: ACLineStatus 0=배터리, 1=전원 연결, 255=알 수 없음."""
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class Status(ctypes.Structure):
+            _fields_ = [("ACLineStatus", wintypes.BYTE), ("BatteryFlag", wintypes.BYTE),
+                        ("BatteryLifePercent", wintypes.BYTE), ("SystemStatusFlag", wintypes.BYTE),
+                        ("BatteryLifeTime", wintypes.DWORD), ("BatteryFullLifeTime", wintypes.DWORD)]
+        st = Status()
+        if not ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(st)):
+            return None
+        if st.BatteryFlag == 128:  # 배터리 없음(데스크톱)
+            return False
+        return {0: True, 1: False}.get(st.ACLineStatus)
+    except (AttributeError, OSError):
+        return None
+
+
 def on_battery(runner=subprocess.run, platform=sys.platform):
     """True(배터리) / False(전원 연결) / None(알 수 없음)"""
+    if platform == "win32":
+        return _win_on_battery()
     if platform != "darwin":
         return None
     try:

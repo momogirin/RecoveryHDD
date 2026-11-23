@@ -28,7 +28,7 @@ class FsBrowseTest(unittest.TestCase):
     def test_problem_locations_are_browsable_but_flagged(self):
         r = fsbrowse.list_dir(guards.REPO)
         self.assertTrue(any("저장소" in x for x in r["problems"]))
-        r = fsbrowse.list_dir("/System")
+        r = fsbrowse.list_dir(r"C:\Windows" if os.name == "nt" else "/System")
         self.assertTrue(any("시스템" in x for x in r["problems"]))
         r = fsbrowse.list_dir(self.root, forbidden=[self.root])
         self.assertTrue(any("원본 디스크" in x for x in r["problems"]))

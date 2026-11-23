@@ -133,7 +133,7 @@ def carve_sample(path, start_block, end_block, outdir, max_jpeg, max_mp4,
                         manifest.append({"file": name, "offset": off, "length": ln})
                         print("MP4 추출 %s  %d bytes" % (name, ln), flush=True)
             pos += len(buf)
-    with open(os.path.join(outdir, "manifest.json"), "w") as f:
+    with open(os.path.join(outdir, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=1)
     uid, gid = os.environ.get("SUDO_UID"), os.environ.get("SUDO_GID")
     if uid:

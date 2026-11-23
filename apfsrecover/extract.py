@@ -11,7 +11,8 @@ import os
 import shutil
 import time
 
-from .blockdev import ReadOnlyDevice
+from . import atomic
+from .blockdev import ReadOnlyDevice, device_gone
 from .guards import check_dest, margin_for
 from .jsonl import read_jsonl
 from .scan import BS
@@ -26,6 +27,10 @@ MAX_CONSECUTIVE_FAILS = 5   # 연속으로 이만큼 못 읽으면 디스크가 
 RECHECK_LAST = 20       # 비정상 종료 뒤 이어할 때 마지막으로 기록된 파일을 다시 확인하는 개수
 UNCLEAN = ("running", "disconnected", "error", "nospace", "unstable")
 UNDATED = "날짜불명"
+SUSPECT_DIR = "_의심"
+# 결정(01-plan.md 7절): 종류별 폴더 아래에 날짜별. 구조 점검이 '의심'인 파일은 종류 폴더 안의 _의심 에 따로 둔다.
+KIND_DIR = {"jpeg": "사진", "heic": "사진", "raw-cr3": "RAW", "video-mp4": "영상", "video-mov": "영상",
+            "unknown-bmff": "기타"}
 
 
 def load_catalog(session):
@@ -74,7 +79,12 @@ def select(records, plan):
 def dest_relpath(rec):
     ext = KIND_EXT.get(rec["kind"], "bin")
     day = local_date(rec) or UNDATED
-    return os.path.join(day, "%s_%06d_blk%d.%s" % (ext, rec["id"], rec["offset"] // BS, ext))
+    parts = [KIND_DIR.get(rec["kind"], "기타")]
+    if rec.get("structure") != "ok":
+        parts.append(SUSPECT_DIR)
+    parts.append(day)
+    parts.append("%s_%06d_blk%d.%s" % (ext, rec["id"], rec["offset"] // BS, ext))
+    return os.path.join(*parts)
 
 
 def next_batch(selected, done_ids, batch):
@@ -100,9 +110,15 @@ def load_failed(session):
     return {r["id"] for r in read_jsonl(path)} if os.path.exists(path) else set()
 
 
-def overview(records, plan, done, failed=frozenset()):
+def load_dups(session):
+    """내용이 이미 꺼낸 파일과 같아서 건너뛴 항목(duplicates.jsonl): {id: 같은 내용의 파일 경로}"""
+    path = os.path.join(session, "duplicates.jsonl")
+    return {r["id"]: r.get("duplicate_of", "") for r in read_jsonl(path)} if os.path.exists(path) else {}
+
+
+def overview(records, plan, done, failed=frozenset(), dups=frozenset()):
     sel = select(records, plan)
-    skip = set(done) | set(failed)
+    skip = set(done) | set(failed) | set(dups)
     pending = [r for r in sel if r["id"] not in skip]
     nb = next_batch(sel, skip, plan.get("batch", {"unit": "gb", "size": 50}))
     batches = 0
@@ -116,7 +132,8 @@ def overview(records, plan, done, failed=frozenset()):
         batches += 1
     return {"files": len(sel), "bytes": sum(r["length"] for r in sel),
             "done_files": sum(1 for r in sel if r["id"] in done),
-            "failed_files": sum(1 for r in sel if r["id"] in failed), "pending_files": len(pending),
+            "failed_files": sum(1 for r in sel if r["id"] in failed),
+            "duplicate_files": sum(1 for r in sel if r["id"] in dups), "pending_files": len(pending),
             "pending_bytes": sum(r["length"] for r in pending),
             "next_files": len(nb), "next_bytes": sum(r["length"] for r in nb),
             "batches_remaining": batches}
@@ -125,7 +142,7 @@ def overview(records, plan, done, failed=frozenset()):
 def check_plan(session, plan, forbidden=()):
     records = load_catalog(session)
     done = load_extracted(session)
-    ov = overview(records, plan, done, load_failed(session))
+    ov = overview(records, plan, done, load_failed(session), load_dups(session))
     res = check_dest(plan.get("dest"), forbidden, ov["next_bytes"])
     if not plan.get("kinds"):
         res["ok"] = False
@@ -157,7 +174,7 @@ def _read(dev, off, ln):
                 return data
             last = OSError(errno.EIO, "빈 응답")
         except OSError as e:
-            if e.errno in (errno.ENXIO, errno.ENODEV):
+            if device_gone(e):
                 raise SourceGone() from e
             last = e
         if i + 1 < READ_TRIES:
@@ -183,7 +200,7 @@ def _write_json(path, obj):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False, indent=1)
         _fsync(f)
-    os.replace(tmp, path)
+    atomic.replace(tmp, path)
 
 
 def _sha256_file(path):
@@ -244,14 +261,17 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
     records = load_catalog(session)
     done = load_extracted(session)
     failed_ids = load_failed(session)
-    got_files = got_bytes = n_failed = consecutive = 0
+    dup_ids = load_dups(session)
+    by_hash = {r["sha256"]: r["path"] for r in done.values() if r.get("sha256")}  # 내용 해시 -> 이미 꺼낸 파일
+    got_files = got_bytes = n_failed = n_dups = consecutive = 0
     state, error = "done", None
     _write_json(os.path.join(session, "plan.json"), dict(plan, dest=dest))
     _write_json(state_path, {"state": "running", "started": time.time()})
     with ReadOnlyDevice(device_path) as dev, \
             open(os.path.join(session, "extracted.jsonl"), "a", encoding="utf-8") as log, \
-            open(os.path.join(session, "failed.jsonl"), "a", encoding="utf-8") as flog:
-        batch = next_batch(select(records, plan), set(done) | failed_ids,
+            open(os.path.join(session, "failed.jsonl"), "a", encoding="utf-8") as flog, \
+            open(os.path.join(session, "duplicates.jsonl"), "a", encoding="utf-8") as dlog:
+        batch = next_batch(select(records, plan), set(done) | failed_ids | set(dup_ids),
                            plan.get("batch", {"unit": "gb", "size": 50}))
         total_bytes = sum(r["length"] for r in batch)
         for rec in batch:
@@ -279,6 +299,17 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
                                          "total_files": len(batch), "total_bytes": total_bytes,
                                          "current": rel})
                     _fsync(out)
+                same = by_hash.get(h.hexdigest())
+                if same and os.path.exists(os.path.join(dest, same)):
+                    # 내용이 완전히 같은 파일(예: 지웠던 옛 사본)은 하나만 둔다. 삭제 여부는 알 수 없으므로 판단하지 않는다.
+                    _rm(part)
+                    dlog.write(json.dumps({"id": rec["id"], "path": rel, "duplicate_of": same, "bytes": rec["length"],
+                                           "sha256": h.hexdigest()}, ensure_ascii=False) + "\n")
+                    dlog.flush()
+                    os.fsync(dlog.fileno())
+                    n_dups += 1
+                    consecutive = 0
+                    continue
                 os.replace(part, final)
             except SourceGone:
                 _rm(part)
@@ -306,10 +337,12 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
                                   "sha256": h.hexdigest(), "kind": rec["kind"]}, ensure_ascii=False) + "\n")
             log.flush()
             os.fsync(log.fileno())
+            by_hash[h.hexdigest()] = rel
             got_files += 1
             got_bytes += rec["length"]
     _write_json(state_path, {"state": state, "finished": time.time()})
-    return {"state": state, "files": got_files, "bytes": got_bytes, "failed": n_failed, "error": error}
+    return {"state": state, "files": got_files, "bytes": got_bytes, "failed": n_failed, "duplicates": n_dups,
+            "error": error}
 
 
 def _rm(path):
