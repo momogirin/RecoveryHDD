@@ -4,10 +4,13 @@
 임의 경로를 장치로 받지 않는다. 저장 폴더는 guards.check_dest 를 통과해야 한다.
 """
 import errno
+import io
 import json
 import os
 import re
 import secrets
+import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -29,6 +32,74 @@ from .survey import estimate_extent
 UI_PATH = os.path.join(os.path.dirname(__file__), "ui", "index.html")
 MARGIN_AFTER_DATA = 2 * 1000**3
 MAX_BODY = 1 << 20
+THUMB_PX = 240
+_thumbs = {}
+
+
+def _tail_jsonl(path, n, chunk=1 << 16):
+    """jsonl 파일의 마지막 n 줄(큰 파일도 끝부분만 읽는다)."""
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            f.seek(max(0, size - chunk))
+            data = f.read().decode("utf-8", "replace")
+    except OSError:
+        return []
+    out = []
+    for line in data.splitlines()[-(n + 1):]:
+        try:
+            out.append(json.loads(line))
+        except ValueError:
+            pass  # 잘린 첫 줄이거나 쓰는 도중인 줄
+    return out[-n:]
+
+
+def _inside(path, base):
+    base = os.path.realpath(base)
+    path = os.path.realpath(path)
+    try:
+        return os.path.commonpath([path, base]) == base
+    except ValueError:  # 윈도우: 드라이브가 다르면
+        return False
+
+
+def thumbnail(path):
+    """저장 폴더 안의 사진 한 장의 작은 미리보기(JPEG 바이트). 만들 수 없으면 None."""
+    try:
+        st = os.stat(path)
+    except OSError:
+        return None
+    key = (path, st.st_mtime_ns, st.st_size)
+    if key in _thumbs:
+        return _thumbs[key]
+    data = None
+    try:
+        from PIL import Image, ImageOps
+        with Image.open(path) as im:
+            im.draft("RGB", (THUMB_PX * 2, THUMB_PX * 2))  # JPEG 는 줄여서 읽으면 훨씬 빠르다
+            im = ImageOps.exif_transpose(im)
+            im.thumbnail((THUMB_PX, THUMB_PX))
+            buf = io.BytesIO()
+            im.convert("RGB").save(buf, "JPEG", quality=78)
+            data = buf.getvalue()
+    except Exception:  # Pillow 가 없거나 이미지가 깨짐
+        if path.lower().endswith((".jpg", ".jpeg")) and st.st_size <= 8 << 20:
+            with open(path, "rb") as f:
+                data = f.read()  # 브라우저가 줄여서 보여 준다
+    if len(_thumbs) > 400:
+        _thumbs.clear()
+    _thumbs[key] = data
+    return data
+
+
+def open_folder(path):
+    if sys.platform == "win32":
+        os.startfile(path)  # noqa: S606 - 사용자가 지정한 저장 폴더만 연다
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", path])
+    else:
+        subprocess.Popen(["xdg-open", path])
 
 
 class Job:
@@ -302,7 +373,7 @@ class App:
                 dev["path"], self.session, plan, forbidden=self.forbidden_mounts(dev),
                 on_progress=lambda p: job.update(done_bytes=p["bytes"], total_bytes=p["total_bytes"],
                                                  files=p["files"], total_files=p["total_files"],
-                                                 current=p["current"]),
+                                                 current=p["current"], by_kind=p.get("by_kind")),
                 should_cancel=job.cancel.is_set)
             dest = os.path.realpath(expand(plan["dest"])) if r["state"] != "refused" else None
             job.finish(r["state"], r["error"], files=r["files"], bytes=r["bytes"], failed=r["failed"],
@@ -325,6 +396,28 @@ class App:
             with open(p, encoding="utf-8") as f:
                 return json.load(f).get("dest")
         return None
+
+    def result_summary(self, n_samples=12):
+        """결과 화면용: 꺼낸 파일의 종류별 개수, 용량, 촬영일 범위, 미리보기 후보."""
+        done = sorted(ex.load_extracted(self.session).values(), key=lambda r: r["id"])
+        by_kind, total, suspect, days = {}, 0, 0, []
+        for r in done:
+            k = r["path"].replace("\\", "/").split("/")
+            by_kind[k[0]] = by_kind.get(k[0], 0) + 1
+            total += r.get("bytes", 0)
+            if ex.SUSPECT_DIR in k:
+                suspect += 1
+            m = re.search(r"\d{4}-\d{2}-\d{2}", r["path"])
+            if m:
+                days.append(m.group(0))
+        photos = [r for r in done if r.get("kind") == "jpeg"]
+        pool = photos if len(photos) >= n_samples else photos + [r for r in done if r.get("kind") != "jpeg"]
+        step = max(1, len(pool) // n_samples)
+        samples = [{"path": r["path"], "kind": r.get("kind")} for r in pool[::step][:n_samples]]
+        return {"files": len(done), "bytes": total, "by_kind": by_kind, "suspect": suspect,
+                "duplicates": len(ex.load_dups(self.session)), "dest": self.saved_dest(),
+                "first_day": min(days) if days else None, "last_day": max(days) if days else None,
+                "samples": samples}
 
     def report(self):
         home = real_home()
@@ -454,6 +547,25 @@ def make_handler(app):
                                             "failures": vf.load_failures(app.session)})
                 if u.path == "/api/report":
                     return self._send(200, app.report().encode("utf-8"), "text/plain; charset=utf-8")
+                if u.path == "/api/result":
+                    return self._send(200, app.result_summary())
+                if u.path == "/api/recent":
+                    n = max(1, min(24, int((q.get("n") or ["8"])[0])))
+                    recs = _tail_jsonl(os.path.join(app.session, "extracted.jsonl"), n)
+                    return self._send(200, {"items": [{"path": r["path"], "kind": r.get("kind")}
+                                                      for r in recs if not r.get("invalid") and r.get("path")]})
+                if u.path == "/api/thumb":
+                    dest = app.saved_dest()
+                    rel = (q.get("p") or [""])[0]
+                    if not dest or not rel:
+                        return self._err(404, "없는 파일")
+                    full = os.path.join(os.path.realpath(expand(dest)), rel)
+                    if not _inside(full, expand(dest)) or not os.path.isfile(full):
+                        return self._err(404, "없는 파일")  # 저장 폴더 밖은 절대 읽지 않는다
+                    data = thumbnail(full)
+                    if data is None:
+                        return self._err(404, "미리보기를 만들 수 없습니다")
+                    return self._send(200, data, "image/jpeg")
                 return self._err(404, "없는 경로")
             except Exception as e:
                 return self._err(500, "%s: %s" % (type(e).__name__, e))
@@ -500,6 +612,21 @@ def make_handler(app):
                     return self._err(400, " / ".join(early["reasons"]))
                 job = app.start_job("auto", app.auto_target(dev, plan, bool(body.get("full")), bool(body.get("resume"))))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
+            if path == "/api/open-folder":
+                dest = app.saved_dest()
+                if not dest or not os.path.isdir(os.path.realpath(expand(dest))):
+                    return self._err(404, "저장 폴더를 찾을 수 없습니다.")
+                open_folder(os.path.realpath(expand(dest)))
+                return self._send(200, {"ok": True})
+            if path == "/api/report/save":
+                dest = app.saved_dest()
+                if not dest or not os.path.isdir(os.path.realpath(expand(dest))):
+                    return self._err(404, "저장 폴더를 찾을 수 없습니다.")
+                out = os.path.join(os.path.realpath(expand(dest)), "복구 보고서.txt")
+                with open(out, "w", encoding="utf-8") as f:
+                    f.write(app.report())
+                chown_tree(out)
+                return self._send(200, {"path": out})
             if path == "/api/shutdown":
                 if app.job and app.job.state == "running":
                     return self._err(409, "작업이 실행 중입니다. 끝나거나 중단한 뒤 종료하세요.")

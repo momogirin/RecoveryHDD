@@ -274,6 +274,17 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
         batch = next_batch(select(records, plan), set(done) | failed_ids | set(dup_ids),
                            plan.get("batch", {"unit": "gb", "size": 50}))
         total_bytes = sum(r["length"] for r in batch)
+        kind_total, kind_done = {}, {}  # 화면에 "사진 1,350 / 3,214" 처럼 보여 주기 위한 종류별 개수
+        for r in batch:
+            k = KIND_DIR.get(r["kind"], "기타")
+            kind_total[k] = kind_total.get(k, 0) + 1
+            kind_done[k] = 0
+        def _emit(rel, bytes_now):
+            if on_progress:
+                on_progress({"files": got_files, "bytes": bytes_now, "total_files": len(batch),
+                             "total_bytes": total_bytes, "current": rel,
+                             "by_kind": {k: [kind_done[k], kind_total[k]] for k in kind_total}})
+
         for rec in batch:
             if should_cancel and should_cancel():
                 state = "cancelled"
@@ -294,10 +305,7 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
                         out.write(chunk)
                         h.update(chunk)
                         written += len(chunk)
-                        if on_progress:
-                            on_progress({"files": got_files, "bytes": got_bytes + written,
-                                         "total_files": len(batch), "total_bytes": total_bytes,
-                                         "current": rel})
+                        _emit(rel, got_bytes + written)
                     _fsync(out)
                 same = by_hash.get(h.hexdigest())
                 if same and os.path.exists(os.path.join(dest, same)):
@@ -308,7 +316,9 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
                     dlog.flush()
                     os.fsync(dlog.fileno())
                     n_dups += 1
+                    kind_done[KIND_DIR.get(rec["kind"], "기타")] += 1
                     consecutive = 0
+                    _emit(rel, got_bytes)
                     continue
                 os.replace(part, final)
             except SourceGone:
@@ -338,8 +348,10 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
             log.flush()
             os.fsync(log.fileno())
             by_hash[h.hexdigest()] = rel
+            kind_done[KIND_DIR.get(rec["kind"], "기타")] += 1
             got_files += 1
             got_bytes += rec["length"]
+            _emit(rel, got_bytes)  # 파일이 끝난 직후의 개수를 보여 준다(마지막 파일이 "27 / 28" 로 멈춰 보이지 않게)
     _write_json(state_path, {"state": state, "finished": time.time()})
     return {"state": state, "files": got_files, "bytes": got_bytes, "failed": n_failed, "duplicates": n_dups,
             "error": error}

@@ -19,7 +19,8 @@ $name = "RecoveryTool"
 $piArgs = @("--noconfirm", "--clean", "--onefile", "--windowed",
           "--add-data", "apfsrecover\ui;apfsrecover\ui",
           "--collect-submodules", "webview",
-          "--hidden-import", "PIL.Image")
+          "--hidden-import", "PIL.Image",
+          "--icon", "launch\windows\app.ico")
 if ($env:RT_BUILD_NOADMIN -eq "1") {
     $name = "RecoveryTool_test"
 } else {

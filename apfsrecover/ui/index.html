@@ -3,216 +3,331 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>APFS 복구 도구</title>
+<title>사진 복구 도구</title>
 <style>
 :root {
-  --bg:#f6f7f9; --panel:#ffffff; --text:#1c2430; --muted:#5b6678; --line:#dfe3ea;
-  --accent:#2457d6; --accent-t:#ffffff; --ok:#17703a; --ok-bg:#e3f4ea;
-  --warn:#8a5a00; --warn-bg:#fff2d6; --bad:#a3261f; --bad-bg:#fde7e5; --bar:#e8ebf1;
+  --win: #fbfbfb; --card: #ffffff; --line: #e5e5e5; --line2: #d4d4d4;
+  --text: #1b1b1b; --sub: #5f5f5f; --faint: #8a8a8a;
+  --accent: #0067c0; --accent-ink: #ffffff; --accent-soft: #e6f0fa;
+  --ok: #107c10; --ok-soft: #e7f4e7; --warn: #9d5d00; --warn-soft: #fdf3e1; --bad: #c42b1c; --bad-soft: #fde7e9;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:#12161c; --panel:#1b212b; --text:#e6e9ef; --muted:#9aa5b8; --line:#2c3441;
-    --accent:#6e96ff; --accent-t:#0c1220; --ok:#6fd49a; --ok-bg:#16301f;
-    --warn:#f0c36a; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3b1c1a; --bar:#2a3240;
+    --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+    --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+    --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+    --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg:#12161c; --panel:#1b212b; --text:#e6e9ef; --muted:#9aa5b8; --line:#2c3441;
-  --accent:#6e96ff; --accent-t:#0c1220; --ok:#6fd49a; --ok-bg:#16301f;
-  --warn:#f0c36a; --warn-bg:#3a2e12; --bad:#ff8f86; --bad-bg:#3b1c1a; --bar:#2a3240;
+  --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+  --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+  --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+  --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726; color-scheme: dark;
 }
-* { box-sizing:border-box; }
-body { margin:0; background:var(--bg); color:var(--text);
-  font:15px/1.55 -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif; }
-.wrap { max-width:980px; margin:0 auto; padding:0 16px 48px; }
-.safe { background:var(--ok-bg); color:var(--ok); padding:8px 16px; font-weight:600; text-align:center; }
-header { display:flex; justify-content:space-between; align-items:center; padding:20px 0 8px; }
-h1 { font-size:20px; margin:0; } h2 { font-size:18px; margin:0 0 12px; }
-h3 { font-size:14px; margin:20px 0 8px; color:var(--muted); font-weight:600; }
-.steps { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 20px; padding:0; list-style:none; }
-.steps button { border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px;
-  padding:6px 14px; font:inherit; cursor:pointer; }
-.steps button[aria-current="step"] { background:var(--accent); color:var(--accent-t); border-color:var(--accent); font-weight:600; }
-.steps button:disabled { opacity:.45; cursor:not-allowed; }
-.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; }
-.screen { display:none; } .screen.on { display:block; }
-button.primary { background:var(--accent); color:var(--accent-t); border:0; border-radius:8px; padding:10px 18px;
-  font:inherit; font-weight:600; cursor:pointer; }
-button.primary:disabled { opacity:.45; cursor:not-allowed; }
-button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); border-radius:8px;
-  padding:9px 16px; font:inherit; cursor:pointer; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
-.row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-.muted { color:var(--muted); }
-table { width:100%; border-collapse:collapse; }
-th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
-th { color:var(--muted); font-weight:600; font-size:13px; }
-td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
-.tag { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600; margin-right:4px; }
-.tag.ok { background:var(--ok-bg); color:var(--ok); } .tag.warn { background:var(--warn-bg); color:var(--warn); }
-.tag.bad { background:var(--bad-bg); color:var(--bad); }
-.bar { height:12px; background:var(--bar); border-radius:999px; overflow:hidden; }
-.bar > i { display:block; height:100%; background:var(--accent); width:0; transition:width .3s; }
-.kv { display:grid; grid-template-columns:160px 1fr; gap:6px 12px; } .kv dt { color:var(--muted); } .kv dd { margin:0; }
-.disk { display:flex; gap:12px; align-items:center; border:2px solid var(--line); border-radius:10px; padding:14px; margin:8px 0; cursor:pointer; }
-.disk.sel { border-color:var(--accent); }
-.callout { border-left:4px solid var(--accent); background:var(--bg); padding:10px 14px; border-radius:6px; margin:12px 0; }
-.callout.warn { border-color:var(--warn); background:var(--warn-bg); } .callout.bad { border-color:var(--bad); background:var(--bad-bg); }
-.callout.ok { border-color:var(--ok); background:var(--ok-bg); }
-label { display:block; font-weight:600; margin:10px 0 4px; }
-.checks label { display:flex; gap:8px; align-items:center; font-weight:400; margin:6px 0; }
-input[type=text], input[type=number], select { width:100%; padding:9px 10px; border:1px solid var(--line);
-  border-radius:8px; background:var(--bg); color:var(--text); font:inherit; }
-.months { display:flex; align-items:flex-end; gap:3px; height:90px; }
-.months div { flex:1; background:var(--accent); opacity:.75; border-radius:3px 3px 0 0; min-width:4px; }
-.mono { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:13px; word-break:break-all; }
-.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; } @media (max-width:760px){ .grid2 { grid-template-columns:1fr; } }
-footer.nav { display:flex; justify-content:space-between; gap:8px; margin-top:16px; flex-wrap:wrap; }
-pre { white-space:pre-wrap; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--line); }
-ul.plain { margin:6px 0 0 18px; padding:0; }
-dialog { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; max-width:640px; width:92%; padding:20px; }
-dialog::backdrop { background:rgba(0,0,0,.5); }
-.dirbtn { display:block; width:100%; text-align:left; background:transparent; color:var(--text); border:0; border-bottom:1px solid var(--line); padding:9px 12px; font:inherit; cursor:pointer; }
-.dirbtn:hover, .dirbtn:focus-visible { background:var(--bg); }
-.callout button { margin-left:10px; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--win); color: var(--text); font: 15px/1.5 "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; }
+.app { max-width: 1040px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+
+.titlebar { display: flex; align-items: center; height: 44px; padding: 0 16px 0 20px; gap: 10px; border-bottom: 1px solid var(--line); }
+.titlebar .name { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.native .titlebar .name { display: none; } /* 전용 창은 윈도우가 제목줄에 이름을 이미 보여 준다 */
+.logo { width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--accent), #7c5cff); }
+.badge-ro { font-size: 12px; color: var(--ok); background: var(--ok-soft); border-radius: 999px; padding: 1px 9px; display: inline-flex; gap: 5px; align-items: center; }
+.sp { flex: 1; }
+
+.stepper { display: flex; align-items: center; justify-content: center; padding: 22px 24px 6px; }
+.step { display: flex; align-items: center; gap: 10px; color: var(--faint); font-size: 14px; }
+.step .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line2); font-size: 12px; font-weight: 600; background: var(--win); }
+.step.done { color: var(--sub); } .step.done .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.step.now { color: var(--text); font-weight: 600; } .step.now .dot { border-color: var(--accent); color: var(--accent); }
+.bar { width: 72px; height: 2px; background: var(--line2); margin: 0 12px; }
+.bar.done { background: var(--accent); }
+
+#banner { padding: 10px 56px 0; display: grid; gap: 8px; }
+#banner:empty { display: none; }
+.notice { display: flex; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 10px; font-size: 14px; background: var(--accent-soft); }
+.notice.warn { background: var(--warn-soft); color: var(--text); } .notice.bad { background: var(--bad-soft); } .notice.ok { background: var(--ok-soft); }
+.notice span.t { flex: 1; }
+
+main { flex: 1; padding: 18px 56px 8px; }
+.screen { display: none; }
+.screen.on { display: block; animation: in .25s ease; }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+h1 { font-size: 26px; font-weight: 600; margin: 10px 0 4px; letter-spacing: -.3px; }
+.lead { color: var(--sub); margin: 0 0 22px; min-height: 1.5em; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+
+.disk { display: flex; gap: 18px; align-items: center; padding: 18px 20px; cursor: pointer; border: 2px solid var(--line); background: var(--card); border-radius: 12px; margin-bottom: 12px; }
+.disk.sel { border-color: var(--accent); background: var(--accent-soft); }
+.disk.off { opacity: .6; cursor: not-allowed; }
+.disk .ico { width: 64px; height: 64px; border-radius: 14px; background: linear-gradient(160deg, #3a4a63, #1d2636); display: grid; place-items: center; color: #fff; font-size: 28px; flex: none; }
+.disk .ico.gray { background: linear-gradient(160deg, #6b6b6b, #3b3b3b); }
+.disk .main { flex: 1; min-width: 0; }
+.disk .name { font-size: 17px; font-weight: 600; }
+.disk .meta { color: var(--sub); font-size: 14px; margin-top: 1px; }
+.usage { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 10px; max-width: 420px; }
+.usage i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.usage-l { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
+.chip { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); white-space: nowrap; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); } .chip.bad { background: var(--bad-soft); color: var(--bad); }
+.radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line2); flex: none; display: grid; place-items: center; }
+.disk.sel .radio { border-color: var(--accent); } .disk.sel .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.note { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--sub); padding: 12px 16px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); margin-top: 6px; }
+.note b { color: var(--text); font-weight: 600; }
+.linkish { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; font-size: 14px; cursor: pointer; }
+.linkish:hover { text-decoration: underline; }
+
+.types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.type { padding: 16px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; position: relative; }
+.type.on { border-color: var(--accent); background: var(--accent-soft); }
+.type.none { opacity: .5; cursor: not-allowed; }
+.type .t { font-weight: 600; font-size: 16px; margin-top: 8px; }
+.type .s { color: var(--sub); font-size: 13px; }
+.type .n { font-size: 22px; font-weight: 600; margin-top: 10px; letter-spacing: -.3px; }
+.type .g { color: var(--sub); font-size: 13px; }
+.check { position: absolute; top: 12px; right: 12px; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line2); display: grid; place-items: center; font-size: 13px; color: transparent; }
+.type.on .check { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.type .em { font-size: 26px; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.field { flex: 1; border: 1px solid var(--line2); background: var(--card); border-radius: 8px; padding: 9px 12px; display: flex; gap: 10px; align-items: center; min-width: 0; }
+.field .path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field .path.empty { color: var(--faint); }
+.free { margin-top: 8px; font-size: 13.5px; color: var(--sub); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 24px; }
+.sec { font-weight: 600; margin: 4px 0 8px; }
+.switch { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; font-size: 14px; color: var(--sub); cursor: pointer; }
+.tg { width: 40px; height: 22px; border-radius: 99px; background: var(--accent); position: relative; flex: none; }
+.tg::after { content: ""; position: absolute; top: 3px; right: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-ink); transition: all .15s; }
+.tg.off { background: var(--line2); } .tg.off::after { right: 21px; background: var(--card); }
+.summary { margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: var(--accent-soft); display: flex; align-items: center; gap: 16px; }
+.summary.warn { background: var(--warn-soft); }
+.summary .tx { flex: 1; font-size: 15px; } .summary b { font-weight: 600; }
+.summary ul { margin: 6px 0 0 18px; padding: 0; color: var(--sub); font-size: 14px; }
+.adv { margin-top: 14px; font-size: 14px; color: var(--sub); }
+.adv summary { cursor: pointer; }
+.adv .box { margin-top: 10px; display: grid; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.adv input[type=number] { width: 110px; padding: 7px 10px; border: 1px solid var(--line2); border-radius: 8px; background: var(--win); color: var(--text); font: inherit; }
+
+footer.actions { display: flex; align-items: center; gap: 10px; padding: 14px 56px 20px; }
+.btn { border: 1px solid var(--line2); background: var(--card); color: var(--text); border-radius: 8px; padding: 9px 20px; font: inherit; cursor: pointer; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 10px 28px; }
+.btn.danger { color: var(--bad); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--sub); }
+.btn.small { padding: 4px 12px; font-size: 13px; }
+button:focus-visible, .disk:focus-visible, .type:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.hint { color: var(--sub); font-size: 13px; }
+
+.hero { display: flex; gap: 32px; align-items: center; padding: 26px 28px; }
+.ring { --p: 0; width: 150px; height: 150px; border-radius: 50%; flex: none; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); display: grid; place-items: center; }
+.ring > div { width: 118px; height: 118px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+.ring .pc { font-size: 34px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
+.ring .pl { font-size: 12px; color: var(--sub); margin-top: 4px; }
+.stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; } .stat .l { font-size: 13px; color: var(--sub); }
+.cur { margin-top: 14px; font-size: 13px; color: var(--sub); padding: 10px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); display: flex; gap: 10px; }
+.cur .mono { font-family: "Cascadia Mono", Consolas, Menlo, monospace; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.strip { display: flex; gap: 10px; margin-top: 16px; overflow: hidden; min-height: 72px; }
+.strip .th { width: 96px; height: 72px; flex: none; }
+.th { border-radius: 8px; position: relative; overflow: hidden; background: linear-gradient(160deg, var(--line), var(--line2)); }
+.th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.th .lab { position: absolute; inset: 0; display: grid; place-items: center; color: var(--sub); font-size: 12px; font-weight: 600; }
+.th.v::before { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.th.v { background: linear-gradient(160deg, #3d3a5c, #1d1b30); }
+.sublead { margin-top: 18px; font-size: 14px; color: var(--sub); }
+
+.okbanner { display: flex; gap: 16px; align-items: center; padding: 18px 20px; border-radius: 12px; background: var(--ok-soft); }
+.okbanner.warn { background: var(--warn-soft); }
+.okbanner .big { width: 44px; height: 44px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; font-size: 22px; flex: none; }
+.okbanner.warn .big { background: var(--warn); color: #fff; }
+.okbanner .t { font-size: 18px; font-weight: 600; } .okbanner .s { color: var(--sub); font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 16px; }
+.grid .th { height: 92px; }
+.more { font-size: 13.5px; color: var(--sub); margin-top: 10px; display: flex; justify-content: space-between; gap: 12px; }
+.more span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+details.d { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 12px 16px; font-size: 14px; }
+details.d summary { cursor: pointer; display: flex; gap: 8px; align-items: center; }
+details.d p { color: var(--sub); margin: 8px 0 0; }
+details.d ul { color: var(--sub); margin: 8px 0 0 18px; padding: 0; font-size: 13px; }
+.mono { font-family: "Cascadia Mono", Consolas, Menlo, monospace; word-break: break-all; }
+
+dialog { background: var(--win); color: var(--text); border: 1px solid var(--line2); border-radius: 12px; max-width: 620px; width: 92%; padding: 22px; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog h2 { margin: 0 0 10px; font-size: 19px; font-weight: 600; }
+dialog ul { margin: 8px 0 0 18px; padding: 0; color: var(--sub); }
+dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; align-items: center; }
+.dirs { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; background: var(--card); }
+.dirbtn { display: block; width: 100%; text-align: left; background: transparent; color: var(--text); border: 0; border-bottom: 1px solid var(--line); padding: 9px 12px; font: inherit; cursor: pointer; }
+.dirbtn:hover, .dirbtn:focus-visible { background: var(--accent-soft); }
+.places { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px; }
+.newrow { display: flex; gap: 8px; margin: 8px 0; }
+.newrow input { flex: 1; padding: 8px 10px; border: 1px solid var(--line2); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--text); color: var(--win); padding: 10px 18px; border-radius: 10px; font-size: 14px; max-width: 90%; z-index: 9; }
+@media (max-width: 760px) { main, footer.actions, #banner { padding-left: 20px; padding-right: 20px; } .types { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(3, 1fr); } .hero { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .bar { width: 24px; } .step .lbl { display: none; } }
 </style>
 </head>
 <body>
-<div class="safe" role="status">🔒 읽기 전용 — 원본 디스크에는 아무것도 쓰지 않습니다</div>
-<div class="wrap">
-<header><h1>APFS 복구 도구</h1><span class="row"><button class="ghost" id="quit" title="관리자 권한으로 실행 중인 도구를 끕니다">⏻ 도구 종료</button><button class="ghost" id="theme" aria-label="테마 전환">🌓 테마</button></span></header>
-<ol class="steps" id="steps"></ol>
-<div id="banner"></div>
-
-<section class="screen card" id="s0">
-  <h2>1. 디스크 선택</h2>
-  <p class="muted">외장 디스크만 표시됩니다. 내장·시스템 디스크는 보여 주지 않습니다.</p>
-  <div id="devlist"></div>
-  <label class="checks" style="margin-top:12px"><span style="display:flex;gap:8px;align-items:center;font-weight:400">
-    <input type="checkbox" id="fullscan"> 디스크 전체를 검사 (느림). 기본은 데이터가 있는 구간까지만 읽습니다.</span></label>
-  <h3>간편 복구 — 이 두 가지만 정하고 시작하면 검사 → 복구 → 검증을 알아서 끝까지 합니다</h3>
-  <div class="checks" id="autokinds">
-    <label><input type="checkbox" value="photo" checked> 사진 (JPEG · HEIC)</label>
-    <label><input type="checkbox" value="raw" checked> RAW (CR3)</label>
-    <label><input type="checkbox" value="video" checked> 영상 (MP4 · MOV)</label>
+<div class="app">
+  <div class="titlebar">
+    <div class="name"><span class="logo"></span>사진 복구 도구</div>
+    <span class="badge-ro">🔒 읽기 전용</span>
+    <span class="sp"></span>
+    <button class="btn ghost small" id="quit" title="프로그램을 끕니다. 꺼낸 파일과 검사 결과는 그대로 남습니다.">⏻ 종료</button>
   </div>
-  <label for="autodest">저장 폴더 (원본 디스크·프로젝트·시스템 폴더는 안 됩니다)</label>
-  <div class="row"><input type="text" id="autodest" spellcheck="false" placeholder="예: ~/Documents/recovered/photos" style="flex:1;min-width:200px"><button class="ghost" type="button" data-pick="autodest">찾아보기</button></div>
-  <p class="muted" style="font-size:13px">저장 공간이 모자라면 복구를 시작하기 전에 멈추고 알려 드립니다. 그때 묶음으로 나눠서 꺼낼 수 있습니다.</p>
-  <div id="sessioninfo" class="muted" style="margin-top:8px"></div>
-  <footer class="nav">
-    <span class="row"><button class="ghost" id="refresh">새로고침</button><button class="ghost" id="startscan" disabled>검사만 하기 (단계별)</button></span>
-    <span class="row"><button class="ghost" id="resume" hidden>이어서 검사</button>
-    <button class="primary" id="startauto" disabled>자동 복구 시작</button></span>
-  </footer>
-</section>
+  <div class="stepper" id="stepper"></div>
+  <div id="banner"></div>
 
-<section class="screen card" id="s6">
-  <h2>자동 복구</h2>
-  <ol id="autosteps" class="plain" style="list-style:none;margin:0 0 12px;padding:0"></ol>
-  <div class="bar"><i id="autofill"></i></div>
-  <dl class="kv" style="margin-top:14px" id="autokv"></dl>
-  <div id="automsg"></div>
-  <footer class="nav"><button class="ghost" id="autocancel">중단</button>
-    <span class="row"><button class="ghost" id="autoplan" hidden>계획 화면으로</button><button class="ghost" id="autoverify" hidden>검증 결과 보기</button><button class="primary" id="autoback" hidden>처음으로</button></span></footer>
-</section>
+  <main>
+    <!-- 1. 디스크 -->
+    <section class="screen" id="s-disk">
+      <h1>복구할 디스크를 고르세요</h1>
+      <p class="lead" id="disk-lead">연결된 외장 디스크를 찾는 중입니다…</p>
+      <div id="devlist"></div>
+      <div class="note" id="disknote" hidden>
+        <span>🔒</span>
+        <div><b>이 디스크에는 아무것도 쓰지 않습니다.</b> 읽기만 하므로 안심하고 진행하세요. 윈도우가 “포맷하시겠습니까?”라고 물어도 누르지 마세요.</div>
+      </div>
+      <p style="margin:14px 0 0"><button class="linkish" id="nodisk">원하는 디스크가 보이지 않나요?</button></p>
+    </section>
 
-<section class="screen card" id="s1">
-  <h2>2. 검사</h2>
-  <p id="scanphase" class="muted"></p>
-  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="scanbar"><i id="scanfill"></i></div>
-  <dl class="kv" style="margin-top:14px" id="scankv"></dl>
-  <div id="scanmsg"></div>
-  <footer class="nav"><button class="ghost" id="scancancel">취소</button><span></span></footer>
-</section>
+    <!-- 1-2. 검사 (디스크를 훑어 보는 중) -->
+    <section class="screen" id="s-scan">
+      <h1>디스크를 훑어 보는 중입니다</h1>
+      <p class="lead">사진과 영상이 어디에 있는지 찾고 있습니다. 디스크 크기에 따라 시간이 걸릴 수 있습니다.</p>
+      <div class="card hero">
+        <div class="ring" id="scan-ring"><div><div><div class="pc">0%</div><div class="pl" id="scan-pl">진행</div></div></div></div>
+        <div class="stats" id="scan-stats"></div>
+      </div>
+      <div id="scanmsg"></div>
+    </section>
 
-<section class="screen card" id="s2">
-  <h2>3. 검사 결과</h2>
-  <div id="resultbox"><p class="muted">검사 결과가 없습니다. 먼저 검사를 실행하세요.</p></div>
-  <footer class="nav"><button class="ghost" data-go="0">디스크 선택</button><button class="primary" id="toplan" data-go="3" disabled>복구 계획 세우기</button></footer>
-</section>
+    <!-- 2. 복구 설정 -->
+    <section class="screen" id="s-settings">
+      <h1>무엇을 꺼낼까요?</h1>
+      <p class="lead" id="settings-lead">디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.</p>
+      <div class="types" id="types"></div>
 
-<section class="screen card" id="s3">
-  <h2>4. 복구 계획</h2>
-  <div class="grid2">
-    <div>
-      <h3>무엇을</h3><div class="checks" id="kinds"></div>
-      <label class="checks"><span style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="suspect" checked> ‘의심’ 항목도 포함 (조각나서 깨졌을 수 있음 · _의심 폴더에 따로 저장)</span></label>
-      <h3>얼마씩</h3>
-      <div class="row"><input type="number" id="batch" value="50" min="0.001" step="any" style="width:120px">
-        <select id="unit" style="width:90px"><option value="gb">GB</option><option value="n">개</option></select>
-        <span class="muted">씩 나눠서 꺼냅니다</span></div>
-    </div>
-    <div>
-      <h3>어디에</h3>
-      <label for="dest">저장 폴더 (원본 디스크·프로젝트·시스템 폴더는 안 됩니다)</label>
-      <div class="row"><input type="text" id="dest" spellcheck="false" placeholder="예: ~/Documents/recovered/photos" style="flex:1;min-width:200px"><button class="ghost" type="button" data-pick="dest">찾아보기</button></div>
-      <div id="planinfo" class="muted" style="margin-top:12px"></div>
-      <div id="plancheck"></div>
-      <h3>폴더 구조</h3>
-      <div class="mono muted">사진·RAW·영상 폴더 → 촬영일 → 종류_번호_위치.확장자<br>예) 사진/2024-03-06/jpg_000123_blk25792.jpg<br>촬영일을 모르면 날짜불명, 깨졌을 수 있는 파일은 종류 폴더 안의 _의심/<br>내용이 완전히 같은 파일은 하나만 꺼냅니다</div>
-    </div>
-  </div>
-  <footer class="nav"><button class="ghost" data-go="2">결과로</button><button class="primary" id="startextract" disabled>이 묶음 복구 시작</button></footer>
-</section>
+      <div class="sec">저장할 폴더</div>
+      <div class="row">
+        <div class="field"><span>📁</span><span class="path empty" id="destpath">폴더를 선택하세요</span></div>
+        <button class="btn" id="pickdest">폴더 선택</button>
+      </div>
+      <div class="free" id="free"></div>
 
-<section class="screen card" id="s4">
-  <h2>5. 복구</h2>
-  <div class="bar"><i id="exfill"></i></div>
-  <dl class="kv" style="margin-top:14px" id="exkv"></dl>
-  <div id="exmsg"></div>
-  <footer class="nav"><button class="ghost" id="excancel">중단</button>
-    <span class="row"><button class="ghost" id="nextbatch" hidden>다음 묶음</button><button class="primary" id="toverify" data-go="5">검증으로</button></span></footer>
-</section>
+      <div class="switch" id="suspect-sw" role="switch" tabindex="0" aria-checked="true"><span class="tg" id="suspect-tg"></span><span>깨졌을 수 있는 파일도 함께 꺼내기 <span style="color:var(--faint)">(‘_의심’ 폴더에 따로 저장)</span></span></div>
 
-<section class="screen card" id="s5">
-  <h2>6. 검증</h2>
-  <p class="muted">꺼낸 파일을 열어서 확인합니다. 저장 폴더의 파일만 읽습니다.</p>
-  <label class="checks"><span style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="deep" checked> 깊은 검증 (사진 디코딩 포함, 시간이 더 걸림)</span></label>
-  <div id="tools" class="muted"></div>
-  <div class="bar" style="margin-top:12px"><i id="vfill"></i></div>
-  <div id="vbox"></div>
-  <footer class="nav"><button class="ghost" id="report">보고서 보기</button><span class="row"><button class="ghost" id="vcancel" hidden>중단</button><button class="primary" id="startverify">검증 시작</button></span></footer>
-  <pre id="reportbox" hidden></pre>
-</section>
+      <div class="summary" id="summary"><span style="font-size:22px">📦</span><div class="tx" id="sumtx">저장할 폴더를 먼저 고르세요.</div></div>
+
+      <details class="adv">
+        <summary>고급 설정</summary>
+        <div class="box">
+          <div class="row"><span>한 번에 꺼낼 양</span><input type="number" id="batch" min="0.01" step="any" placeholder="전부"><span>GB <span class="hint">(비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼냅니다)</span></span></div>
+          <div class="row"><button class="btn small" id="rescan">다시 검사</button><button class="btn small" id="fullscan">디스크 전체 검사 (느림)</button><span class="hint">기본 검사는 데이터가 있는 구간까지만 읽습니다</span></div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 3. 진행 -->
+    <section class="screen" id="s-run">
+      <h1 id="run-title">사진을 꺼내는 중입니다</h1>
+      <p class="lead" id="run-lead">창을 열어 두면 됩니다. 컴퓨터가 잠자기에 들어가지 않게 막고 있습니다.</p>
+      <div class="card hero">
+        <div class="ring" id="run-ring"><div><div><div class="pc">0%</div><div class="pl">진행</div></div></div></div>
+        <div class="stats" id="run-stats"></div>
+      </div>
+      <div id="runbox">
+        <div class="cur"><span>방금</span><span class="mono" id="cur">-</span></div>
+        <div class="strip" id="strip"></div>
+        <div class="sublead">방금 꺼낸 파일 미리보기</div>
+      </div>
+      <div id="runmsg"></div>
+    </section>
+
+    <!-- 4. 결과 -->
+    <section class="screen" id="s-result">
+      <h1 id="res-title">복구를 마쳤습니다</h1>
+      <p class="lead">&nbsp;</p>
+      <div id="resbox"></div>
+    </section>
+  </main>
+
+  <footer class="actions" id="actions"></footer>
 </div>
 
 <dialog id="picker" aria-labelledby="pk-title">
-  <h2 id="pk-title">저장 폴더 선택</h2>
-  <div class="muted" style="font-size:13px">빠른 위치</div>
-  <div id="pk-places" class="row" style="margin:6px 0 12px"></div>
+  <h2 id="pk-title">저장할 폴더 선택</h2>
+  <div class="hint">빠른 위치</div>
+  <div class="places" id="pk-places"></div>
   <div class="mono" id="pk-path"></div>
-  <div id="pk-info" class="muted" style="font-size:13px"></div>
-  <div id="pk-dirs" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin:8px 0"></div>
+  <div class="hint" id="pk-info"></div>
+  <div class="dirs" id="pk-dirs"></div>
   <div id="pk-problems"></div>
-  <div class="row"><button class="ghost" id="pk-up" type="button">↑ 상위 폴더</button><button class="ghost" id="pk-new" type="button">＋ 새 폴더</button>
-    <span style="flex:1"></span><button class="ghost" id="pk-cancel" type="button">취소</button><button class="primary" id="pk-ok" type="button">이 폴더 선택</button></div>
+  <div class="newrow" id="pk-newrow" hidden><input type="text" id="pk-name" placeholder="새 폴더 이름" maxlength="100"><button class="btn" id="pk-make" type="button">만들기</button></div>
+  <div class="acts"><button class="btn ghost" id="pk-up" type="button">↑ 상위 폴더</button><button class="btn ghost" id="pk-new" type="button">＋ 새 폴더</button>
+    <span class="sp"></span><button class="btn" id="pk-cancel" type="button">취소</button><button class="btn primary" id="pk-ok" type="button">이 폴더 선택</button></div>
+</dialog>
+
+<dialog id="help">
+  <h2>원하는 디스크가 보이지 않나요?</h2>
+  <ul>
+    <li>케이블과 전원을 확인하고 다시 연결해 보세요. 연결하면 몇 초 안에 이 목록에 나타납니다.</li>
+    <li>프로그램은 관리자 권한으로 실행되어야 디스크를 읽을 수 있습니다. 위쪽에 관리자 권한 안내가 보이면 프로그램을 닫고 다시 실행하세요.</li>
+    <li>컴퓨터에 원래 들어 있는 디스크(시스템·내장 디스크)는 일부러 보여 주지 않습니다.</li>
+  </ul>
+  <div class="acts"><button class="btn" id="help-refresh">다시 찾기</button><button class="btn primary" id="help-close">닫기</button></div>
+</dialog>
+
+<dialog id="ask">
+  <h2 id="ask-title"></h2>
+  <div id="ask-text" style="color:var(--sub)"></div>
+  <div class="acts"><button class="btn" id="ask-no">아니요</button><button class="btn primary" id="ask-yes">예</button></div>
 </dialog>
 
 <script>
 const T = new URLSearchParams(location.search).get('token') || '';
 const $ = (s, r = document) => r.querySelector(s);
-const STEPS = ['① 디스크', '② 검사', '③ 결과', '④ 계획', '⑤ 복구', '⑥ 검증'];
-const KIND = { 'jpeg': 'JPEG 사진', 'raw-cr3': 'RAW (CR3)', 'heic': 'HEIC 사진', 'video-mp4': '영상 (MP4)',
-  'video-mov': '영상 (MOV)', 'unknown-bmff': '알 수 없는 형식' };
-const REASON_STATE = { unstable: '디스크가 불안정해 중단했습니다.', refused: '시작할 수 없습니다.', cancelled: '중단했습니다.', disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.',
-  refused: '시작할 수 없습니다.', error: '오류가 발생했습니다.' };
-let S = { autoPlan: null, devices: [], sel: null, session: null, summary: null, job: null, seenFinished: null, screen: 0, canResume: false, lastCheck: null };
+const GROUPS = {
+  photo: { label: '사진', sub: 'JPEG · HEIC', icon: '📷', kinds: ['jpeg', 'heic'], unit: '장', dir: '사진' },
+  raw: { label: 'RAW 사진', sub: 'Canon CR3', icon: '🎞️', kinds: ['raw-cr3'], unit: '장', dir: 'RAW' },
+  video: { label: '영상', sub: 'MP4 · MOV', icon: '🎬', kinds: ['video-mp4', 'video-mov'], unit: '개', dir: '영상' },
+};
+const FMT = { Apple_APFS: 'APFS 형식', 'disk-image': '디스크 이미지', RAW: '형식 없음(초기화 안 됨)', Microsoft_Basic_Data: 'Windows 형식', Apple_HFS: 'Mac OS 확장 형식' };
+const STEPS = ['디스크', '복구 설정', '진행 · 결과'];
+const STEP_OF = { disk: 0, scan: 0, settings: 1, run: 2, result: 2 };
+const REASON_STATE = { unstable: '디스크가 불안정해 중단했습니다.', refused: '시작할 수 없습니다.', cancelled: '중단했습니다.',
+  disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.', error: '오류가 발생했습니다.' };
+const S = { screen: 'disk', devices: [], sel: null, session: null, summary: null, job: null, flow: null, seen: null,
+  kinds: { photo: true, raw: true, video: true }, suspect: true, dest: '', batchGb: '', plan: null, rate: null,
+  check: null, banners: {}, stripKey: '', ended: false, pausing: false };
 
-// ---- 안전한 DOM 생성 (서버 문자열은 항상 textContent 로만 넣는다) ----
+// ---- 안전한 DOM 생성 (서버가 준 문자열은 항상 textContent 로만 넣는다) ----
 function h(tag, attrs, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else e.setAttribute(k, v); }
-  for (const c of kids.flat()) e.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  for (const c of kids.flat()) if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c)));
   return e;
 }
 const clear = e => { while (e.firstChild) e.removeChild(e.firstChild); return e; };
-const gb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : (b / 1e6).toFixed(1) + ' MB';
-const eta = s => s == null ? '' : s < 90 ? '약 ' + s + '초' : s < 5400 ? '약 ' + Math.round(s / 60) + '분' : '약 ' + (s / 3600).toFixed(1) + '시간';
-const stateMsg = j => j.error || REASON_STATE[j.state] || j.state;  // 서버 메시지가 있으면 그것만 쓴다(중복 방지)
-const tag = (cls, t) => h('span', { class: 'tag ' + cls }, t);
-const callout = (cls, ...kids) => h('div', { class: 'callout ' + cls }, ...kids);
+const num = n => (n || 0).toLocaleString();
+function fmtSize(b) {
+  if (b >= 1e12) return (b / 1e12).toFixed(2) + ' TB';
+  if (b >= 1e9) return (b / 1e9).toFixed(b >= 1e11 ? 0 : 1) + ' GB';
+  return Math.max(0, b / 1e6).toFixed(0) + ' MB';
+}
+function fmtEta(s) {
+  if (s == null) return '계산 중';
+  if (s < 90) return '약 ' + Math.max(1, Math.round(s)) + '초';
+  const hh = Math.floor(s / 3600), mm = Math.round((s % 3600) / 60);
+  return (hh ? hh + '시간 ' : '') + mm + '분';
+}
+// '~(으)로' 조사: 받침이 있으면 '으로', 없거나 ㄹ 받침이면 '로', 한글이 아니면 '(으)로'
+const euro = name => { const c = (name || '').trim().slice(-1).charCodeAt(0); if (!(c >= 0xAC00 && c <= 0xD7A3)) return '(으)로'; const j = (c - 0xAC00) % 28; return j && j !== 8 ? '으로' : '로'; };
+const stateMsg = j => j.error || REASON_STATE[j.state] || j.state;
+const chip = (cls, t) => h('span', { class: 'chip ' + cls }, t);
 
 async function api(path, body) {
   const opt = { headers: { 'X-Token': T } };
@@ -220,380 +335,418 @@ async function api(path, body) {
   let r;
   try { r = await fetch(path, opt); }
   catch (e) { const err = new Error('도구와 통신하지 못했습니다'); err.network = true; throw err; }
-  if (S.banners && S.banners.conn) banner('', '', 'conn');  // 다시 연결되면 안내를 지운다
+  if (S.banners.conn) banner('', '', 'conn');
   const ct = r.headers.get('content-type') || '';
   const data = ct.includes('json') ? await r.json() : await r.text();
   if (!r.ok) { const e = new Error((data && data.error) || r.statusText); e.status = r.status; throw e; }
   return data;
 }
-// 배너는 key 별로 여러 개를 동시에 보여 준다 (배터리·비정상 종료·오류 등이 서로 덮어쓰지 않게)
+const thumbUrl = p => '/api/thumb?token=' + encodeURIComponent(T) + '&p=' + encodeURIComponent(p);
+
+// 배너는 key 별로 동시에 보여 준다 (배터리·비정상 종료·오류 등이 서로 덮어쓰지 않게)
 function banner(kind, text, key = 'msg', action = null) {
-  S.banners = S.banners || {};
   if (text) S.banners[key] = { kind, text, action }; else delete S.banners[key];
   const b = clear($('#banner'));
-  Object.values(S.banners).forEach(x => b.append(callout(x.kind, x.text, x.action ? h('button', { class: 'ghost', onclick: x.action.fn }, x.action.label) : '')));
+  Object.values(S.banners).forEach(x => b.append(h('div', { class: 'notice ' + x.kind, role: 'status' }, h('span', { class: 't' }, x.text),
+    x.action ? h('button', { class: 'btn small', onclick: x.action.fn }, x.action.label) : null)));
+}
+function toast(text) { const t = h('div', { class: 'toast', role: 'status' }, text); document.body.append(t); setTimeout(() => t.remove(), 3500); }
+function ask(title, text, yes = '예') {
+  return new Promise(res => {
+    const d = $('#ask'); $('#ask-title').textContent = title; $('#ask-text').textContent = text; $('#ask-yes').textContent = yes;
+    const done = v => { d.close(); res(v); };
+    $('#ask-yes').onclick = () => done(true); $('#ask-no').onclick = () => done(false); d.oncancel = () => res(false);
+    d.showModal();
+  });
 }
 
 // ---- 화면 전환 ----
-function renderSteps() {
-  const ol = clear($('#steps'));
-  STEPS.forEach((t, i) => {
-    const b = h('button', { 'data-go': i }, t);
-    if (i === S.screen) b.setAttribute('aria-current', 'step');
-    if (i >= 2 && !S.session?.has_catalog) b.disabled = true;
-    ol.append(h('li', {}, b));
-  });
+function renderStepper() {
+  const s = STEP_OF[S.screen], fin = S.screen === 'result';
+  clear($('#stepper')).append(...STEPS.flatMap((l, i) => {
+    const done = i < s || (fin && i === 2);
+    return [i ? h('span', { class: 'bar' + (i <= s ? ' done' : '') }) : null,
+      h('div', { class: 'step ' + (done ? 'done' : i === s ? 'now' : '') }, h('span', { class: 'dot' }, done ? '✓' : String(i + 1)), h('span', { class: 'lbl' }, l))];
+  }).filter(Boolean));
 }
-function go(i) {
-  S.screen = i;
-  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's' + i));  // HTML 순서가 아니라 id 로 찾는다
-  renderSteps(); window.scrollTo(0, 0);
-  if (i === 0) loadDevices();
-  if (i === 2) loadResult();
-  if (i === 3) initPlan();
-  if (i === 5) loadVerify();
-  renderJob();
+function btn(label, cls, fn, opts = {}) { const b = h('button', { class: 'btn ' + cls, type: 'button' }, label); b.onclick = fn; if (opts.id) b.id = opts.id; if (opts.disabled) b.disabled = true; return b; }
+function setActions(...items) { clear($('#actions')).append(...items.map(i => i === '|' ? h('span', { class: 'sp' }) : typeof i === 'string' ? h('span', { class: 'hint' }, i) : i)); }
+function go(name) {
+  S.screen = name;
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
+  renderStepper(); window.scrollTo(0, 0);
+  if (name === 'disk') { setActions('|', btn('다음', 'primary', next, { id: 'next', disabled: true })); loadDevices(); }
+  if (name === 'scan') setActions(btn('취소', '', cancelJob, { id: 'scancancel' }), '|');
+  if (name === 'settings') { setActions('|', btn('복구 시작', 'primary', startRun, { id: 'start', disabled: true })); initSettings(); }
+  if (name === 'run') setActions(btn('일시 중지', '', pauseJob, { id: 'pause' }), btn('중단', 'danger', stopJob, { id: 'stop' }), '|', '중단해도 나중에 이어서 할 수 있습니다');
+  if (name === 'result') loadResult();
 }
-document.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b && !b.disabled) go(+b.dataset.go); });
 
 // ---- 1. 디스크 ----
+const diskName = dv => dv.label || '외장 디스크';
 async function loadDevices() {
   try {
     const [d, s] = await Promise.all([api('/api/devices'), api('/api/session')]);
-    S.devices = d.devices; S.session = s;
-    S.canResume = !!(s.device && s.device.finished === false);
-    renderSteps();
-    const box = clear($('#devlist'));
-    if (!S.devices.length) box.append(callout('warn', '연결된 외장 디스크가 없습니다. 케이블을 확인하고 [새로고침]을 누르세요.'));
+    S.devices = d.devices; S.session = s; S.isAdmin = d.is_root; S.images = d.images;
     if (S.sel && !S.devices.find(x => x.id === S.sel)) S.sel = null;
-    S.devices.forEach(dv => {
-      const el = h('div', { class: 'disk' + (dv.id === S.sel ? ' sel' : ''), tabindex: 0, role: 'radio', 'aria-checked': String(dv.id === S.sel) },
-        h('div', { style: 'font-size:28px' }, '💾'),
-        h('div', { style: 'flex:1' }, h('b', {}, dv.id + ' · ' + gb(dv.size)), ' ',
-          dv.readable ? tag('ok', '읽을 수 있음') : tag('bad', '관리자 권한 필요'),
-          h('br'), h('span', { class: 'muted mono' }, dv.content + (dv.label ? ' · ' + dv.label : '') + (dv.mounts.length ? ' · 마운트됨' : ' · 마운트되지 않음'))));
-      const pick = () => { S.sel = dv.id; loadDevices(); };
-      el.onclick = pick; el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } };
-      box.append(el);
-    });
-    const dv = S.devices.find(x => x.id === S.sel);
-    $('#startscan').disabled = !(dv && dv.readable);
-    $('#startauto').disabled = !(dv && dv.readable);
-    if (!$('#autodest').value) $('#autodest').value = (s.dest || '~/Documents/recovered/photos');
-    $('#resume').hidden = !(S.canResume && dv);
-    $('#sessioninfo').textContent = '작업 폴더: ' + s.session + (s.has_catalog ? ' · 이전 검사 결과가 있습니다.' : '');
-    banner('', '', 'msg');
-    banner(!d.is_root && !d.images ? 'warn' : '', !d.is_root && !d.images ? '관리자 권한이 아닙니다. 원본 디스크를 읽으려면 관리자 권한으로 다시 실행해야 합니다(맥: RecoveryTool.command 더블클릭, 윈도우: RecoveryTool.bat 더블클릭).' : '', 'root');
-    banner('warn', s.on_battery ? '배터리로 실행 중입니다. 전원을 연결하세요. 덮개를 닫거나 배터리가 떨어지면 디스크 연결이 끊겨 작업이 멈춥니다.' : '', 'power');
+    if (S.screen === 'disk') renderDevices();
+    const noadm = !d.is_root && !d.images;
+    banner(noadm ? 'warn' : '', noadm ? '관리자 권한이 아니라서 디스크를 읽을 수 없습니다. 프로그램을 닫고 다시 실행하세요(관리자 확인 창에서 [예]).' : '', 'root');
+    banner(s.on_battery ? 'warn' : '', s.on_battery ? '배터리로 실행 중입니다. 전원을 연결하세요. 덮개를 닫거나 배터리가 떨어지면 디스크 연결이 끊겨 작업이 멈춥니다.' : '', 'power');
     const it = s.interrupted;
-    if (it && it.kind === 'scan') banner('warn', '검사가 중간에 멈춘 기록이 있습니다(찾은 파일 ' + (it.found || 0) + '개). 이어서 할 수 있습니다. 디스크를 선택한 뒤 [이어서 검사]를 누르세요.', 'interrupted');
+    if (it && it.kind === 'scan') banner('warn', '검사가 중간에 멈춘 기록이 있습니다(찾은 파일 ' + (it.found || 0) + '개). 디스크를 고른 뒤 이어서 할 수 있습니다.', 'interrupted',
+      { label: '이어서 검사', fn: () => { if (!S.sel) { banner('bad', '먼저 위에서 디스크를 고르세요.', 'pick'); return; } startScan(true); } });
     else if (it && it.kind === 'extract') banner('warn', '복구가 중간에 멈춘 기록이 있습니다. 이미 꺼낸 파일은 그대로 두고 이어서 합니다. 비정상 종료였다면 마지막 파일들은 다시 확인합니다.', 'interrupted',
-      { label: '이어서 복구', fn: () => { if (!S.sel) { banner('bad', '먼저 위에서 원본 디스크를 선택하세요.'); return; } S.autoPlan = it.plan; go(3); } });
+      { label: '이어서 복구', fn: () => { if (!S.sel) { banner('bad', '먼저 위에서 디스크를 고르세요.', 'pick'); return; } if (it.plan) applyPlan(it.plan); go('settings'); } });
     else if (it) banner('warn', '이전 작업 기록이 손상되어 있습니다. 다시 검사하면 새로 시작합니다.', 'interrupted');
     else banner('', '', 'interrupted');
   } catch (e) { banner('bad', '도구와 통신하지 못했습니다: ' + e.message, 'conn'); }
 }
-async function startScan(resume) {
+function renderDevices() {
+  const box = clear($('#devlist'));
+  $('#disk-lead').textContent = S.devices.length ? '연결된 외장 디스크를 찾았습니다.' : '연결된 외장 디스크가 없습니다. 케이블을 연결하면 자동으로 나타납니다.';
+  $('#disknote').hidden = !S.devices.length;
+  S.devices.forEach(dv => {
+    const apfs = dv.content === 'Apple_APFS' || dv.content === 'disk-image';
+    const dj = S.session && S.session.device;
+    const used = dj && dj.device === dv.id && dj.scanned_bytes && dv.size ? Math.min(100, 100 * dj.scanned_bytes / dv.size) : null;
+    const meta = [dv.bus === 'USB' ? 'USB 연결' : dv.bus, FMT[dv.content] || dv.content, fmtSize(dv.size)].filter(Boolean).join(' · ');
+    const el = h('div', { class: 'disk' + (dv.id === S.sel ? ' sel' : '') + (dv.readable ? '' : ' off'), tabindex: 0, role: 'radio', 'aria-checked': String(dv.id === S.sel) },
+      h('div', { class: 'ico' + (apfs ? '' : ' gray') }, apfs ? '💽' : '💾'),
+      h('div', { class: 'main' }, h('div', { class: 'name' }, diskName(dv)), h('div', { class: 'meta' }, meta),
+        used != null ? [h('div', { class: 'usage' }, h('i', { style: 'width:' + Math.max(2, used) + '%' })),
+          h('div', { class: 'usage-l' }, '데이터가 있는 영역 약 ' + fmtSize(dj.scanned_bytes) + ' (전체의 ' + Math.round(used) + '%)')] : null),
+      !dv.readable ? chip('bad', '관리자 권한 필요') : apfs ? chip('', '읽을 수 있음') : chip('warn', 'APFS가 아닙니다'),
+      h('span', { class: 'radio' }));
+    const pick = () => { if (!dv.readable) return; S.sel = dv.id; banner('', '', 'pick'); renderDevices(); };
+    el.onclick = pick; el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } };
+    box.append(el);
+  });
+  const dv = S.devices.find(x => x.id === S.sel);
+  if ($('#next')) $('#next').disabled = !(dv && dv.readable);
+}
+async function next() {
+  if (!S.sel) return;
+  const nb = $('#next'); if (nb) nb.disabled = true;
+  await loadDevices();  // 이미 검사한 디스크인지는 최신 정보로 판단한다(오래된 정보로 다시 검사하면 이전 복구 기록이 보관 폴더로 옮겨진다)
+  const dv = S.devices.find(x => x.id === S.sel);
+  if (!dv || !dv.readable) { if (nb) nb.disabled = false; return; }
+  const s = S.session;
+  if (s && s.has_catalog && s.device && s.device.finished && dv.matches_session) {  // 이 디스크를 이미 검사했으면 다시 훑지 않는다
+    try { await loadSummary(); S.dest = S.dest || s.dest || ''; go('settings'); return; } catch (e) { }
+  }
+  startScan(false);
+}
+setInterval(() => { if (S.screen === 'disk' && !document.hidden) loadDevices(); }, 5000);
+$('#nodisk').onclick = () => $('#help').showModal();
+$('#help-close').onclick = () => $('#help').close();
+$('#help-refresh').onclick = () => { $('#help').close(); loadDevices(); };
+
+// ---- 검사 ----
+async function startScan(resume, full) {
   clearInterval(S.watch);
   try {
-    await api('/api/scan/start', { device_id: S.sel, full: $('#fullscan').checked, resume });
-    S.seenFinished = null; go(1); poll();
-  } catch (e) { banner('bad', e.message); }
+    await api('/api/scan/start', { device_id: S.sel, full: !!full, resume: !!resume });
+    S.flow = 'scan'; S.seen = null; clear($('#scanmsg')); banner('', '', 'msg'); go('scan'); poll();
+  } catch (e) { banner('bad', e.message, 'msg'); }
 }
-const KINDMAP = { photo: ['jpeg', 'heic'], raw: ['raw-cr3'], video: ['video-mp4', 'video-mov'] };
-function autoPlan() {
-  const kinds = [...document.querySelectorAll('#autokinds input:checked')].flatMap(i => KINDMAP[i.value]);
-  return { dest: $('#autodest').value.trim(), kinds, include_suspect: true };
-}
-async function startAuto(resume) {
-  clearInterval(S.watch);
-  const plan = autoPlan();
-  if (!plan.kinds.length) { banner('bad', '복구할 종류를 하나 이상 고르세요.'); return; }
-  if (!plan.dest) { banner('bad', '저장 폴더를 입력하세요.'); return; }
-  try {
-    await api('/api/auto/start', { device_id: S.sel, plan, full: $('#fullscan').checked, resume });
-    S.autoPlan = plan; S.seenFinished = null; banner('', ''); go(6); poll();
-  } catch (e) { banner('bad', e.message); }
-}
-$('#startauto').onclick = () => startAuto(false);
-$('#startscan').onclick = () => startScan(false);
-$('#resume').onclick = () => (S.autoPlan ? startAuto(true) : startScan(true));
-$('#refresh').onclick = loadDevices;
+async function loadSummary() { S.summary = await api('/api/catalog/summary'); return S.summary; }
 
 // ---- 작업 진행 (검사 / 복구 / 검증 공통) ----
 async function poll() {
-  try { S.job = (await api('/api/job')).job; }
+  let j;
+  try { j = (await api('/api/job')).job; }
   catch (e) {
-    if (e.network) { banner('bad', '도구와 연결이 끊겼습니다(종료되었거나 컴퓨터가 잠들었을 수 있습니다). 다시 실행한 뒤 이 페이지를 새로고침하면 작업을 이어서 할 수 있습니다. 이미 꺼낸 파일은 그대로 있습니다.', 'conn'); setTimeout(poll, 3000); }
+    if (e.network) { banner('bad', '도구와 연결이 끊겼습니다(종료되었거나 컴퓨터가 잠들었을 수 있습니다). 프로그램을 다시 실행하면 작업을 이어서 할 수 있습니다. 이미 꺼낸 파일은 그대로 있습니다.', 'conn'); setTimeout(poll, 3000); }
     return;
   }
-  renderJob();
-  if (S.job && S.job.state === 'running') setTimeout(poll, 700);
-  else if (S.job && S.seenFinished !== S.job.id) { S.seenFinished = S.job.id; await onFinished(S.job); }
+  S.job = j; renderJob();
+  if (j && j.state === 'running') setTimeout(poll, 700);
+  else if (j && S.seen !== j.id) { S.seen = j.id; await onFinished(j); }
 }
+function setRing(id, pct, label) {
+  const r = $(id); r.style.setProperty('--p', Math.max(0, Math.min(100, pct)).toFixed(1));
+  r.querySelector('.pc').textContent = Math.round(pct) + '%'; if (label) r.querySelector('.pl').textContent = label;
+}
+function setStats(id, rows) { clear($(id)).append(...rows.map(([v, l]) => h('div', { class: 'stat' }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l)))); }
 function renderJob() {
   const j = S.job; if (!j) return;
-  const p = j.progress || {}; const pct = p.total_bytes ? Math.min(100, 100 * p.done_bytes / p.total_bytes) : (p.total ? 100 * p.done / p.total : 0);
-  if (j.kind === 'scan' && S.screen === 1) {
-    $('#scanphase').textContent = j.phase === 'sampling' ? '1/2 데이터가 있는 구간을 확인하는 중 (듬성듬성 읽기)' : '2/2 사진·영상 파일을 찾는 중';
-    $('#scanfill').style.width = pct + '%'; $('#scanbar').setAttribute('aria-valuenow', Math.round(pct));
-    const kv = clear($('#scankv'));
-    const rows = [['진행', pct.toFixed(1) + '%'], ['읽은 양', p.total_bytes ? gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes) : '-'],
-      ['속도 / 남은 시간', (p.rate_mb_s || 0) + ' MB/s · ' + (j.state === 'running' ? eta(p.eta_s) : '')]];
-    if (p.found != null) rows.push(['찾은 파일', p.found + '개']);
-    rows.forEach(([k, v]) => kv.append(h('dt', {}, k), h('dd', {}, v)));
-    $('#scancancel').disabled = j.state !== 'running';
+  const p = j.progress || {}; const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : (p.total ? 100 * p.done / p.total : 0);
+  const eta = j.state === 'running' ? fmtEta(p.eta_s) : '-';
+  if (j.kind === 'scan' && S.screen === 'scan') {
+    if (p.rate_mb_s) S.rate = p.rate_mb_s;
+    setRing('#scan-ring', pct, j.phase === 'sampling' ? '1/2 위치 확인' : '2/2 파일 찾기');
+    setStats('#scan-stats', [[p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [num(p.found || 0) + '개', '찾은 파일'],
+      [eta, '남은 시간'], [(p.rate_mb_s || 0) + ' MB/s', '읽는 속도']]);
+    $('#scancancel') && ($('#scancancel').disabled = j.state !== 'running');
   }
-  if (j.kind === 'auto' && S.screen === 6) {
-    const order = { sampling: 0, cataloging: 0, extracting: 1, verifying: 2 }; const cur = order[j.phase] ?? 0;
-    const labels = ['1. 검사 — ' + (j.phase === 'sampling' ? '데이터 위치 확인' : '사진·영상 찾기'), '2. 복구 — 저장 폴더로 꺼내기', '3. 검증 — 열리는지 확인'];
-    const ol = clear($('#autosteps'));
-    labels.forEach((t, i) => ol.append(h('li', { style: 'padding:3px 0;' + (i === cur && j.state === 'running' ? 'font-weight:700' : '') + (i > cur ? ';color:var(--muted)' : '') },
-      (i < cur || (j.state === 'done') ? '✅ ' : i === cur && j.state === 'running' ? '▶ ' : '· ') + t)));
-    $('#autofill').style.width = pct + '%';
-    const kv = clear($('#autokv')); let rows = [];
-    if (cur < 2) rows = [['진행', pct.toFixed(1) + '%'], ['읽은 양', p.total_bytes ? gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes) : '-']].concat(p.found != null ? [['찾은 파일', p.found + '개']] : []);
-    if (cur === 1) rows = [['진행', pct.toFixed(1) + '%'], ['파일', (p.files || 0) + ' / ' + (p.total_files || 0) + ' 개'], ['용량', gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes || 0)], ['지금 파일', p.current || '-']];
-    if (cur === 2) rows = [['검사함', (p.done || 0) + ' / ' + (p.total || 0)], ['정상 / 실패', (p.ok || 0) + ' / ' + (p.fail || 0)]];
-    if (cur < 2 || cur === 1) rows.push(['속도 / 남은 시간', (p.rate_mb_s || 0) + ' MB/s · ' + (j.state === 'running' ? eta(p.eta_s) : '')]);
-    rows.forEach(([k, v]) => kv.append(h('dt', {}, k), h('dd', { class: k === '지금 파일' ? 'mono' : '' }, v)));
-    $('#autocancel').disabled = j.state !== 'running';
+  if (j.kind === 'extract' && S.screen === 'run') {
+    if (p.rate_mb_s) S.rate = p.rate_mb_s;
+    setRing('#run-ring', pct, '진행');
+    const bk = p.by_kind || {}; const gk = k => bk[GROUPS[k].dir] ? num(bk[GROUPS[k].dir][0]) + ' / ' + num(bk[GROUPS[k].dir][1]) : '-';
+    setStats('#run-stats', [[num(p.files) + ' / ' + num(p.total_files), '꺼낸 파일'], [fmtSize(p.done_bytes || 0), '저장된 용량'], [eta, '남은 시간'],
+      [gk('photo'), '사진'], [gk('raw'), 'RAW 사진'], [gk('video'), '영상']]);
+    $('#cur').textContent = p.current || '-';
+    refreshStrip();
+    $('#pause') && ($('#pause').disabled = $('#stop').disabled = j.state !== 'running');
   }
-  if (j.kind === 'extract' && S.screen === 4) {
-    $('#exfill').style.width = pct + '%';
-    const kv = clear($('#exkv'));
-    [['진행', pct.toFixed(1) + '%'], ['파일', (p.files || 0) + ' / ' + (p.total_files || 0) + ' 개'],
-      ['용량', gb(p.done_bytes || 0) + ' / ' + gb(p.total_bytes || 0)], ['속도 / 남은 시간', (p.rate_mb_s || 0) + ' MB/s · ' + (j.state === 'running' ? eta(p.eta_s) : '')],
-      ['지금 파일', p.current || '-']].forEach(([k, v]) => kv.append(h('dt', {}, k), h('dd', { class: k === '지금 파일' ? 'mono' : '' }, v)));
-    $('#excancel').disabled = j.state !== 'running';
-  }
-  if (j.kind === 'verify' && S.screen === 5) {
-    $('#vfill').style.width = (p.total ? 100 * p.done / p.total : 0) + '%';
-    $('#vcancel').hidden = j.state !== 'running'; $('#startverify').disabled = j.state === 'running';
-    if (j.state === 'running') { const b = clear($('#vbox')); b.append(h('p', {}, (p.done || 0) + ' / ' + (p.total || 0) + ' 검사함 · 정상 ' + (p.ok || 0) + ' · 실패 ' + (p.fail || 0))); }
+  if (j.kind === 'verify' && S.screen === 'run') {
+    setRing('#run-ring', pct, '확인');
+    setStats('#run-stats', [[num(p.done) + ' / ' + num(p.total), '확인한 파일'], [num(p.ok), '정상'], [num(p.fail), '문제']]);
+    $('#pause') && ($('#pause').disabled = $('#stop').disabled = j.state !== 'running');
   }
 }
-function watchReconnect(kind, boxSel) {
+async function refreshStrip() {
+  try {
+    const r = await api('/api/recent?n=8'); const key = r.items.map(i => i.path).join('|');
+    if (key === S.stripKey) return; S.stripKey = key;
+    clear($('#strip')).append(...r.items.slice().reverse().map(thumbEl));
+  } catch (e) { }
+}
+function thumbEl(it) {
+  if (it.kind === 'jpeg') { const el = h('div', { class: 'th' }, h('img', { src: thumbUrl(it.path), alt: '' })); el.querySelector('img').onerror = e => { e.target.remove(); el.append(h('span', { class: 'lab' }, '사진')); }; return el; }
+  if (it.kind && it.kind.startsWith('video')) return h('div', { class: 'th v' });
+  return h('div', { class: 'th' }, h('span', { class: 'lab' }, it.kind === 'raw-cr3' ? 'RAW' : '파일'));
+}
+const cancelJob = () => api('/api/job/cancel', {}).catch(() => { });
+function pauseJob() { S.pausing = true; cancelJob(); }
+async function stopJob() { if (await ask('중단할까요?', '꺼낸 파일은 그대로 남고, 나중에 이어서 할 수 있습니다.', '중단')) { S.pausing = false; cancelJob(); } }
+
+function watchReconnect(kind, boxSel, resume) {
   clearInterval(S.watch);
-  const box = $(boxSel); box.append(h('p', { class: 'muted', id: 'watchnote' }, '케이블을 다시 꽂으면 같은 디스크인지 자동으로 확인합니다.'));
+  const box = $(boxSel); box.append(h('p', { class: 'hint', id: 'watchnote' }, '케이블을 다시 꽂으면 같은 디스크인지 자동으로 확인합니다.'));
   S.watch = setInterval(async () => {
     try {
       const d = await api('/api/devices'); const m = d.devices.find(x => x.matches_session);
       if (!m) return;
       clearInterval(S.watch); S.sel = m.id; const note = $('#watchnote'); if (note) note.remove();
-      const resume = { scan: () => startScan(true), auto: () => startAuto(true), extract: () => $('#startextract').onclick() }[kind];
-      box.append(callout('ok', h('b', {}, '검사했던 디스크와 같은 디스크가 다시 연결되었습니다. '), '이어서 하면 이미 한 부분은 건너뜁니다.',
-        h('button', { class: 'primary', onclick: resume }, '이어서 하기')));
+      box.append(h('div', { class: 'notice ok' }, h('span', { class: 't' }, '검사했던 디스크와 같은 디스크가 다시 연결되었습니다. 이어서 하면 이미 한 부분은 건너뜁니다.'), btn('이어서 하기', 'primary small', resume)));
     } catch (e) { }
   }, 3000);
 }
 async function onFinished(j) {
-  await loadSession();
-  if (j.state === 'disconnected') watchReconnect(j.kind, j.kind === 'scan' ? '#scanmsg' : j.kind === 'auto' ? '#automsg' : '#exmsg');
+  try { S.session = await api('/api/session'); } catch (e) { }
   if (j.kind === 'scan') {
-    if (j.state === 'done' && !(j.result && j.result.found === 0)) { go(2); return; }
+    if (j.state === 'disconnected') watchReconnect('scan', '#scanmsg', () => startScan(true));
+    if (j.state === 'done' && !(j.result && j.result.found === 0)) { try { await loadSummary(); go('settings'); return; } catch (e) { } }
     const m = clear($('#scanmsg'));
-    if (j.state === 'done') m.append(callout('warn', j.error || '파일을 찾지 못했습니다.'));
-    else m.append(callout(j.state === 'cancelled' ? '' : 'bad', stateMsg(j), j.state === 'cancelled' ? ' 디스크에는 영향이 없습니다.' : ''));
-    $('#scancancel').textContent = '디스크 선택으로'; $('#scancancel').onclick = () => { $('#scancancel').textContent = '취소'; $('#scancancel').onclick = cancelJob; go(0); };
-    $('#scancancel').disabled = false;
-  }
-  if (j.kind === 'auto') {
-    const m = clear($('#automsg')); const r = j.result || {}; $('#autocancel').disabled = true;
-    ['autoplan', 'autoverify', 'autoback'].forEach(id => $('#' + id).hidden = true);
-    if (j.state === 'done') {
-      const v = r.verify || {};
-      m.append(callout(v.fail ? 'warn' : 'ok', h('b', {}, '완료: ' + (r.files || 0).toLocaleString() + '개(' + gb(r.bytes || 0) + ')를 꺼냈고 열림 확인 ' + (v.ok || 0).toLocaleString() + ' · 실패 ' + (v.fail || 0).toLocaleString() + ' 입니다.'),
-        h('br'), '저장 위치: ', h('span', { class: 'mono' }, r.dest || '')));
-      m.append(h('p', { class: 'muted' }, '검증 수준: ' + Object.entries(v.levels || {}).map(([k, n]) => k + ' ' + n).join(', ') + ' (structure=구조만, decode=이미지 디코딩). 재생·현상 프로그램에서의 열림은 확인하지 못했습니다.'));
-      if (r.duplicates) m.append(h('p', { class: 'muted' }, '내용이 같은 파일 ' + r.duplicates + '개는 하나만 꺼내고 건너뛰었습니다.'));
-      if (r.failed) m.append(callout('warn', '읽지 못해 건너뛴 파일이 ' + r.failed + '개 있습니다. 원본 디스크의 불량 구간일 수 있습니다. 나머지는 정상적으로 꺼냈습니다.'));
-      $('#autoverify').hidden = false; $('#autoback').hidden = false;
-    } else if (j.state === 'needs_plan') {
-      const ov = r.overview || {};
-      m.append(callout('warn', h('b', {}, '복구를 시작하기 전에 멈췄습니다.'), h('br'), j.error || '', h('br'),
-        '선택한 파일 ' + (ov.files || 0).toLocaleString() + '개 · ' + gb(ov.bytes || 0) + ' — 검사 결과는 저장되어 있어서 다시 검사하지 않아도 됩니다.'));
-      $('#autoplan').hidden = false; $('#autoback').hidden = false;
-    } else if (j.state === 'cancelled') {
-      m.append(callout('', '중단했습니다. 디스크에는 영향이 없습니다. 이미 꺼낸 파일은 저장 폴더에 남아 있습니다.')); $('#autoback').hidden = false;
-    } else {
-      m.append(callout('bad', stateMsg(j)));
-      if (r.files) m.append(h('p', { class: 'muted' }, '여기까지 ' + r.files + '개를 꺼냈습니다. 다시 시작하면 이어서 합니다.'));
-      $('#autoback').hidden = false;
-    }
+    m.append(h('div', { class: 'notice ' + (j.state === 'cancelled' ? '' : 'warn'), style: 'margin-top:14px' }, h('span', { class: 't' },
+      j.state === 'done' ? (j.error || '사진이나 영상을 찾지 못했습니다.') : stateMsg(j) + (j.state === 'cancelled' ? ' 디스크에는 영향이 없습니다.' : ''))));
+    setActions(btn('디스크 선택으로', '', () => go('disk')), '|', j.state === 'cancelled' || j.state === 'disconnected' ? btn('이어서 검사', 'primary', () => startScan(true)) : '');
   }
   if (j.kind === 'extract') {
-    const m = clear($('#exmsg')); const r = j.result || {};
-    m.append(callout(j.state === 'done' ? 'ok' : 'warn', (j.state === 'done' ? '이번 묶음을 꺼냈습니다. ' : '') + (r.files || 0) + '개(' + gb(r.bytes || 0) + ') 저장됨. ' + (r.duplicates ? '내용이 같은 파일 ' + r.duplicates + '개는 건너뜀. ' : '') + (r.failed ? '읽지 못해 건너뛴 파일 ' + r.failed + '개(불량 구간일 수 있음). ' : '') + (j.state === 'done' ? '' : stateMsg(j))));
-    const chk = await checkPlan().catch(() => null);
-    $('#nextbatch').hidden = !(chk && chk.ok);
-    if (j.state === 'done' && chk && !chk.ok) m.append(callout('ok', '이 계획의 파일을 모두 꺼냈습니다. [검증으로]를 눌러 열리는지 확인하세요.'));
-    if (j.state === 'done' && chk && chk.ok) m.append(callout('', '다음 묶음이 남아 있습니다. 저장 폴더의 파일을 다른 곳으로 옮겨 공간을 비운 뒤 [다음 묶음]을 눌러도 됩니다.'));
-    $('#excancel').disabled = true;
+    const m = clear($('#runmsg')); const r = j.result || {};
+    if (j.state === 'disconnected') watchReconnect('extract', '#runmsg', startRun);
+    if (j.state === 'done') {
+      const chk = await api('/api/plan/check', { device_id: S.sel, plan: S.plan }).catch(() => null);
+      if (chk && chk.ok) { S.partial = true; go('result'); return; }  // 묶음으로 나눈 경우: 아직 남아 있다
+      S.partial = false; startVerify(); return;
+    }
+    const kindMsg = j.state === 'cancelled' && S.pausing ? '일시 중지했습니다. 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있습니다.' : stateMsg(j);
+    m.append(h('div', { class: 'notice ' + (j.state === 'cancelled' ? '' : 'bad'), style: 'margin-top:14px' }, h('span', { class: 't' }, kindMsg + (r.files ? ' (이번에 ' + num(r.files) + '개 저장)' : ''))));
+    $('#runbox').hidden = false;
+    const acts = [btn('처음으로', '', () => go('disk')), btn('설정으로', '', () => go('settings')), '|'];
+    if (j.state === 'cancelled' || j.state === 'disconnected' || j.state === 'unstable') acts.push(btn('이어서 하기', 'primary', startRun));
+    setActions(...acts); S.pausing = false;
   }
-  if (j.kind === 'verify') { loadVerify(); }
-}
-async function loadSession() { try { S.session = await api('/api/session'); renderSteps(); } catch (e) { } }
-$('#autoplan').onclick = () => go(3);
-$('#autoverify').onclick = () => go(5);
-$('#autoback').onclick = () => go(0);
-const cancelJob = () => api('/api/job/cancel', {}).catch(() => { });
-$('#scancancel').onclick = cancelJob; $('#excancel').onclick = cancelJob; $('#vcancel').onclick = cancelJob;
-
-// ---- 3. 결과 ----
-async function loadResult() {
-  const box = clear($('#resultbox'));
-  try { S.summary = await api('/api/catalog/summary'); } catch (e) { box.append(h('p', { class: 'muted' }, '검사 결과가 없습니다. 먼저 검사를 실행하세요.')); $('#toplan').disabled = true; return; }
-  const s = S.summary; const total = Object.values(s.bytes).reduce((a, b) => a + b, 0);
-  $('#toplan').disabled = s.total === 0;
-  box.append(callout(s.total ? 'ok' : 'warn', h('b', {}, '사진·영상 ' + s.total.toLocaleString() + '개(약 ' + gb(total) + ')를 찾았습니다.'),
-    ' 원래 파일명과 폴더 구조는 복구할 수 없습니다. 촬영일과 카메라 정보로 정리합니다.'));
-  const tb = h('tbody');
-  Object.keys(s.kinds).sort().forEach(k => {
-    const st = s.structure[k] || {};
-    tb.append(h('tr', {}, h('td', {}, KIND[k] || k), h('td', { class: 'num' }, s.kinds[k].toLocaleString()), h('td', { class: 'num' }, gb(s.bytes[k])),
-      h('td', {}, st.ok ? tag('ok', '확인됨 ' + st.ok.toLocaleString()) : '', st.suspect ? tag('warn', '의심 ' + st.suspect.toLocaleString()) : '')));
-  });
-  box.append(h('h3', {}, '종류별'), h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, '종류'), h('th', { class: 'num' }, '개수'), h('th', { class: 'num' }, '용량'), h('th', {}, '구조 점검'))), tb));
-  const months = Object.entries(s.months);
-  if (months.length) {
-    const mx = Math.max(...months.map(m => m[1])); const bars = h('div', { class: 'months', role: 'img', 'aria-label': '월별 촬영 수' });
-    months.forEach(([m, n]) => bars.append(h('div', { style: 'height:' + Math.max(3, 90 * n / mx) + 'px', title: m + ': ' + n + '개' })));
-    box.append(h('h3', {}, '촬영일 분포 (월별)'), bars, h('div', { class: 'muted', style: 'font-size:13px' }, months[0][0] + ' ~ ' + months[months.length - 1][0] + ' · 촬영일 없음 ' + s.undated.toLocaleString() + '개 (날짜불명 폴더)'));
+  if (j.kind === 'verify') {
+    if (j.state === 'cancelled') { $('#runmsg').append(h('div', { class: 'notice', style: 'margin-top:14px' }, h('span', { class: 't' }, '확인을 중단했습니다.'))); }
+    go('result');
   }
-  const models = Object.entries(s.models); if (models.length) box.append(h('h3', {}, '카메라'), h('div', {}, models.map(([m, n]) => m + ' (' + n.toLocaleString() + ')').join(', ')));
-  box.append(h('h3', {}, '알려진 한계'), h('ul', { class: 'plain muted' },
-    h('li', {}, '지워진 옛 파일이 섞여 있을 수 있습니다. 구분할 방법이 없습니다.'),
-    h('li', {}, '큰 영상은 조각나 있으면 일부가 깨질 수 있습니다. ‘의심’ 항목이 해당합니다.'),
-    h('li', {}, '‘확인됨’은 파일 구조가 맞다는 뜻이며, 실제로 열리는지는 6단계 검증에서 확인합니다.')));
 }
 
-// ---- 4. 계획 ----
-function currentPlan() {
-  const kinds = [...document.querySelectorAll('#kinds input:checked')].map(i => i.value);
-  return { dest: $('#dest').value.trim(), kinds, include_suspect: $('#suspect').checked,
-    batch: { unit: $('#unit').value, size: parseFloat($('#batch').value) || 0 } };
+// ---- 2. 복구 설정 ----
+function applyPlan(plan) {
+  S.dest = plan.dest || S.dest; S.suspect = !!plan.include_suspect;
+  for (const k of Object.keys(GROUPS)) S.kinds[k] = GROUPS[k].kinds.some(x => (plan.kinds || []).includes(x));
+  S.batchGb = plan.batch && plan.batch.unit === 'gb' && plan.batch.size < 1e6 ? String(plan.batch.size) : '';
 }
-async function initPlan() {
-  if (!S.summary) { try { S.summary = await api('/api/catalog/summary'); } catch (e) { return; } }
-  const box = clear($('#kinds'));
-  Object.keys(S.summary.kinds).sort().forEach(k => {
-    const cb = h('input', { type: 'checkbox', value: k }); cb.checked = k !== 'unknown-bmff'; cb.onchange = schedCheck;
-    box.append(h('label', {}, cb, (KIND[k] || k) + ' (' + S.summary.kinds[k].toLocaleString() + '개 · ' + gb(S.summary.bytes[k]) + ')'));
-  });
-  if (S.autoPlan) {
-    const ap = S.autoPlan; document.querySelectorAll('#kinds input').forEach(i => { i.checked = ap.kinds.includes(i.value); });
-    $('#dest').value = ap.dest; $('#suspect').checked = !!ap.include_suspect;
-    $('#batch').value = (ap.batch && ap.batch.size && ap.batch.size < 1e6) ? ap.batch.size : 50;  // 자동 모드의 '전부 한 묶음' 값은 보기 좋게 바꾼다
-    $('#unit').value = (ap.batch && ap.batch.unit) || 'gb';
-  }
-  if (!$('#dest').value && S.session && S.session.dest) $('#dest').value = S.session.dest;
+function buildPlan() {
+  const kinds = Object.entries(GROUPS).filter(([k]) => S.kinds[k]).flatMap(([, g]) => g.kinds);
+  const gbv = parseFloat(S.batchGb);
+  return { dest: S.dest.trim(), kinds, include_suspect: S.suspect, batch: gbv > 0 ? { unit: 'gb', size: gbv } : { unit: 'n', size: 1e9 } };
+}
+function groupStat(g) {
+  const s = S.summary; if (!s) return { n: 0, b: 0 };
+  return { n: g.kinds.reduce((a, k) => a + (s.kinds[k] || 0), 0), b: g.kinds.reduce((a, k) => a + (s.bytes[k] || 0), 0) };
+}
+async function initSettings() {
+  if (!S.summary) { try { await loadSummary(); } catch (e) { banner('bad', '검사 결과가 없습니다. 디스크를 먼저 검사하세요.', 'msg'); go('disk'); return; } }
+  if (!S.dest && S.session && S.session.dest) S.dest = S.session.dest;
+  const total = Object.values(GROUPS).reduce((a, g) => a + groupStat(g).n, 0);
+  for (const k of Object.keys(GROUPS)) if (!groupStat(GROUPS[k]).n) S.kinds[k] = false;
+  $('#settings-lead').textContent = total ? '디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.' : '이 디스크에서 사진이나 영상을 찾지 못했습니다.';
+  renderTypes(); renderDest(); $('#batch').value = S.batchGb;
   schedCheck();
 }
-let ct = null;
-function schedCheck() { clearTimeout(ct); ct = setTimeout(async () => { try { await checkPlan(true); } catch (e) { } }, 250); }
-async function checkPlan(render) {
-  const r = await api('/api/plan/check', { device_id: S.sel, plan: currentPlan() });
-  S.lastCheck = r;
-  if (render) {
-    const ov = r.overview; const info = clear($('#planinfo'));
-    info.append('선택한 파일 ' + ov.files.toLocaleString() + '개 · ' + gb(ov.bytes) + ' → 남은 묶음 ' + ov.batches_remaining + '개 (다음 묶음 ' + ov.next_files.toLocaleString() + '개, ' + gb(ov.next_bytes) + ')' + (ov.done_files ? ' · 이미 꺼낸 파일 ' + ov.done_files.toLocaleString() + '개' : '') + (ov.failed_files ? ' · 읽지 못해 건너뜀 ' + ov.failed_files + '개' : '') + (ov.duplicate_files ? ' · 내용이 같아 건너뜀 ' + ov.duplicate_files + '개' : ''));
-    const c = clear($('#plancheck'));
-    c.append(r.ok ? callout('ok', h('b', {}, '저장 가능'), ' — 여유 ' + gb(r.free) + ', 필요 ' + gb(r.need + r.margin) + '(마진 포함)')
-      : callout('bad', h('b', {}, '시작할 수 없습니다'), h('ul', { class: 'plain' }, r.reasons.map(x => h('li', {}, x)))));
-    $('#startextract').disabled = !r.ok;
+function renderTypes() {
+  const box = clear($('#types'));
+  Object.entries(GROUPS).forEach(([k, g]) => {
+    const st = groupStat(g);
+    const el = h('div', { class: 'type' + (S.kinds[k] ? ' on' : '') + (st.n ? '' : ' none'), tabindex: 0, role: 'checkbox', 'aria-checked': String(!!S.kinds[k]) },
+      h('span', { class: 'check' }, '✓'), h('div', { class: 'em' }, g.icon), h('div', { class: 't' }, g.label), h('div', { class: 's' }, g.sub),
+      h('div', { class: 'n' }, st.n ? num(st.n) + g.unit : '없음'), h('div', { class: 'g' }, st.n ? fmtSize(st.b) : '-'));
+    const tog = () => { if (!st.n) return; S.kinds[k] = !S.kinds[k]; renderTypes(); schedCheck(); };
+    el.onclick = tog; el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tog(); } };
+    box.append(el);
+  });
+}
+function renderDest() { const p = $('#destpath'); p.textContent = S.dest || '폴더를 선택하세요'; p.classList.toggle('empty', !S.dest); }
+let ct = null, seq = 0;
+function schedCheck() { clearTimeout(ct); S.check = null; renderSummary(); ct = setTimeout(checkPlan, 250); }
+async function checkPlan() {
+  const plan = buildPlan(); const my = ++seq;
+  if (!plan.dest || !plan.kinds.length) return;
+  try { const r = await api('/api/plan/check', { device_id: S.sel, plan }); if (my !== seq) return; S.check = r; if (r.dest) { S.dest = r.dest; renderDest(); } }
+  catch (e) { if (my !== seq) return; S.check = { ok: false, reasons: [e.message] }; }
+  renderSummary();
+}
+function renderSummary() {
+  const free = clear($('#free')), sum = $('#summary'), tx = clear($('#sumtx')); const start = $('#start');
+  const plan = buildPlan(); const r = S.check;
+  sum.classList.remove('warn'); if (start) { start.disabled = true; start.textContent = '복구 시작'; start.onclick = startRun; }
+  if (!plan.kinds.length) { tx.append('꺼낼 종류를 하나 이상 고르세요.'); return; }
+  if (!plan.dest) { tx.append('저장할 폴더를 먼저 고르세요.'); return; }
+  if (!r) { tx.append('확인하는 중입니다…'); return; }
+  if (r.free != null) free.append('여유 공간 ' + fmtSize(r.free), r.ok ? chip('', '충분합니다') : null);
+  const ov = r.overview || {};
+  const allDone = (r.reasons || []).some(x => x.includes('모두 꺼냈습니다'));
+  if (allDone) { tx.append('이 설정의 파일은 이미 모두 꺼냈습니다.'); if (start) { start.disabled = false; start.textContent = '결과 보기'; start.onclick = () => { S.plan = buildPlan(); S.partial = false; go('result'); }; } return; }
+  if (!r.ok) {
+    sum.classList.add('warn'); free.append(chip('warn', '확인이 필요합니다'));
+    tx.append(h('b', {}, '지금은 시작할 수 없습니다.'), h('ul', {}, (r.reasons || []).map(x => h('li', {}, x))));
+    return;
   }
-  return r;
+  const secs = S.rate && ov.pending_bytes ? ov.pending_bytes / 1e6 / S.rate : null;
+  const sentence = [h('b', {}, num(ov.pending_files) + '개'), ', ', h('b', {}, fmtSize(ov.pending_bytes || 0)), '를 ', h('b', {}, S.dest), euro(S.dest) + ' 꺼냅니다.'];
+  if (ov.batches_remaining > 1) sentence.push(' 저장 공간에 맞춰 ' + ov.batches_remaining + '번에 나눠 꺼냅니다.');
+  if (secs) sentence.push(' 예상 소요 시간 ', h('b', {}, fmtEta(secs)));
+  if (ov.done_files) sentence.push(' (이미 꺼낸 ' + num(ov.done_files) + '개는 건너뜁니다)');
+  tx.append(...sentence);
+  if (start) start.disabled = !(ov.next_files > 0);
 }
-['dest', 'batch', 'unit', 'suspect'].forEach(id => { $('#' + id).addEventListener('input', schedCheck); $('#' + id).addEventListener('change', schedCheck); });
-$('#startextract').onclick = async () => {
-  if (!S.sel) { banner('bad', '원본 디스크가 선택되지 않았습니다. 1단계에서 디스크를 다시 선택하세요(재연결하면 번호가 바뀔 수 있습니다).'); go(0); return; }
-  clearInterval(S.watch);
-  try { await api('/api/extract/start', { device_id: S.sel, plan: currentPlan() }); S.seenFinished = null; clear($('#exmsg')); $('#nextbatch').hidden = true; go(4); poll(); }
-  catch (e) { banner('bad', e.message); }
-};
-$('#nextbatch').onclick = () => $('#startextract').onclick();
+$('#suspect-sw').onclick = () => { S.suspect = !S.suspect; $('#suspect-tg').classList.toggle('off', !S.suspect); $('#suspect-sw').setAttribute('aria-checked', String(S.suspect)); schedCheck(); };
+$('#suspect-sw').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#suspect-sw').onclick(); } };
+$('#batch').oninput = e => { S.batchGb = e.target.value; schedCheck(); };
+$('#rescan').onclick = () => startScan(false, false);
+$('#fullscan').onclick = async () => { if (await ask('디스크 전체를 검사할까요?', '디스크 전체를 읽어서 시간이 오래 걸립니다(수 시간). 기본 검사는 데이터가 있는 구간까지만 읽습니다.', '전체 검사')) startScan(false, true); };
 
-// ---- 6. 검증 ----
-async function loadVerify() {
+// ---- 3. 복구 실행 ----
+async function startRun() {
+  if (!S.sel) { banner('bad', '디스크가 선택되지 않았습니다. 처음부터 디스크를 다시 고르세요(다시 연결하면 번호가 바뀔 수 있습니다).', 'msg'); go('disk'); return; }
+  clearInterval(S.watch); S.plan = buildPlan(); S.pausing = false;
   try {
-    const [v, s] = await Promise.all([api('/api/verify/summary'), api('/api/session')]);
-    S.session = s;
-    const t = s.tools; $('#tools').textContent = '사용할 수 있는 도구: ' + [t.pillow && 'Pillow(사진 디코딩)', t.sips && 'sips(사진 디코딩)', t.ffprobe && 'ffprobe(영상 확인)'].filter(Boolean).join(', ') + (t.pillow || t.sips || t.ffprobe ? '' : '없음 — 구조 확인만 합니다') + (!t.ffprobe ? ' · 영상은 구조 확인까지만 합니다.' : '');
-    const box = clear($('#vbox')); if (!v.summary) return;
-    const m = v.summary; $('#vfill').style.width = '100%';
-    box.append(callout(m.fail ? 'warn' : 'ok', h('b', {}, '열림 확인 ' + m.ok.toLocaleString() + ' · 실패 ' + m.fail.toLocaleString() + ' · 미검사 ' + m.unchecked.toLocaleString()), m.cancelled ? ' (중단됨)' : ''));
-    box.append(h('p', { class: 'muted' }, '검증 수준: ' + Object.entries(m.levels).map(([k, n]) => k + ' ' + n).join(', ') + ' — structure=구조만, decode=이미지 디코딩, probe=영상 정보 읽기. 재생·현상 프로그램에서의 열림은 확인하지 못했습니다.'));
-    if (v.failures.length) {
-      const tb = h('tbody'); v.failures.forEach(f => tb.append(h('tr', {}, h('td', { class: 'mono' }, f.path), h('td', {}, tag('bad', '실패'), f.reason))));
-      box.append(h('h3', {}, '실패 목록 (최대 200개)'), h('table', {}, tb));
-    }
-  } catch (e) { }
+    await api('/api/extract/start', { device_id: S.sel, plan: S.plan });
+    S.flow = 'extract'; S.seen = null; S.stripKey = ''; banner('', '', 'msg');
+    clear($('#runmsg')); clear($('#strip')); $('#runbox').hidden = false;
+    $('#run-title').textContent = '사진을 꺼내는 중입니다'; $('#run-lead').textContent = '창을 열어 두면 됩니다. 컴퓨터가 잠자기에 들어가지 않게 막고 있습니다.';
+    go('run'); poll();
+  } catch (e) { banner('bad', e.message, 'msg'); }
 }
-$('#startverify').onclick = async () => {
-  try { await api('/api/verify/start', { deep: $('#deep').checked }); S.seenFinished = null; clear($('#vbox')); poll(); } catch (e) { banner('bad', e.message); }
-};
-$('#report').onclick = async () => { const p = $('#reportbox'); try { p.textContent = await api('/api/report'); p.hidden = false; } catch (e) { banner('bad', e.message); } };
+async function startVerify() {
+  try {
+    await api('/api/verify/start', { deep: true });
+    S.flow = 'verify'; S.seen = null; clear($('#runmsg')); $('#runbox').hidden = true;
+    $('#run-title').textContent = '꺼낸 파일이 열리는지 확인하는 중입니다'; $('#run-lead').textContent = '저장 폴더의 파일만 읽습니다.';
+    go('run'); $('#runbox').hidden = true; poll();
+  } catch (e) { banner('bad', e.message, 'msg'); go('result'); }
+}
 
-$('#quit').onclick = async () => {
-  if (!confirm('복구 도구를 종료할까요? 꺼낸 파일과 검사 결과는 그대로 남습니다.')) return;
-  try { await api('/api/shutdown', {}); document.body.replaceChildren(h('div', { class: 'wrap' }, h('p', {}, '도구를 종료했습니다. 이 창을 닫아도 됩니다.'))); }
-  catch (e) { banner('bad', e.message); }
-};
+// ---- 4. 결과 ----
+async function loadResult() {
+  setActions(btn('처음으로', '', () => go('disk')), '|', btn('보고서 저장', '', saveReport));
+  const box = clear($('#resbox'));
+  let r, v, rem = 0;
+  try { [r, v] = await Promise.all([api('/api/result'), api('/api/verify/summary')]); } catch (e) { box.append(h('p', { class: 'hint' }, '결과를 불러오지 못했습니다: ' + e.message)); return; }
+  if (S.partial && S.plan) { try { const c = await api('/api/plan/check', { device_id: S.sel, plan: S.plan }); rem = c.ok ? (c.overview.pending_files || 0) : 0; } catch (e) { } }
+  const vs = v.summary, fail = vs ? vs.fail : 0, verified = !!vs && !rem;
+  const bk = r.by_kind || {};
+  const parts = Object.values(GROUPS).filter(g => bk[g.dir]).map(g => g.label + ' ' + num(bk[g.dir]) + g.unit);
+  const good = verified && !fail;
+  $('#res-title').textContent = rem ? '일부를 꺼냈습니다' : '복구를 마쳤습니다';
+  box.append(h('div', { class: 'okbanner' + (good ? '' : ' warn') },
+    h('div', { class: 'big' }, good ? '✓' : '!'),
+    h('div', {}, h('div', { class: 't' }, rem ? '지금까지 ' + num(r.files) + '개를 꺼냈습니다. 아직 ' + num(rem) + '개가 남았습니다'
+        : !vs ? num(r.files) + '개를 꺼냈습니다'
+        : fail ? num(r.files) + '개를 꺼냈고, ' + num(fail) + '개는 확인이 필요합니다' : num(r.files) + '개를 꺼냈고, 모두 정상으로 확인했습니다'),
+      h('div', { class: 's' }, (parts.join(' · ') || '꺼낸 파일 없음') + ' — 총 ' + fmtSize(r.bytes))),
+    h('span', { class: 'sp' }),
+    rem ? btn('다음 묶음 꺼내기', 'primary', () => { S.partial = false; startRun(); }) : null,
+    btn('폴더 열기', rem ? '' : 'primary', () => api('/api/open-folder', {}).catch(e => banner('bad', e.message, 'msg')))));
+  if (r.samples.length) box.append(h('div', { class: 'grid' }, r.samples.map(thumbEl)));
+  const range = r.first_day ? ' · 촬영일 ' + r.first_day.slice(0, 7) + (r.last_day && r.last_day.slice(0, 7) !== r.first_day.slice(0, 7) ? ' ~ ' + r.last_day.slice(0, 7) : '') : '';
+  box.append(h('div', { class: 'more' }, h('span', {}, (r.dest || '') + range), h('button', { class: 'linkish', onclick: () => api('/api/open-folder', {}).catch(() => { }) }, '전체 보기')));
+  // 자세히: 문제 파일, 참고 사항, 검증 방법
+  const fails = v.failures || [];
+  const det = h('details', { class: 'd' }, h('summary', {}, fail ? chip('warn', '확인 필요') : chip('', '자세히'),
+    fail ? num(fail) + '개는 열리지 않거나 일부만 열렸습니다' : '검증 방법과 참고 사항'));
+  if (fails.length) det.append(h('ul', {}, fails.slice(0, 20).map(f => h('li', {}, h('span', { class: 'mono' }, f.path), ' — ' + f.reason))));
+  if (r.suspect) det.append(h('p', {}, '깨졌을 수 있는 파일 ' + num(r.suspect) + '개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.'));
+  if (r.duplicates) det.append(h('p', {}, '내용이 같은 파일 ' + num(r.duplicates) + '개는 하나만 저장했습니다.'));
+  if (vs) det.append(h('p', {}, '검증 수준: ' + Object.entries(vs.levels).map(([k, n]) => ({ structure: '구조 확인', decode: '사진 끝까지 열기', probe: '영상 정보 읽기' }[k] || k) + ' ' + num(n)).join(', ')
+    + '. 재생 프로그램이나 RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.'));
+  else det.append(h('p', {}, '아직 열림 확인을 하지 않았습니다.'));
+  det.append(h('p', {}, '원래 파일명과 폴더 구조는 복구할 수 없습니다. 지워진 옛 파일이 섞여 있을 수 있습니다.'));
+  box.append(det);
+}
+async function saveReport() {
+  try { const r = await api('/api/report/save', {}); toast('저장했습니다: ' + r.path); } catch (e) { banner('bad', e.message, 'msg'); }
+}
+
 // ---- 저장 폴더 찾아보기 ----
-const PK = { target: null, path: null, parent: null, ok: false };
+const PK = { path: null, parent: null, ok: false };
 const dq = () => (S.sel ? '&device_id=' + encodeURIComponent(S.sel) : '');
 async function pkLoadPlaces() {
   const box = clear($('#pk-places'));
   try {
     const r = await api('/api/fs/places?' + dq().slice(1));
-    r.places.forEach(p => box.append(h('button', { class: 'ghost', type: 'button', onclick: () => pkGo(p.path), title: p.path },
-      (p.external ? '💾 ' : '') + p.name + (p.free != null ? ' (' + gb(p.free) + ' 여유)' : ''))));
+    r.places.forEach(p => box.append(h('button', { class: 'btn small', type: 'button', onclick: () => pkGo(p.path), title: p.path },
+      (p.external ? '💾 ' : '') + p.name + (p.free != null ? ' (' + fmtSize(p.free) + ' 여유)' : ''))));
   } catch (e) { }
 }
 async function pkGo(path) {
-  let r = null; let cand = path || '';
+  let r = null, cand = path || '';
   for (let i = 0; i < 12 && !r; i++) {  // 입력한 폴더가 아직 없으면 있는 상위 폴더까지 거슬러 올라간다
     try { r = await api('/api/fs/list?path=' + encodeURIComponent(cand) + dq()); }
-    catch (e) { if (e.status !== 404) throw e; const k = cand.lastIndexOf('/'); if (k <= 0) cand = ''; else cand = cand.slice(0, k); if (cand === '' && i > 0) { try { r = await api('/api/fs/list?path=' + dq()); } catch (x) { return; } } }
+    catch (e) { if (e.status !== 404) return; const k = Math.max(cand.lastIndexOf('/'), cand.lastIndexOf('\\')); cand = k > 0 ? cand.slice(0, k) : ''; }
   }
   if (!r) return;
   PK.path = r.path; PK.parent = r.parent;
   $('#pk-path').textContent = r.path;
-  $('#pk-info').textContent = (r.free != null ? '여유 공간 ' + gb(r.free) : '') + (r.writable ? '' : ' · 쓸 수 없는 폴더');
+  $('#pk-info').textContent = (r.free != null ? '여유 공간 ' + fmtSize(r.free) : '') + (r.writable ? '' : ' · 쓸 수 없는 폴더');
   const box = clear($('#pk-dirs'));
-  if (!r.dirs.length) box.append(h('div', { class: 'muted', style: 'padding:10px 12px' }, '(하위 폴더 없음)'));
-  r.dirs.forEach(n => box.append(h('button', { class: 'dirbtn', type: 'button', onclick: () => pkGo(r.path.replace(/\/$/, '') + '/' + n) }, '📁 ' + n)));
-  if (r.truncated) box.append(h('div', { class: 'muted', style: 'padding:10px 12px' }, '폴더가 너무 많아 일부만 보여 줍니다.'));
+  if (!r.entries.length) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, '(하위 폴더 없음)'));
+  r.entries.forEach(e => box.append(h('button', { class: 'dirbtn', type: 'button', onclick: () => pkGo(e.path) }, '📁 ' + e.name)));
+  if (r.truncated) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, '폴더가 너무 많아 일부만 보여 줍니다.'));
   const pr = clear($('#pk-problems')); PK.ok = !r.problems.length && r.writable;
-  if (r.problems.length) pr.append(callout('bad', h('b', {}, '이 폴더는 선택할 수 없습니다'), h('ul', { class: 'plain' }, r.problems.map(x => h('li', {}, x)))));
+  if (r.problems.length) pr.append(h('div', { class: 'notice bad' }, h('span', { class: 't' }, r.problems.join(' / '))));
   $('#pk-ok').disabled = !PK.ok; $('#pk-up').disabled = !r.parent; $('#pk-new').disabled = !!r.problems.length;
 }
-async function openPicker(id) {
-  PK.target = $('#' + id); const d = $('#picker');
-  if (!d.open) d.showModal();
-  await pkLoadPlaces(); await pkGo(PK.target.value.trim());
-}
-document.addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (b) openPicker(b.dataset.pick); });
+$('#pickdest').onclick = async () => { $('#pk-newrow').hidden = true; $('#picker').showModal(); await pkLoadPlaces(); await pkGo(S.dest); };
 $('#pk-up').onclick = () => PK.parent && pkGo(PK.parent);
 $('#pk-cancel').onclick = () => $('#picker').close();
-$('#pk-ok').onclick = () => {
-  if (!PK.ok) return;
-  PK.target.value = PK.path; PK.target.dispatchEvent(new Event('input', { bubbles: true })); PK.target.dispatchEvent(new Event('change', { bubbles: true }));
-  $('#picker').close();
+$('#pk-ok').onclick = () => { if (!PK.ok) return; S.dest = PK.path; renderDest(); $('#picker').close(); schedCheck(); };
+$('#pk-new').onclick = () => { $('#pk-newrow').hidden = false; $('#pk-name').value = ''; $('#pk-name').focus(); };
+$('#pk-make').onclick = async () => {
+  const name = $('#pk-name').value.trim(); if (!name) return;
+  try { const r = await api('/api/fs/mkdir', { parent: PK.path, name, device_id: S.sel || undefined }); $('#pk-newrow').hidden = true; await pkGo(r.path); }
+  catch (e) { clear($('#pk-problems')).append(h('div', { class: 'notice bad' }, h('span', { class: 't' }, e.message))); }
 };
-$('#pk-new').onclick = async () => {
-  const name = prompt('새 폴더 이름'); if (!name) return;
-  try { const r = await api('/api/fs/mkdir', { parent: PK.path, name, device_id: S.sel || undefined }); await pkGo(r.path); }
-  catch (e) { clear($('#pk-problems')).append(callout('bad', e.message)); }
-};
+$('#pk-name').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#pk-make').onclick(); } };
 
-$('#theme').onclick = () => { const r = document.documentElement; const cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.dataset.theme = cur === 'dark' ? 'light' : 'dark'; };
+$('#quit').onclick = async () => {
+  if (!(await ask('프로그램을 종료할까요?', '꺼낸 파일과 검사 결과는 그대로 남습니다.', '종료'))) return;
+  try { await api('/api/shutdown', {}); document.body.replaceChildren(h('div', { style: 'padding:48px;text-align:center' }, h('h1', {}, '종료했습니다'), h('p', { class: 'hint' }, '이 창을 닫아도 됩니다.'))); }
+  catch (e) { banner('bad', e.message, 'msg'); }
+};
 
 (async function init() {
-  await loadSession();
-  try { const j = (await api('/api/job')).job; if (j && j.state === 'running') { S.job = j; go(j.kind === 'scan' ? 1 : j.kind === 'extract' ? 4 : j.kind === 'auto' ? 6 : 5); poll(); return; } } catch (e) { }
-  go(0);
+  try {
+    const j = (await api('/api/job')).job;
+    if (j && j.state === 'running') { S.job = j; S.flow = j.kind; await loadDevices(); try { await loadSummary(); } catch (e) { }
+      go(j.kind === 'scan' ? 'scan' : 'run'); if (j.kind === 'verify') { $('#runbox').hidden = true; } poll(); return; }
+  } catch (e) { }
+  go('disk');
 })();
 </script>
 </body>

@@ -65,6 +65,7 @@ def list_dir(path, forbidden=()):
                   key=str.lower)
     parent = os.path.dirname(real)
     return {"path": real, "parent": parent if parent != real else None, "dirs": dirs[:MAX_ENTRIES],
+            "entries": [{"name": n, "path": os.path.join(real, n)} for n in dirs[:MAX_ENTRIES]],
             "truncated": len(dirs) > MAX_ENTRIES, "free": _free(real), "writable": os.access(real, os.W_OK),
             "problems": _problems(real, forbidden)}
 

@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>복구 도구 UI 시안 v2</title>
+<style>
+:root {
+  --bg: #f3f3f3; --win: #fbfbfb; --card: #ffffff; --line: #e5e5e5; --line2: #d4d4d4;
+  --text: #1b1b1b; --sub: #5f5f5f; --faint: #8a8a8a;
+  --accent: #0067c0; --accent-ink: #ffffff; --accent-soft: #e6f0fa;
+  --ok: #107c10; --ok-soft: #e7f4e7; --warn: #9d5d00; --warn-soft: #fdf3e1;
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1c1c; --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+    --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+    --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+    --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1c1c; --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+  --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+  --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+  --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", system-ui, sans-serif; padding: 16px 16px 48px; }
+
+/* 시안 조작줄 (실제 앱에는 없음) */
+.proto { max-width: 1040px; margin: 0 auto 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--sub); }
+.proto b { color: var(--text); margin-right: 4px; }
+.proto button { border: 1px solid var(--line2); background: var(--card); color: var(--text); border-radius: 999px; padding: 4px 12px; font: inherit; cursor: pointer; }
+.proto button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.proto .sp { flex: 1; }
+
+/* 창 */
+.window { max-width: 1040px; margin: 0 auto; background: var(--win); border: 1px solid var(--line2); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; min-height: 640px; }
+.titlebar { display: flex; align-items: center; height: 40px; padding: 0 0 0 14px; gap: 10px; border-bottom: 1px solid var(--line); background: var(--win); }
+.titlebar .app { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.titlebar .logo { width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--accent), #7c5cff); }
+.badge-ro { font-size: 12px; color: var(--ok); background: var(--ok-soft); border-radius: 999px; padding: 1px 9px; display: inline-flex; gap: 5px; align-items: center; }
+.titlebar .sp { flex: 1; }
+.winctl { display: flex; height: 100%; }
+.winctl span { width: 46px; display: grid; place-items: center; color: var(--sub); font-size: 13px; }
+
+/* 단계 표시 */
+.stepper { display: flex; align-items: center; justify-content: center; gap: 0; padding: 22px 24px 6px; }
+.step { display: flex; align-items: center; gap: 10px; color: var(--faint); font-size: 14px; }
+.step .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--line2); font-size: 12px; font-weight: 600; background: var(--win); }
+.step.done { color: var(--sub); } .step.done .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.step.now { color: var(--text); font-weight: 600; } .step.now .dot { border-color: var(--accent); color: var(--accent); }
+.bar { width: 72px; height: 2px; background: var(--line2); margin: 0 12px; }
+.bar.done { background: var(--accent); }
+
+main { flex: 1; padding: 18px 56px 8px; }
+.screen { display: none; animation: in .25s ease; }
+.screen.on { display: block; }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+h1 { font-size: 26px; font-weight: 600; margin: 10px 0 4px; letter-spacing: -.3px; }
+.lead { color: var(--sub); margin: 0 0 22px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.disk { display: flex; gap: 18px; align-items: center; padding: 18px 20px; cursor: pointer; border: 2px solid var(--line); background: var(--card); border-radius: 12px; margin-bottom: 12px; }
+.disk.sel { border-color: var(--accent); background: var(--accent-soft); }
+.disk .ico { width: 64px; height: 64px; border-radius: 14px; background: linear-gradient(160deg, #3a4a63, #1d2636); display: grid; place-items: center; color: #fff; font-size: 28px; flex: none; }
+.disk .main { flex: 1; min-width: 0; }
+.disk .name { font-size: 17px; font-weight: 600; }
+.disk .meta { color: var(--sub); font-size: 14px; margin-top: 1px; }
+.usage { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 10px; max-width: 420px; }
+.usage i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.usage-l { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
+.chip { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); white-space: nowrap; }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line2); flex: none; display: grid; place-items: center; }
+.disk.sel .radio { border-color: var(--accent); } .disk.sel .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.note { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--sub); padding: 12px 16px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); margin-top: 6px; }
+.note b { color: var(--text); font-weight: 600; }
+.linkish { color: var(--accent); text-decoration: none; font-size: 14px; cursor: pointer; }
+
+.types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.type { padding: 16px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; position: relative; }
+.type.on { border-color: var(--accent); background: var(--accent-soft); }
+.type .t { font-weight: 600; font-size: 16px; margin-top: 8px; }
+.type .s { color: var(--sub); font-size: 13px; }
+.type .n { font-size: 22px; font-weight: 600; margin-top: 10px; letter-spacing: -.3px; }
+.type .g { color: var(--sub); font-size: 13px; }
+.check { position: absolute; top: 12px; right: 12px; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line2); display: grid; place-items: center; font-size: 13px; color: transparent; }
+.type.on .check { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.type .em { font-size: 26px; }
+
+.row { display: flex; gap: 10px; align-items: center; }
+.field { flex: 1; border: 1px solid var(--line2); background: var(--card); border-radius: 8px; padding: 9px 12px; display: flex; gap: 10px; align-items: center; min-width: 0; }
+.field .path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.free { margin-top: 8px; font-size: 13.5px; color: var(--sub); display: flex; align-items: center; gap: 8px; }
+.sec { font-weight: 600; margin: 4px 0 8px; }
+.switch { display: flex; align-items: center; gap: 12px; margin: 16px 0 4px; font-size: 14px; color: var(--sub); }
+.tg { width: 40px; height: 22px; border-radius: 99px; background: var(--accent); position: relative; flex: none; cursor: pointer; }
+.tg::after { content: ""; position: absolute; top: 3px; right: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-ink); }
+
+.summary { margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: var(--accent-soft); display: flex; align-items: center; gap: 16px; }
+.summary .tx { flex: 1; font-size: 15px; } .summary b { font-weight: 600; }
+
+footer.actions { display: flex; align-items: center; gap: 10px; padding: 14px 56px 20px; }
+footer.actions .sp { flex: 1; }
+.btn { border: 1px solid var(--line2); background: var(--card); color: var(--text); border-radius: 8px; padding: 9px 20px; font: inherit; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 10px 28px; }
+.btn.danger { color: #c42b1c; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.danger { color: #ff99a4; } }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--sub); }
+
+/* 진행 */
+.hero { display: flex; gap: 32px; align-items: center; padding: 26px 28px; }
+.ring { --p: 42; width: 150px; height: 150px; border-radius: 50%; flex: none; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); display: grid; place-items: center; }
+.ring > div { width: 118px; height: 118px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+.ring .pc { font-size: 34px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
+.ring .pl { font-size: 12px; color: var(--sub); margin-top: 4px; }
+.stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; } .stat .l { font-size: 13px; color: var(--sub); }
+.cur { margin-top: 14px; font-size: 13px; color: var(--sub); padding: 10px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); display: flex; gap: 10px; }
+.cur .mono { font-family: "Cascadia Mono", Consolas, monospace; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.strip { display: flex; gap: 10px; margin-top: 16px; overflow: hidden; }
+.strip .th { width: 96px; height: 72px; flex: none; }
+.th { border-radius: 8px; position: relative; overflow: hidden; }
+.th::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 38%; background: rgba(0,0,0,.18); }
+.th.v::before { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.t1 { background: linear-gradient(180deg, #7fb6f0 0 55%, #5f8f5a 55%); } .t2 { background: linear-gradient(180deg, #f2b27a 0 50%, #3d4f66 50%); }
+.t3 { background: linear-gradient(180deg, #a9c9e8 0 60%, #c9b88a 60%); } .t4 { background: linear-gradient(180deg, #3d3a5c 0 45%, #1d1b30 45%); }
+.t5 { background: linear-gradient(180deg, #cfe3a8 0 50%, #6b8f4a 50%); } .t6 { background: linear-gradient(180deg, #f4d7b6 0 40%, #8d6b4e 40%); }
+.sublead { margin-top: 18px; font-size: 14px; color: var(--sub); }
+
+/* 결과 */
+.okbanner { display: flex; gap: 16px; align-items: center; padding: 18px 20px; border-radius: 12px; background: var(--ok-soft); }
+.okbanner .big { width: 44px; height: 44px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; font-size: 22px; flex: none; }
+.okbanner .t { font-size: 18px; font-weight: 600; } .okbanner .s { color: var(--sub); font-size: 14px; }
+.grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 16px; }
+.grid .th { height: 92px; }
+.more { font-size: 13.5px; color: var(--sub); margin-top: 10px; display: flex; justify-content: space-between; }
+details { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 12px 16px; font-size: 14px; }
+details summary { cursor: pointer; color: var(--text); display: flex; gap: 8px; align-items: center; }
+details p { color: var(--sub); margin: 8px 0 0; }
+
+.foot { max-width: 1040px; margin: 14px auto 0; font-size: 12.5px; color: var(--faint); text-align: center; }
+@media (max-width: 760px) { main, footer.actions { padding-left: 20px; padding-right: 20px; } .types { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(3, 1fr); } .hero { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .bar { width: 24px; } .step span.lbl { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="proto">
+  <b>시안 보기</b>
+  <button data-go="1" class="on">① 디스크</button>
+  <button data-go="2">② 복구 설정</button>
+  <button data-go="3">③ 진행</button>
+  <button data-go="4">④ 결과</button>
+  <span class="sp"></span>
+  <button id="theme">라이트/다크</button>
+</div>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="app"><span class="logo"></span>사진 복구 도구</div>
+    <span class="badge-ro">🔒 읽기 전용</span>
+    <span class="sp"></span>
+    <div class="winctl"><span>─</span><span>☐</span><span>✕</span></div>
+  </div>
+
+  <div class="stepper" id="stepper"></div>
+
+  <main>
+    <!-- 1. 디스크 -->
+    <section class="screen on" id="s1">
+      <h1>복구할 디스크를 고르세요</h1>
+      <p class="lead">연결된 외장 디스크를 찾았습니다.</p>
+
+      <div class="disk sel">
+        <div class="ico">💽</div>
+        <div class="main">
+          <div class="name">Seagate Expansion 5TB</div>
+          <div class="meta">USB 연결 · APFS 형식 · 4.55 TB</div>
+          <div class="usage"><i style="width:12%"></i></div>
+          <div class="usage-l">데이터가 있는 영역 약 560 GB (전체의 12%)</div>
+        </div>
+        <span class="chip">읽을 수 있음</span>
+        <span class="radio"></span>
+      </div>
+
+      <div class="disk">
+        <div class="ico" style="background:linear-gradient(160deg,#6b6b6b,#3b3b3b)">💾</div>
+        <div class="main">
+          <div class="name">SanDisk Extreme 1TB</div>
+          <div class="meta">USB 연결 · exFAT 형식 · 931 GB</div>
+        </div>
+        <span class="chip warn">이 형식은 복구 대상이 아닙니다</span>
+        <span class="radio"></span>
+      </div>
+
+      <div class="note">
+        <span>🔒</span>
+        <div><b>이 디스크에는 아무것도 쓰지 않습니다.</b> 읽기만 하므로 안심하고 진행하세요. 윈도우가 “포맷하시겠습니까?”라고 물어도 누르지 마세요.</div>
+      </div>
+      <p style="margin:14px 0 0"><a class="linkish">원하는 디스크가 보이지 않나요?</a></p>
+    </section>
+
+    <!-- 2. 설정 -->
+    <section class="screen" id="s2">
+      <h1>무엇을 꺼낼까요?</h1>
+      <p class="lead">디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.</p>
+
+      <div class="types">
+        <div class="type on" data-g="41" data-n="3214">
+          <span class="check">✓</span><div class="em">📷</div>
+          <div class="t">사진</div><div class="s">JPEG · HEIC</div>
+          <div class="n">3,214장</div><div class="g">41 GB</div>
+        </div>
+        <div class="type on" data-g="38" data-n="1102">
+          <span class="check">✓</span><div class="em">🎞️</div>
+          <div class="t">RAW 사진</div><div class="s">Canon CR3</div>
+          <div class="n">1,102장</div><div class="g">38 GB</div>
+        </div>
+        <div class="type on" data-g="480" data-n="188">
+          <span class="check">✓</span><div class="em">🎬</div>
+          <div class="t">영상</div><div class="s">MP4 · MOV</div>
+          <div class="n">188개</div><div class="g">480 GB</div>
+        </div>
+      </div>
+
+      <div class="sec">저장할 폴더</div>
+      <div class="row">
+        <div class="field"><span>📁</span><span class="path">D:\복구된 사진</span></div>
+        <button class="btn">폴더 선택</button>
+      </div>
+      <div class="free">여유 공간 1.8 TB <span class="chip">충분합니다</span></div>
+
+      <div class="switch"><span class="tg"></span><span>깨졌을 수 있는 파일도 함께 꺼내기 <span style="color:var(--faint)">(‘_의심’ 폴더에 따로 저장)</span></span></div>
+
+      <div class="summary">
+        <span style="font-size:22px">📦</span>
+        <div class="tx"><b id="sum-n">4,504개</b>, <b id="sum-g">559 GB</b>를 <b>D:\복구된 사진</b>으로 꺼냅니다. 예상 소요 시간 <b>약 2시간 10분</b></div>
+      </div>
+    </section>
+
+    <!-- 3. 진행 -->
+    <section class="screen" id="s3">
+      <h1>사진을 꺼내는 중입니다</h1>
+      <p class="lead">창을 열어 두면 됩니다. 컴퓨터가 잠자기에 들어가지 않게 막고 있습니다.</p>
+
+      <div class="card hero">
+        <div class="ring" id="ring"><div><div><div class="pc" id="pc">42%</div><div class="pl">진행</div></div></div></div>
+        <div class="stats">
+          <div class="stat"><div class="v" id="st-f">1,892 / 4,504</div><div class="l">꺼낸 파일</div></div>
+          <div class="stat"><div class="v" id="st-g">235 GB</div><div class="l">저장된 용량</div></div>
+          <div class="stat"><div class="v" id="st-t">1시간 14분</div><div class="l">남은 시간</div></div>
+          <div class="stat"><div class="v" id="st-a">1,350 / 3,214</div><div class="l">사진</div></div>
+          <div class="stat"><div class="v" id="st-b">463 / 1,102</div><div class="l">RAW 사진</div></div>
+          <div class="stat"><div class="v" id="st-c">79 / 188</div><div class="l">영상</div></div>
+        </div>
+      </div>
+
+      <div class="cur"><span>방금</span><span class="mono">영상\2024-03-06\mp4_001204_blk25792.mp4</span></div>
+      <div class="strip"><div class="th t1"></div><div class="th t2"></div><div class="th t3 v"></div><div class="th t4"></div><div class="th t5"></div><div class="th t6"></div><div class="th t1"></div><div class="th t3"></div></div>
+      <div class="sublead">방금 꺼낸 파일 미리보기</div>
+    </section>
+
+    <!-- 4. 결과 -->
+    <section class="screen" id="s4">
+      <h1>복구를 마쳤습니다</h1>
+      <p class="lead">&nbsp;</p>
+      <div class="okbanner">
+        <div class="big">✓</div>
+        <div>
+          <div class="t">4,498개를 꺼냈고, 모두 열리는 것을 확인했습니다</div>
+          <div class="s">사진 3,210장 · RAW 1,100장 · 영상 188개 — 총 559 GB</div>
+        </div>
+        <span style="flex:1"></span>
+        <button class="btn primary">폴더 열기</button>
+      </div>
+
+      <div class="grid">
+        <div class="th t1"></div><div class="th t2"></div><div class="th t3"></div><div class="th t4"></div><div class="th t5"></div><div class="th t6"></div>
+        <div class="th t4"></div><div class="th t5 v"></div><div class="th t2"></div><div class="th t6"></div><div class="th t1"></div><div class="th t3"></div>
+      </div>
+      <div class="more"><span>D:\복구된 사진 · 촬영일 2022-01 ~ 2024-03</span><a class="linkish">전체 보기</a></div>
+
+      <details>
+        <summary><span class="chip warn">확인 필요</span> 6개는 열리지 않거나 일부만 열렸습니다</summary>
+        <p>조각나서 깨진 영상일 수 있습니다. 해당 파일은 <b>영상\_의심</b> 폴더에 따로 두었습니다. 내용이 같은 파일 12개는 하나만 저장했습니다.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="actions" id="actions"></footer>
+</div>
+
+<div class="foot">시안입니다 · 화면의 모든 숫자와 이름은 예시 값이며 실제 디스크 결과가 아닙니다</div>
+
+<script>
+const labels = ['디스크', '복구 설정', '진행 · 결과'];
+const stepOf = { 1: 0, 2: 1, 3: 2, 4: 2 };
+const actions = {
+  1: '<span class="sp"></span><button class="btn primary" data-go="2">다음</button>',
+  2: '<button class="btn ghost" data-go="1">← 이전</button><span class="sp"></span><button class="btn primary" data-go="3">복구 시작</button>',
+  3: '<button class="btn">일시 중지</button><button class="btn danger">중단</button><span class="sp"></span><span style="color:var(--sub);font-size:13px">중단해도 나중에 이어서 할 수 있습니다</span>',
+  4: '<button class="btn" data-go="1">처음으로</button><span class="sp"></span><button class="btn">보고서 저장</button>'
+};
+let cur = 1, timer = null;
+function stepper(n) {
+  const s = stepOf[n];
+  document.getElementById('stepper').innerHTML = labels.map((l, i) =>
+    (i ? '<span class="bar ' + (i <= s ? 'done' : '') + '"></span>' : '') +
+    '<div class="step ' + (i < s || (n === 4 && i === 2) ? 'done' : i === s ? 'now' : '') + '"><span class="dot">' +
+    (i < s || (n === 4 && i === 2) ? '✓' : i + 1) + '</span><span class="lbl">' + l + '</span></div>').join('');
+}
+function go(n) {
+  cur = n;
+  document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === 's' + n));
+  document.querySelectorAll('.proto [data-go]').forEach(b => b.classList.toggle('on', +b.dataset.go === n));
+  stepper(n);
+  document.getElementById('actions').innerHTML = actions[n];
+  clearInterval(timer);
+  if (n === 3) animate();
+  history.replaceState(null, '', '#s' + n);
+}
+function animate() {
+  let p = 42;
+  const set = v => {
+    document.getElementById('ring').style.setProperty('--p', v);
+    document.getElementById('pc').textContent = Math.round(v) + '%';
+    document.getElementById('st-f').textContent = Math.round(4504 * v / 100).toLocaleString() + ' / 4,504';
+    document.getElementById('st-g').textContent = Math.round(559 * v / 100) + ' GB';
+    for (const [id, tot] of [['st-a', 3214], ['st-b', 1102], ['st-c', 188]])
+      document.getElementById(id).textContent = Math.round(tot * v / 100).toLocaleString() + ' / ' + tot.toLocaleString();
+    const m = Math.round((100 - v) * 1.76); document.getElementById('st-t').textContent = (m >= 60 ? Math.floor(m / 60) + '시간 ' : '') + (m % 60) + '분';
+  };
+  set(p);
+  timer = setInterval(() => { p += 0.6; set(p); if (p >= 100) { clearInterval(timer); setTimeout(() => go(4), 500); } }, 120);
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) return go(+g.dataset.go);
+  const d = e.target.closest('.disk'); if (d && !d.querySelector('.chip.warn')) { document.querySelectorAll('.disk').forEach(x => x.classList.remove('sel')); d.classList.add('sel'); }
+  const t = e.target.closest('.type'); if (t) { t.classList.toggle('on'); sum(); }
+  if (e.target.closest('#theme')) { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'; }
+});
+function sum() {
+  let n = 0, g = 0;
+  document.querySelectorAll('.type.on').forEach(t => { n += +t.dataset.n; g += +t.dataset.g; });
+  document.getElementById('sum-n').textContent = n.toLocaleString() + '개';
+  document.getElementById('sum-g').textContent = g + ' GB';
+}
+go(+(location.hash.replace('#s', '')) || 1);
+</script>
+</body>
+</html>
