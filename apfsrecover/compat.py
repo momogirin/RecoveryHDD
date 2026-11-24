@@ -101,7 +101,7 @@ def verify_summary(s):
     if not isinstance(s, dict):
         return None
     out = dict(s)
-    for k in ("total", "ok", "fail", "unchecked"):
+    for k in ("total", "ok", "fail", "fixed", "unchecked"):
         out[k] = max(0, _int(s.get(k)))
     for k in ("levels", "reasons", "tools"):
         out[k] = s[k] if isinstance(s.get(k), dict) else {}

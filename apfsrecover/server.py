@@ -465,10 +465,16 @@ class App:
         lines += ["", "[복구] 꺼낸 파일 %d개 (%.2f GB)" % (len(done), sum(r.get("bytes", 0) for r in done.values()) / 1e9)]
         vs = vf.load_summary(self.session)
         if vs:
-            lines += ["", "[검증] 전체 %d · 열림 확인 %d · 실패 %d · 미검사 %d" % (
-                vs["total"], vs["ok"], vs["fail"], vs["unchecked"]),
+            lines += ["", "[검증] 전체 %d · 열림 확인 %d · 복원본 %d · 실패 %d · 미검사 %d" % (
+                vs["total"], vs["ok"], vs.get("fixed", 0), vs["fail"], vs["unchecked"]),
                 "  검증 수준: " + ", ".join("%s %s" % kv for kv in sorted(vs["levels"].items())),
                 "  사용한 도구: " + (", ".join(k for k, v in vs["tools"].items() if v) or "없음(구조 확인만)")]
+            if vs.get("fixed"):
+                lines.append("  복원본: %d개 (목차가 없거나 끝이 잘린 ZIP 에서 온전한 항목만 모아 만든 새 파일, 원본은 그대로)" % vs["fixed"])
+            for r in vf.load_fixed(self.session, 50):
+                sv = r.get("salvage") or {}
+                lines.append("  복원본: %s — 온전한 항목 %s개%s → %s" % (r.get("path", ""), sv.get("entries", "?"),
+                                                                 ", 마지막 항목 하나는 잘려서 뺌" if sv.get("lost") else "", sv.get("path", "")))
             for r in vf.load_failures(self.session, 50):
                 lines.append("  실패: %s — %s" % (r.get("path", ""), r.get("reason", "")))
         lines += ["", "[알려진 한계]",
@@ -574,7 +580,7 @@ def make_handler(app):
                     return self._send(200, summarize(app.session))
                 if u.path == "/api/verify/summary":
                     return self._send(200, {"summary": vf.load_summary(app.session),
-                                            "failures": vf.load_failures(app.session)})
+                                            "failures": vf.load_failures(app.session), "fixed": vf.load_fixed(app.session)})
                 if u.path == "/api/report":
                     return self._send(200, app.report().encode("utf-8"), "text/plain; charset=utf-8")
                 if u.path == "/api/result":

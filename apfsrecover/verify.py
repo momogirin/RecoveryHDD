@@ -19,6 +19,7 @@ from .extract import load_catalog, load_extracted
 from .formats import BMFF_TYPES, jpeg_parse
 from . import compat
 from . import formats_more as fm
+from . import zipfix
 from .jsonl import read_jsonl
 
 MAX_WHOLE_READ = 256 << 20
@@ -174,6 +175,24 @@ def verify_file(path, kind, expected_size, tools, deep=True):
     return {"status": "ok", "level": "structure", "reason": ""}
 
 
+ZIP_KINDS = ("zip", "docx", "xlsx", "pptx", "hwpx")
+FIXED_DIR = "_복원본"
+
+
+def load_fixed(session, limit=200):
+    """복원본을 만든 항목(status == fixed)."""
+    p = os.path.join(session, "verify.jsonl")
+    if not os.path.exists(p):
+        return []
+    out = []
+    for r in compat.clean_lines(read_jsonl(p), compat.verify_record):
+        if r["status"] == "fixed":
+            out.append(r)
+            if len(out) >= limit:
+                break
+    return out
+
+
 def verify_session(session, dest, on_progress=None, should_cancel=None, deep=True):
     """extracted.jsonl 의 모든 파일을 검증하고 verify.jsonl 을 쓴다. 반환: 요약 dict"""
     tools = available_tools()
@@ -187,8 +206,17 @@ def verify_session(session, dest, on_progress=None, should_cancel=None, deep=Tru
             if should_cancel and should_cancel():
                 cancelled = True
                 break
-            res = verify_file(os.path.join(dest, it["path"]), it["kind"] or kinds.get(it["id"]),
-                              it["bytes"], tools, deep)
+            kind = it["kind"] or kinds.get(it["id"])
+            src = os.path.join(dest, it["path"])
+            res = verify_file(src, kind, it["bytes"], tools, deep)
+            if res["status"] == "fail" and kind in ZIP_KINDS and os.path.isfile(src):
+                # 목차가 없거나 끝이 잘린 ZIP: 온전한 항목만 모아 복원본을 따로 만든다(원본은 그대로 둔다)
+                rel = os.path.join(FIXED_DIR, it["path"])
+                sv = zipfix.salvage(src, os.path.join(dest, rel))
+                if sv:
+                    sv["path"] = rel
+                    res = {"status": "fixed", "level": "decode", "reason": "ZIP 목차가 없거나 끝이 잘려서 복원본을 만들었어요",
+                           "salvage": sv}
             res.update(id=it["id"], path=it["path"])
             out.write(json.dumps(res, ensure_ascii=False) + "\n")
             counts[res["status"]] += 1
@@ -196,9 +224,9 @@ def verify_session(session, dest, on_progress=None, should_cancel=None, deep=Tru
             if res["status"] == "fail":
                 reasons[res["reason"]] += 1
             if on_progress:
-                on_progress({"done": i + 1, "total": len(items), "ok": counts["ok"], "fail": counts["fail"]})
-    summary = {"total": len(items), "ok": counts["ok"], "fail": counts["fail"],
-               "unchecked": len(items) - counts["ok"] - counts["fail"], "levels": dict(levels),
+                on_progress({"done": i + 1, "total": len(items), "ok": counts["ok"], "fail": counts["fail"], "fixed": counts["fixed"]})
+    summary = {"total": len(items), "ok": counts["ok"], "fail": counts["fail"], "fixed": counts["fixed"],
+               "unchecked": len(items) - counts["ok"] - counts["fail"] - counts["fixed"], "levels": dict(levels),
                "reasons": dict(reasons), "tools": tools, "cancelled": cancelled}
     with open(os.path.join(session, "verify_summary.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)

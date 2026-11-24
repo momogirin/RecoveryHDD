@@ -1087,22 +1087,23 @@ async function startVerify() {
 
 // ---- 4. 결과 ----
 async function loadResult() {
-  setActions(btn('처음으로', '', () => go('disk')), '|', btn('보고서 저장', '', saveReport));
+  setActions(btn('처음으로', '', () => go('disk')), btn('열림 다시 확인', '', startVerify), '|', btn('보고서 저장', '', saveReport));
   const box = clear($('#resbox'));
   box.append(h('div', { class: 'resskel skel' }));  // 불러오는 동안 같은 크기의 빈 틀
   let r, v, rem = 0;
   try { [r, v] = await Promise.all([api('/api/result'), api('/api/verify/summary')]); } catch (e) { clear(box).append(h('p', { class: 'hint' }, '결과를 불러오지 못했습니다: ' + e.message)); return; }
   if (S.partial && S.plan) { try { const c = await api('/api/plan/check', { device_id: S.sel, plan: S.plan }); rem = c.ok ? (c.overview.pending_files || 0) : 0; } catch (e) { } }
-  const vs = v.summary, fail = vs ? vs.fail : 0, verified = !!vs && !rem;
+  const vs = v.summary, fail = vs ? vs.fail : 0, fixed = vs ? (vs.fixed || 0) : 0, verified = !!vs && !rem;
   const bk = r.by_kind || {};
   const parts = Object.values(GROUPS).filter(g => bk[g.dir]).map(g => g.label + ' ' + num(bk[g.dir]) + g.unit);
-  const good = verified && !fail; clear(box);
+  const good = verified && !fail && !fixed; clear(box);
   $('#res-title').textContent = rem ? '일부를 꺼냈습니다' : '복구를 마쳤습니다';
   box.append(h('div', { class: 'okbanner' + (good ? '' : ' warn') },
     h('div', { class: 'big' }, good ? '✓' : '!'),
     h('div', {}, h('div', { class: 't' }, rem ? '지금까지 ' + num(r.files) + '개를 꺼냈습니다. 아직 ' + num(rem) + '개가 남았습니다'
         : !vs ? num(r.files) + '개를 꺼냈습니다'
-        : fail ? num(r.files) + '개를 꺼냈고, ' + num(fail) + '개는 확인이 필요합니다' : num(r.files) + '개를 꺼냈고, 모두 정상으로 확인했습니다'),
+        : fail ? num(r.files) + '개를 꺼냈고, ' + num(fail) + '개는 확인이 필요합니다' + (fixed ? ' · ZIP ' + num(fixed) + '개는 복원본으로 열 수 있어요' : '')
+        : fixed ? num(r.files) + '개를 꺼냈고, ZIP ' + num(fixed) + '개는 목차를 다시 만든 복원본으로 열 수 있어요' : num(r.files) + '개를 꺼냈고, 모두 정상으로 확인했습니다'),
       h('div', { class: 's' }, (parts.join(' · ') || '꺼낸 파일 없음') + ' — 총 ' + fmtSize(r.bytes))),
     h('span', { class: 'sp' }),
     rem ? btn('다음 묶음 꺼내기', 'primary', () => { S.partial = false; startRun(); }) : null,
@@ -1112,8 +1113,10 @@ async function loadResult() {
   box.append(h('div', { class: 'more' }, h('span', {}, (r.dest || '') + range), h('button', { class: 'linkish', onclick: () => api('/api/open-folder', {}).catch(() => { }) }, '전체 보기')));
   // 자세히: 문제 파일, 참고 사항, 검증 방법
   const fails = v.failures || [];
-  const det = h('details', { class: 'd' }, h('summary', {}, fail ? chip('warn', '확인 필요') : chip('', '자세히'),
-    fail ? num(fail) + '개는 열리지 않거나 일부만 열렸습니다' : '검증 방법과 참고 사항'));
+  const det = h('details', { class: 'd' }, h('summary', {}, fail || fixed ? chip('warn', '확인 필요') : chip('', '자세히'),
+    fail ? num(fail) + '개는 열리지 않거나 일부만 열렸습니다' : fixed ? 'ZIP ' + num(fixed) + '개는 복원본을 만들었어요' : '검증 방법과 참고 사항'));
+  (v.fixed || []).slice(0, 20).forEach(f => { const sv = f.salvage || {};
+    det.append(h('p', {}, h('span', { class: 'mono' }, f.path), ' → 복원본 ', h('span', { class: 'mono' }, sv.path || ''), ' (온전한 항목 ' + num(sv.entries || 0) + '개' + (sv.lost ? ', 마지막 항목 하나는 잘려서 뺐어요' : '') + ')')); });
   if (fails.length) det.append(h('ul', {}, fails.slice(0, 20).map(f => h('li', {}, h('span', { class: 'mono' }, f.path), ' — ' + f.reason))));
   if (r.suspect) det.append(h('p', {}, '깨졌을 수 있는 파일 ' + num(r.suspect) + '개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.'));
   if (r.duplicates) det.append(h('p', {}, '내용이 같은 파일 ' + num(r.duplicates) + '개는 하나만 저장했습니다.'));
