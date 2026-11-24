@@ -105,6 +105,16 @@ def verify_file(path, kind, expected_size, tools, deep=True):
             if ok:
                 return {"status": "ok", "level": level, "reason": ""}
         return {"status": "ok", "level": "structure", "reason": ""}
+    if kind in ("zip", "docx", "xlsx", "pptx"):
+        import zipfile
+        try:
+            with zipfile.ZipFile(path) as z:
+                bad = z.testzip()  # 모든 항목을 풀어 CRC 를 확인한다
+        except Exception as e:  # zipfile 은 다양한 예외를 낸다
+            return {"status": "fail", "level": "decode", "reason": "압축 파일 오류: %s" % str(e)[:100]}
+        if bad:
+            return {"status": "fail", "level": "decode", "reason": "손상된 항목: %s" % bad[:60]}
+        return {"status": "ok", "level": "decode", "reason": ""}
     # BMFF 계열
     ok, seen, why = _bmff_walk(path, size)
     if not ok:
@@ -114,7 +124,8 @@ def verify_file(path, kind, expected_size, tools, deep=True):
         return {"status": "fail", "level": "structure", "reason": "필수 박스 없음"}
     if deep and kind in ("video-mp4", "video-mov") and tools["ffprobe"]:
         r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
-                           capture_output=True, text=True, timeout=120)
+                           capture_output=True, text=True, timeout=120,
+                           creationflags=0x08000000 if os.name == "nt" else 0)  # 윈도우: 검은 창이 뜨지 않게
         if r.returncode != 0 or r.stderr.strip():
             return {"status": "fail", "level": "probe", "reason": "ffprobe 오류: %s" % r.stderr.strip()[:120]}
         return {"status": "ok", "level": "probe", "reason": ""}

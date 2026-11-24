@@ -19,6 +19,8 @@ from .privilege import is_admin
 
 INTERNAL_BUS = {"nvme", "sata", "ata", "atapi", "raid", "spaces", "storage spaces", "file backed virtual",
                 "virtual", "sas", "fibre channel", "iscsi"}
+# 창이 없는 프로그램(.exe)에서 하위 프로그램을 실행하면 윈도우가 검은 창을 잠깐 띄운다. 그것을 막는다.
+NO_WINDOW = {"creationflags": 0x08000000} if sys.platform == "win32" else {}  # CREATE_NO_WINDOW
 SKIP_CONTENT = {"EFI", "Microsoft_Reserved", "Apple_Boot"}
 
 
@@ -70,7 +72,7 @@ def _win_gpt_fallback(path, size):
 
 def _win_devices(runner, all_disks=False, gpt_fallback=_win_gpt_fallback):
     out = runner(["powershell", "-NoProfile", "-NonInteractive", "-Command", WIN_SCRIPT],
-                 capture_output=True, timeout=60)
+                 capture_output=True, timeout=60, **NO_WINDOW)
     if out.returncode != 0:
         return []
     text = out.stdout.decode("utf-8", "replace") if isinstance(out.stdout, bytes) else out.stdout
@@ -123,6 +125,8 @@ def _win_cached(runner, all_disks):
 
 def list_devices(images=None, runner=subprocess.run, platform=sys.platform, all_disks=False):
     devs = []
+    if runner is subprocess.run and os.environ.get("APFSRECOVER_NO_SYSTEM_DISKS"):
+        platform = None  # 테스트: 컴퓨터에 실제로 꽂힌 디스크를 보지 않는다(결과가 컴퓨터 상태에 좌우되지 않게)
     if platform == "darwin":
         try:
             devs = _mac_devices(runner)

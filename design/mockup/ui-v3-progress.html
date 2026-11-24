@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>진행 화면 시안 v3</title>
+<style>
+:root {
+  --bg: #f3f3f3; --win: #fbfbfb; --card: #ffffff; --line: #e5e5e5; --line2: #d4d4d4;
+  --text: #1b1b1b; --sub: #5f5f5f; --faint: #8a8a8a;
+  --accent: #0067c0; --accent-ink: #ffffff; --accent-soft: #e6f0fa;
+  --ok: #107c10; --ok-soft: #e7f4e7; --warn: #9d5d00; --warn-soft: #fdf3e1; --bad: #c42b1c; --bad-soft: #fde7e9;
+  --pause: #8a8a8a;
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #1c1c1c; --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+  --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+  --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+  --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726;
+  --pause: #9a9a9a;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.4); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", system-ui, sans-serif; padding: 16px 16px 40px; }
+svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 시안 조작줄 (실제 앱에는 없음) */
+.proto { max-width: 1200px; margin: 0 auto 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--sub); }
+.proto b { color: var(--text); margin-right: 4px; }
+.proto button { border: 1px solid var(--line2); background: var(--card); color: var(--text); border-radius: 999px; padding: 4px 12px; font: inherit; cursor: pointer; }
+.proto button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.proto .sp { flex: 1; }
+
+/* 창: 실제 exe 크기(1200x860, 최소 900x640)를 흉내 낸다 */
+.window { width: 1200px; height: 860px; max-width: 100%; margin: 0 auto; background: var(--win); border: 1px solid var(--line2); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+.window.small { width: 900px; height: 640px; }
+.titlebar { display: flex; align-items: center; height: 40px; padding: 0 0 0 14px; gap: 10px; border-bottom: 1px solid var(--line); flex: none; }
+.titlebar .app { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.titlebar .logo { width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, var(--accent), #7c5cff); }
+.titlebar .sp { flex: 1; }
+.winctl { display: flex; height: 100%; } .winctl span { width: 46px; display: grid; place-items: center; color: var(--sub); font-size: 13px; }
+.quit { font-size: 13px; color: var(--sub); margin-right: 8px; }
+
+.scroll { flex: 1; overflow: auto; min-height: 0; }
+.inner { max-width: 1040px; margin: 0 auto; padding: 0 56px 24px; }
+.window.small .inner { padding: 0 32px 20px; }
+
+/* [바뀜] 전체 3단계 대신, 오래 걸리는 작업의 '단계 길' */
+.phases { display: flex; gap: 0; margin: 22px 0 4px; padding: 0; list-style: none; }
+.phases li { flex: 1; position: relative; padding-top: 14px; font-size: 13.5px; color: var(--faint); }
+.phases li::before { content: ""; position: absolute; top: 0; left: 0; right: 6px; height: 6px; border-radius: 99px; background: var(--line); }
+.phases li.done::before { background: var(--accent); }
+.phases li.now::before { background: linear-gradient(90deg, var(--accent) var(--p, 40%), var(--line) var(--p, 40%)); }
+.phases li.now.paused::before { background: linear-gradient(90deg, var(--pause) var(--p, 40%), var(--line) var(--p, 40%)); }
+.phases li.now.alert::before { background: linear-gradient(90deg, var(--warn) var(--p, 40%), var(--line) var(--p, 40%)); }
+.phases li b { display: block; font-weight: 600; color: var(--sub); }
+.phases li.now b { color: var(--text); }
+.phases li small { font-size: 12.5px; }
+
+h1 { font-size: 26px; font-weight: 600; margin: 18px 0 2px; letter-spacing: -.3px; }
+.lead { color: var(--sub); margin: 0 0 14px; }
+
+/* [새로] 항상 보이는 안심 줄 */
+.safe { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--sub); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.pill.ro { background: var(--ok-soft); border-color: transparent; color: var(--ok); font-weight: 600; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+.hero { display: flex; gap: 32px; align-items: center; padding: 24px 28px; }
+.window.small .hero { gap: 22px; padding: 18px 20px; }
+.ring { --p: 0; --c: var(--accent); width: 150px; height: 150px; border-radius: 50%; flex: none; background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--line) 0); display: grid; place-items: center; }
+.window.small .ring { width: 128px; height: 128px; }
+.ring > div { width: 80%; height: 80%; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
+.ring .pc { font-size: 34px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
+.ring .pl { font-size: 12px; color: var(--sub); margin-top: 4px; }
+.ring.paused { --c: var(--pause); } .ring.alert { --c: var(--warn); }
+.main { flex: 1; min-width: 0; }
+.big { font-size: 24px; font-weight: 600; letter-spacing: -.3px; }
+.when { color: var(--sub); font-size: 14px; margin-top: 2px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.stat .v { font-size: 18px; font-weight: 600; } .stat .l { font-size: 12.5px; color: var(--sub); }
+.stale .big, .stale .stat .v { color: var(--faint); }
+
+/* [바뀜] 종류별 숫자 → 작은 막대 */
+.kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 12px; }
+.kind { padding: 12px 16px; }
+.kind .top { display: flex; justify-content: space-between; font-size: 13.5px; }
+.kind .top span:last-child { color: var(--sub); }
+.kbar { height: 6px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.kbar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.paused-ui .kbar i { background: var(--pause); }
+
+.strip-h { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 0 8px; font-size: 14px; color: var(--sub); }
+.strip { display: flex; gap: 10px; overflow: hidden; }
+.strip .th { width: 96px; height: 72px; flex: none; border-radius: 8px; position: relative; overflow: hidden; }
+.th.v::before { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.th.raw::after { content: "RAW"; position: absolute; left: 6px; bottom: 5px; font-size: 10.5px; font-weight: 700; color: #fff; background: rgba(0,0,0,.45); padding: 0 5px; border-radius: 4px; }
+.t1 { background: linear-gradient(180deg, #7fb6f0 0 55%, #5f8f5a 55%); } .t2 { background: linear-gradient(180deg, #f2b27a 0 50%, #3d4f66 50%); }
+.t3 { background: linear-gradient(180deg, #a9c9e8 0 60%, #c9b88a 60%); } .t4 { background: linear-gradient(180deg, #3d3a5c 0 45%, #1d1b30 45%); }
+.t5 { background: linear-gradient(180deg, #cfe3a8 0 50%, #6b8f4a 50%); } .t6 { background: linear-gradient(180deg, #f4d7b6 0 40%, #8d6b4e 40%); }
+
+/* [새로] 상황 카드: 무슨 일 → 원본 안전 → 할 일 */
+.sit { display: flex; gap: 14px; padding: 16px 18px; border-radius: 12px; margin-bottom: 14px; }
+.sit.warn { background: var(--warn-soft); } .sit.ok { background: var(--ok-soft); } .sit.bad { background: var(--bad-soft); } .sit.info { background: var(--accent-soft); }
+.sit .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; color: #fff; background: var(--warn); }
+.sit.ok .ic { background: var(--ok); } .sit.bad .ic { background: var(--bad); } .sit.info .ic { background: var(--accent); }
+.sit .ic svg.i { width: 18px; height: 18px; }
+.sit .t { font-weight: 600; font-size: 16px; }
+.sit p { margin: 2px 0 0; color: var(--sub); font-size: 14px; }
+.sit ol { margin: 8px 0 0 18px; padding: 0; font-size: 14px; }
+.wait { display: inline-flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 13.5px; color: var(--sub); }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--accent); animation: sp 1s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+/* [바뀜] 아래 버튼 줄: 창 아래에 고정(최소 창에서도 항상 보임) */
+footer.actions { flex: none; display: flex; align-items: center; gap: 10px; padding: 12px 56px 14px; border-top: 1px solid var(--line); background: var(--win); }
+.window.small footer.actions { padding: 10px 32px 12px; }
+footer .sp { flex: 1; }
+.hint { color: var(--sub); font-size: 13px; }
+.btn { border: 1px solid var(--line2); background: var(--card); color: var(--text); border-radius: 8px; padding: 9px 20px; font: inherit; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; padding: 10px 28px; }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.topbanner { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 10px; background: var(--bad-soft); font-size: 14px; margin-top: 16px; }
+
+.foot { max-width: 1200px; margin: 12px auto 0; font-size: 12.5px; color: var(--faint); text-align: center; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+</svg>
+
+<div class="proto">
+  <b>상태</b>
+  <button data-s="scan">검사 중</button>
+  <button data-s="run" class="on">꺼내는 중</button>
+  <button data-s="paused">일시 중지</button>
+  <button data-s="unplugged">연결 끊김</button>
+  <button data-s="replugged">다시 연결됨</button>
+  <button data-s="verify">열림 확인 중</button>
+  <button data-s="lost">프로그램 응답 없음</button>
+  <span class="sp"></span>
+  <button id="size">최소 창 900×640</button>
+  <button id="theme">다크 모드</button>
+</div>
+
+<div class="window" id="win">
+  <div class="titlebar">
+    <div class="app"><span class="logo"></span>사진 복구 도구</div>
+    <span class="sp"></span>
+    <span class="quit">⏻ 종료</span>
+    <div class="winctl"><span>─</span><span>☐</span><span>✕</span></div>
+  </div>
+  <div class="scroll"><div class="inner" id="body"></div></div>
+  <footer class="actions" id="actions"></footer>
+</div>
+<div class="foot">시안입니다 · 숫자·시각·이름은 모두 예시 값(5TB 디스크 가정)이며 실제 결과가 아닙니다</div>
+
+<script>
+const I = (id) => `<svg class="i"><use href="#${id}"/></svg>`;
+const SAFE = (extra = '') => `<div class="safe">
+  <span class="pill ro">${I('lock')}원본 디스크는 읽기만 해요</span>
+  <span class="pill">${I('moon')}잠자기 방지 켜짐</span>
+  <span class="pill" title="D:\\복구된 사진">${I('folder')}저장 위치: D:\\복구된 사진</span>${extra}</div>`;
+
+// 단계 길: 사진 찾기 → 꺼내기 → 열림 확인
+function phases(now, p, mod = '') {
+  const L = [['사진 찾기', '완료 · 41분 걸림', '약 41분'], ['꺼내기', '완료 · 2시간 8분', '약 2시간'], ['열림 확인', '완료', '약 20분']];
+  return '<ol class="phases">' + L.map(([n, done, est], i) => {
+    const cls = i < now ? 'done' : i === now ? 'now ' + mod : '';
+    const sm = i < now ? done : i === now ? (mod === 'paused' ? '멈춤 · ' + p + '%' : mod === 'alert' ? '멈춤 · ' + p + '%' : '진행 중 · ' + p + '%') : '예상 ' + est;
+    return `<li class="${cls}" style="--p:${p}%"><b>${i + 1}. ${n}</b><small>${sm}</small></li>`;
+  }).join('') + '</ol>';
+}
+const ring = (p, label, mod = '') => `<div class="ring ${mod}" style="--p:${p}"><div><div><div class="pc">${p}%</div><div class="pl">${label}</div></div></div></div>`;
+const stats = rows => `<div class="stats">${rows.map(([v, l]) => `<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('')}</div>`;
+const kinds = () => `<div class="kinds">${[['사진', 1350, 3214], ['RAW 사진', 463, 1102], ['영상', 79, 188]].map(([n, a, b]) =>
+  `<div class="card kind"><div class="top"><span>${n}</span><span>${a.toLocaleString()} / ${b.toLocaleString()}</span></div><div class="kbar"><i style="width:${(100 * a / b).toFixed(0)}%"></i></div></div>`).join('')}</div>`;
+const strip = (title = '방금 꺼낸 사진') => `<div class="strip-h"><span>${title}</span><span class="hint">영상\\2024-03-06\\영상_001204.mp4</span></div>
+  <div class="strip"><div class="th t1"></div><div class="th t2"></div><div class="th t3 v"></div><div class="th t4 raw"></div><div class="th t5"></div><div class="th t6"></div><div class="th t1"></div><div class="th t3"></div><div class="th t2"></div></div>`;
+const btn = (label, cls = '', icon = '', dis = false) => `<button class="btn ${cls}" ${dis ? 'disabled' : ''}>${icon ? I(icon) : ''}${label}</button>`;
+
+const RUN_HERO = (mod = '', stale = false) => `<div class="card hero ${stale ? 'stale' : ''}">${ring(42, '꺼내기', mod)}<div class="main">
+  <div class="big">${stale ? '— 남은 시간 확인 중' : '약 1시간 14분 남았어요'}</div>
+  <div class="when">${I('clock')}${stale ? '마지막 업데이트 12초 전' : '오후 3:40쯤 끝나요 · 시작한 지 52분'}</div>
+  ${stats([['1,892 / 4,504', '꺼낸 파일'], ['235 GB / 559 GB', '저장된 용량'], [stale ? '—' : '118 MB/s', '속도']])}</div></div>`;
+
+const S = {
+  scan: {
+    body: () => phases(0, 38) + `<h1>사진과 영상을 찾고 있어요</h1>
+      <p class="lead">디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.</p>${SAFE()}
+      <div class="card hero">${ring(38, '사진 찾기')}<div class="main">
+        <div class="big">약 41분 남았어요</div>
+        <div class="when">${I('clock')}오후 1:52쯤 끝나요 · 시작한 지 25분</div>
+        ${stats([['1,532개', '지금까지 찾은 파일'], ['212 GB / 563 GB', '읽은 양'], ['142 MB/s', '속도']])}</div></div>
+      <div class="sit info" style="margin-top:14px"><div class="ic">${I('check')}</div><div><div class="t">멈춰도 괜찮아요</div>
+        <p>취소하거나 연결이 끊겨도 읽은 곳까지 기억해 두었다가 이어서 찾습니다. 다 찾고 나면 무엇을 꺼낼지 고르는 화면으로 넘어갑니다.</p></div></div>`,
+    acts: () => btn('취소', '', '', false) + '<span class="sp"></span><span class="hint">취소해도 나중에 이어서 할 수 있어요</span>'
+  },
+  run: {
+    body: () => phases(1, 42) + `<h1>사진을 꺼내고 있어요</h1>
+      <p class="lead">창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.</p>${SAFE()}
+      ${RUN_HERO()}${kinds()}${strip()}`,
+    acts: () => btn('일시 중지', '', 'pause') + btn('중단', 'danger') + '<span class="sp"></span><span class="hint">멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요</span>'
+  },
+  paused: {
+    body: () => phases(1, 42, 'paused') + `<h1>잠시 멈췄어요</h1>
+      <p class="lead">이미 꺼낸 1,892개는 저장 폴더에 그대로 있어요. 이어서 하면 남은 2,612개만 꺼냅니다.</p>${SAFE()}
+      <div class="paused-ui"><div class="card hero">${ring(42, '멈춤', 'paused')}<div class="main">
+        <div class="big">1,892 / 4,504개 꺼냄</div>
+        <div class="when">${I('clock')}이어서 하면 약 1시간 14분 더 걸려요</div>
+        ${stats([['235 GB / 559 GB', '저장된 용량'], ['52분', '지금까지 걸린 시간'], ['멈춤', '상태']])}</div></div>${kinds()}</div>`,
+    acts: () => btn('처음으로') + btn('설정 바꾸기') + '<span class="sp"></span>' + btn('이어서 하기', 'primary', 'play')
+  },
+  unplugged: {
+    body: () => phases(1, 42, 'alert') + `<h1>하드디스크 연결이 끊겼어요</h1>
+      <p class="lead">걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.</p>${SAFE()}
+      <div class="sit warn"><div class="ic">${I('plug')}</div><div><div class="t">원본은 안전해요. 꺼낸 1,892개도 그대로 있어요.</div>
+        <p>이 프로그램은 원본 디스크를 읽기만 하므로, 연결이 끊겨도 원본은 바뀌지 않아요.</p>
+        <ol><li>하드디스크의 케이블과 전원을 확인하세요.</li><li>다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.</li></ol>
+        <div class="wait"><span class="spin"></span>연결을 기다리는 중…</div></div></div>
+      <div class="card hero">${ring(42, '멈춤', 'alert')}<div class="main"><div class="big">1,892 / 4,504개 꺼냄</div>
+        <div class="when">${I('clock')}오후 2:46에 멈춤</div></div></div>`,
+    acts: () => btn('처음으로') + '<span class="sp"></span><span class="hint">다시 연결되면 버튼이 켜져요</span>' + btn('이어서 하기', 'primary', 'play', true)
+  },
+  replugged: {
+    body: () => phases(1, 42, 'paused') + `<h1>다시 연결됐어요</h1>
+      <p class="lead">처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.</p>${SAFE()}
+      <div class="sit ok"><div class="ic">${I('check')}</div><div><div class="t">같은 하드디스크를 확인했어요</div>
+        <p>이미 꺼낸 1,892개는 건너뛰고 남은 2,612개만 꺼냅니다.</p></div></div>
+      <div class="card hero">${ring(42, '멈춤', 'paused')}<div class="main"><div class="big">1,892 / 4,504개 꺼냄</div>
+        <div class="when">${I('clock')}이어서 하면 약 1시간 14분 더 걸려요</div></div></div>`,
+    acts: () => btn('처음으로') + '<span class="sp"></span>' + btn('이어서 하기', 'primary', 'play')
+  },
+  verify: {
+    body: () => phases(2, 48) + `<h1>마지막 단계: 잘 열리는지 확인하고 있어요</h1>
+      <p class="lead">꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.</p>${SAFE()}
+      <div class="card hero">${ring(48, '열림 확인')}<div class="main">
+        <div class="big">약 6분 남았어요</div>
+        <div class="when">${I('clock')}오후 3:46쯤 끝나요 · 꺼내기는 4,498개 모두 끝났어요</div>
+        ${stats([['2,140 / 4,498', '확인한 파일'], ['2,137', '잘 열림'], ['3', '확인 필요']])}</div></div>
+      ${strip('확인한 사진')}`,
+    acts: () => btn('확인 건너뛰기') + '<span class="sp"></span><span class="hint">확인을 건너뛰어도 꺼낸 파일은 그대로 있어요</span>'
+  },
+  lost: {
+    body: () => `<div class="topbanner">${I('alert')}<span style="flex:1"><b>화면이 프로그램과 연결되지 않아요.</b> 다시 연결하는 중… 프로그램이 꺼졌다면 다시 실행하세요. 꺼낸 파일과 원본은 안전해요.</span><span class="spin"></span></div>`
+      + phases(1, 42) + `<h1>사진을 꺼내고 있어요</h1><p class="lead">아래 숫자는 마지막으로 받은 값이에요.</p>${SAFE()}${RUN_HERO('', true)}${kinds()}`,
+    acts: () => btn('일시 중지', '', 'pause', true) + btn('중단', 'danger', '', true) + '<span class="sp"></span><span class="hint">연결되면 다시 누를 수 있어요</span>'
+  },
+};
+function show(s) {
+  document.getElementById('body').innerHTML = S[s].body();
+  document.getElementById('actions').innerHTML = S[s].acts();
+  document.querySelectorAll('.proto [data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+  history.replaceState(null, '', '#' + s);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-s]'); if (b) show(b.dataset.s);
+  if (e.target.closest('#theme')) { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'; }
+  if (e.target.closest('#size')) { const w = document.getElementById('win'); w.classList.toggle('small'); e.target.classList.toggle('on'); }
+});
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+if (q.get('size') === 'small') document.getElementById('win').classList.add('small');
+const fromHash = () => (S[location.hash.slice(1)] ? location.hash.slice(1) : 'run');
+window.addEventListener('hashchange', () => show(fromHash()));
+show(fromHash());
+</script>
+</body>
+</html>

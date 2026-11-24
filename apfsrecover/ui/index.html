@@ -81,7 +81,7 @@ h1 { font-size: 26px; font-weight: 600; margin: 10px 0 4px; letter-spacing: -.3p
 .linkish { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; font-size: 14px; cursor: pointer; }
 .linkish:hover { text-decoration: underline; }
 
-.types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
 .type { padding: 16px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); cursor: pointer; position: relative; }
 .type.on { border-color: var(--accent); background: var(--accent-soft); }
 .type.none { opacity: .5; cursor: not-allowed; }
@@ -127,7 +127,7 @@ button:focus-visible, .disk:focus-visible, .type:focus-visible { outline: 3px so
 .ring > div { width: 118px; height: 118px; border-radius: 50%; background: var(--card); display: grid; place-items: center; text-align: center; }
 .ring .pc { font-size: 34px; font-weight: 600; letter-spacing: -1px; line-height: 1; }
 .ring .pl { font-size: 12px; color: var(--sub); margin-top: 4px; }
-.stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stats { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.3px; } .stat .l { font-size: 13px; color: var(--sub); }
 .cur { margin-top: 14px; font-size: 13px; color: var(--sub); padding: 10px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); display: flex; gap: 10px; }
 .cur .mono { font-family: "Cascadia Mono", Consolas, Menlo, monospace; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -167,10 +167,67 @@ dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 
 .newrow { display: flex; gap: 8px; margin: 8px 0; }
 .newrow input { flex: 1; padding: 8px 10px; border: 1px solid var(--line2); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; }
 .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--text); color: var(--win); padding: 10px 18px; border-radius: 10px; font-size: 14px; max-width: 90%; z-index: 9; }
-@media (max-width: 760px) { main, footer.actions, #banner { padding-left: 20px; padding-right: 20px; } .types { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(3, 1fr); } .hero { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .bar { width: 24px; } .step .lbl { display: none; } }
+
+/* ---- v3 진행 화면: 단계 길 · 안심 줄 · 상황 카드 ---- */
+:root { --pause: #8a8a8a; } 
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pause: #9a9a9a; } }
+:root[data-theme="dark"] { --pause: #9a9a9a; }
+svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.phases { display: flex; margin: 20px 0 4px; padding: 0; list-style: none; }
+.phases li { flex: 1; position: relative; padding-top: 14px; font-size: 13.5px; color: var(--faint); }
+.phases li::before { content: ""; position: absolute; top: 0; left: 0; right: 6px; height: 6px; border-radius: 99px; background: var(--line); }
+.phases li.done::before { background: var(--accent); }
+.phases li.now::before { background: linear-gradient(90deg, var(--accent) var(--p, 0%), var(--line) var(--p, 0%)); }
+.phases li.now.paused::before { background: linear-gradient(90deg, var(--pause) var(--p, 0%), var(--line) var(--p, 0%)); }
+.phases li.now.alert::before { background: linear-gradient(90deg, var(--warn) var(--p, 0%), var(--line) var(--p, 0%)); }
+.phases li b { display: block; font-weight: 600; color: var(--sub); } .phases li.now b { color: var(--text); }
+.phases li small { font-size: 12.5px; }
+.safe { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--sub); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.pill.ro { background: var(--ok-soft); border-color: transparent; color: var(--ok); font-weight: 600; }
+.ring.paused { --c: var(--pause); } .ring.alert { --c: var(--warn); }
+.ring { --c: var(--accent); background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--line) 0); }
+.hero .main { flex: 1; min-width: 0; }
+.hero .big { font-size: 24px; font-weight: 600; letter-spacing: -.3px; }
+.hero .when { color: var(--sub); font-size: 14px; margin-top: 2px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.hero .stats { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); gap: 12px; }
+.hero .stat .v { font-size: 18px; white-space: nowrap; } .hero .stat .l { font-size: 12.5px; }
+.hero.stale .big, .hero.stale .stat .v { color: var(--faint); }
+.kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 12px; }
+.kind { padding: 12px 16px; }
+.kind .top { display: flex; justify-content: space-between; font-size: 13.5px; } .kind .top span:last-child { color: var(--sub); }
+.kbar { height: 6px; border-radius: 99px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.kbar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.is-paused .kbar i { background: var(--pause); }
+.sit { display: flex; gap: 14px; padding: 16px 18px; border-radius: 12px; margin-top: 14px; }
+.sit.warn { background: var(--warn-soft); } .sit.ok { background: var(--ok-soft); } .sit.bad { background: var(--bad-soft); } .sit.info { background: var(--accent-soft); }
+.sit .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; color: #fff; background: var(--warn); }
+.sit.ok .ic { background: var(--ok); } .sit.bad .ic { background: var(--bad); } .sit.info .ic { background: var(--accent); }
+.sit .ic svg.i { width: 18px; height: 18px; }
+.sit .t { font-weight: 600; font-size: 16px; } .sit p { margin: 2px 0 0; color: var(--sub); font-size: 14px; }
+.sit ol { margin: 8px 0 0 18px; padding: 0; font-size: 14px; }
+.sit .btns { margin-top: 10px; }
+.wait { display: inline-flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 13.5px; color: var(--sub); }
+.spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--accent); animation: sp 1s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+footer.actions { position: sticky; bottom: 0; background: var(--win); border-top: 1px solid var(--line); padding-top: 12px; padding-bottom: 14px; z-index: 5; }
+.strip-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 18px 0 8px; font-size: 14px; color: var(--sub); }
+.strip-h .mono { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.more button.linkish { white-space: nowrap; flex: none; }
+.screen.noscroll-strip .strip { overflow: hidden; }
+@media (max-width: 760px) { main, footer.actions, #banner { padding-left: 20px; padding-right: 20px; } .types { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(3, 1fr); } .hero { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .kinds { grid-template-columns: 1fr; } .bar { width: 24px; } .step .lbl { display: none; } }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+</svg>
 <div class="app">
   <div class="titlebar">
     <div class="name"><span class="logo"></span>사진 복구 도구</div>
@@ -196,11 +253,13 @@ dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 
 
     <!-- 1-2. 검사 (디스크를 훑어 보는 중) -->
     <section class="screen" id="s-scan">
-      <h1>디스크를 훑어 보는 중입니다</h1>
-      <p class="lead">사진과 영상이 어디에 있는지 찾고 있습니다. 디스크 크기에 따라 시간이 걸릴 수 있습니다.</p>
-      <div class="card hero">
+      <div id="scan-phases"></div>
+      <h1 id="scan-title">사진과 영상을 찾고 있어요</h1>
+      <p class="lead" id="scan-lead">디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.</p>
+      <div class="safe" id="scan-safe"></div>
+      <div class="card hero" id="scan-hero">
         <div class="ring" id="scan-ring"><div><div><div class="pc">0%</div><div class="pl" id="scan-pl">진행</div></div></div></div>
-        <div class="stats" id="scan-stats"></div>
+        <div class="main"><div class="big" id="scan-big">계산 중이에요</div><div class="when" id="scan-when"></div><div class="stats" id="scan-stats"></div></div>
       </div>
       <div id="scanmsg"></div>
     </section>
@@ -233,16 +292,19 @@ dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 
 
     <!-- 3. 진행 -->
     <section class="screen" id="s-run">
-      <h1 id="run-title">사진을 꺼내는 중입니다</h1>
-      <p class="lead" id="run-lead">창을 열어 두면 됩니다. 컴퓨터가 잠자기에 들어가지 않게 막고 있습니다.</p>
-      <div class="card hero">
+      <div id="run-phases"></div>
+      <h1 id="run-title">사진을 꺼내고 있어요</h1>
+      <p class="lead" id="run-lead">창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.</p>
+      <div class="safe" id="run-safe"></div>
+      <div id="runmsg-top"></div>
+      <div class="card hero" id="run-hero">
         <div class="ring" id="run-ring"><div><div><div class="pc">0%</div><div class="pl">진행</div></div></div></div>
-        <div class="stats" id="run-stats"></div>
+        <div class="main"><div class="big" id="run-big">계산 중이에요</div><div class="when" id="run-when"></div><div class="stats" id="run-stats"></div></div>
       </div>
       <div id="runbox">
-        <div class="cur"><span>방금</span><span class="mono" id="cur">-</span></div>
+        <div class="kinds" id="run-kinds"></div>
+        <div class="strip-h"><span id="strip-title">방금 꺼낸 사진</span><span class="mono" id="cur">-</span></div>
         <div class="strip" id="strip"></div>
-        <div class="sublead">방금 꺼낸 파일 미리보기</div>
       </div>
       <div id="runmsg"></div>
     </section>
@@ -294,6 +356,7 @@ const GROUPS = {
   photo: { label: '사진', sub: 'JPEG · HEIC', icon: '📷', kinds: ['jpeg', 'heic'], unit: '장', dir: '사진' },
   raw: { label: 'RAW 사진', sub: 'Canon CR3', icon: '🎞️', kinds: ['raw-cr3'], unit: '장', dir: 'RAW' },
   video: { label: '영상', sub: 'MP4 · MOV', icon: '🎬', kinds: ['video-mp4', 'video-mov'], unit: '개', dir: '영상' },
+  zip: { label: '압축·문서', sub: 'ZIP · DOCX · XLSX', icon: '🗜️', kinds: ['zip', 'docx', 'xlsx', 'pptx'], unit: '개', dir: '압축·문서' },
 };
 const FMT = { Apple_APFS: 'APFS 형식', 'disk-image': '디스크 이미지', RAW: '형식 없음(초기화 안 됨)', Microsoft_Basic_Data: 'Windows 형식', Apple_HFS: 'Mac OS 확장 형식' };
 const STEPS = ['디스크', '복구 설정', '진행 · 결과'];
@@ -301,8 +364,8 @@ const STEP_OF = { disk: 0, scan: 0, settings: 1, run: 2, result: 2 };
 const REASON_STATE = { unstable: '디스크가 불안정해 중단했습니다.', refused: '시작할 수 없습니다.', cancelled: '중단했습니다.',
   disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.', error: '오류가 발생했습니다.' };
 const S = { screen: 'disk', devices: [], sel: null, session: null, summary: null, job: null, flow: null, seen: null,
-  kinds: { photo: true, raw: true, video: true }, suspect: true, dest: '', batchGb: '', plan: null, rate: null,
-  check: null, banners: {}, stripKey: '', ended: false, pausing: false };
+  kinds: { photo: true, raw: true, video: true, zip: true }, suspect: true, dest: '', batchGb: '', plan: null, rate: null,
+  check: null, banners: {}, stripKey: '', ended: false, pausing: false, dur: {}, lost: false, lastOk: 0 };
 
 // ---- 안전한 DOM 생성 (서버가 준 문자열은 항상 textContent 로만 넣는다) ----
 function h(tag, attrs, ...kids) {
@@ -362,6 +425,7 @@ function ask(title, text, yes = '예') {
 
 // ---- 화면 전환 ----
 function renderStepper() {
+  $('#stepper').hidden = S.screen === 'scan' || S.screen === 'run';  // 오래 걸리는 화면은 3칸 단계 길이 대신한다
   const s = STEP_OF[S.screen], fin = S.screen === 'result';
   clear($('#stepper')).append(...STEPS.flatMap((l, i) => {
     const done = i < s || (fin && i === 2);
@@ -376,9 +440,10 @@ function go(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
   renderStepper(); window.scrollTo(0, 0);
   if (name === 'disk') { setActions('|', btn('다음', 'primary', next, { id: 'next', disabled: true })); loadDevices(); }
-  if (name === 'scan') setActions(btn('취소', '', cancelJob, { id: 'scancancel' }), '|');
+  if (name === 'scan') setActions(btn('취소', '', cancelJob, { id: 'scancancel' }), '|', '취소해도 나중에 이어서 할 수 있어요');
   if (name === 'settings') { setActions('|', btn('복구 시작', 'primary', startRun, { id: 'start', disabled: true })); initSettings(); }
-  if (name === 'run') setActions(btn('일시 중지', '', pauseJob, { id: 'pause' }), btn('중단', 'danger', stopJob, { id: 'stop' }), '|', '중단해도 나중에 이어서 할 수 있습니다');
+  if (name === 'run') { if (S.flow === 'verify') setActions(btn('확인 건너뛰기', '', cancelJob, { id: 'stop' }), '|', '확인을 건너뛰어도 꺼낸 파일은 그대로 있어요');
+    else setActions(btn('일시 중지', '', pauseJob, { id: 'pause' }), btn('중단', 'danger', stopJob, { id: 'stop' }), '|', '멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요'); }
   if (name === 'result') loadResult();
 }
 
@@ -447,54 +512,100 @@ async function startScan(resume, full) {
   clearInterval(S.watch);
   try {
     await api('/api/scan/start', { device_id: S.sel, full: !!full, resume: !!resume });
-    S.flow = 'scan'; S.seen = null; clear($('#scanmsg')); banner('', '', 'msg'); go('scan'); poll();
+    if (!resume) S.dur = {}; S.flow = 'scan'; S.seen = null; S.job = null; S.lost = false; clear($('#scanmsg')); heading('scan', '사진과 영상을 찾고 있어요', '디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.'); banner('', '', 'msg'); go('scan'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
 }
 async function loadSummary() { S.summary = await api('/api/catalog/summary'); return S.summary; }
 
 // ---- 작업 진행 (검사 / 복구 / 검증 공통) ----
-async function poll() {
-  let j;
-  try { j = (await api('/api/job')).job; }
-  catch (e) {
-    if (e.network) { banner('bad', '도구와 연결이 끊겼습니다(종료되었거나 컴퓨터가 잠들었을 수 있습니다). 프로그램을 다시 실행하면 작업을 이어서 할 수 있습니다. 이미 꺼낸 파일은 그대로 있습니다.', 'conn'); setTimeout(poll, 3000); }
-    return;
-  }
-  S.job = j; renderJob();
-  if (j && j.state === 'running') setTimeout(poll, 700);
-  else if (j && S.seen !== j.id) { S.seen = j.id; await onFinished(j); }
+const NS = 'http://www.w3.org/2000/svg';
+function ico(id) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', 'i'); const u = document.createElementNS(NS, 'use'); u.setAttribute('href', '#' + id); s.append(u); return s; }
+const PHASES = [['scan', '사진 찾기'], ['extract', '꺼내기'], ['verify', '열림 확인']];
+function fmtDur(s) {
+  s = Math.max(0, Math.round(s || 0));
+  if (s < 90) return s + '초';
+  const hh = Math.floor(s / 3600), mm = Math.round((s % 3600) / 60);
+  return (hh ? hh + '시간 ' : '') + mm + '분';
 }
-function setRing(id, pct, label) {
-  const r = $(id); r.style.setProperty('--p', Math.max(0, Math.min(100, pct)).toFixed(1));
+// 끝나는 시각: 오차가 커 보이지 않게 15분 넘게 남았으면 5분 단위로 맞춘다
+function clockAfter(sec) {
+  let t = Date.now() + sec * 1000; if (sec > 900) t = Math.round(t / 300000) * 300000;
+  const d = new Date(t), today = new Date();
+  const hm = d.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
+  return (d.toDateString() === today.toDateString() ? '' : '내일 ') + hm + '쯤';
+}
+const etaWords = s => { const e = fmtEta(s); return (e.startsWith('약') ? e : '약 ' + e) + ' 남았어요'; };
+function phasesEl(now, pct, mod) {
+  return h('ol', { class: 'phases', 'aria-label': '전체 진행 단계' }, PHASES.map(([key, name], i) => {
+    const cls = i < now ? 'done' : i === now ? 'now ' + (mod || '') : '';
+    const sm = i < now ? '완료' + (S.dur[key] ? ' · ' + fmtDur(S.dur[key]) + ' 걸림' : '') : i === now ? (mod ? '멈춤 · ' : '진행 중 · ') + Math.round(pct) + '%' : '다음 단계';
+    const li = h('li', { class: cls }, h('b', {}, (i + 1) + '. ' + name), h('small', {}, sm)); li.style.setProperty('--p', Math.max(0, Math.min(100, pct)).toFixed(1) + '%'); return li;
+  }));
+}
+function safePills() {
+  const dest = S.dest || (S.session && S.session.dest) || '';
+  return [h('span', { class: 'pill ro' }, ico('lock'), '원본 디스크는 읽기만 해요'),
+    S.lost ? null : h('span', { class: 'pill' }, ico('moon'), '잠자기 방지 켜짐'),
+    dest ? h('span', { class: 'pill', title: dest }, ico('folder'), '저장 위치: ' + dest) : null];
+}
+function setRing(id, pct, label, mod) {
+  const r = $(id); r.className = 'ring' + (mod ? ' ' + mod : ''); r.style.setProperty('--p', Math.max(0, Math.min(100, pct)).toFixed(1));
   r.querySelector('.pc').textContent = Math.round(pct) + '%'; if (label) r.querySelector('.pl').textContent = label;
 }
 function setStats(id, rows) { clear($(id)).append(...rows.map(([v, l]) => h('div', { class: 'stat' }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l)))); }
+// 진행 화면 그리기(검사 'scan' / 꺼내기·확인 'run'): 단계 길, 안심 줄, 큰 제목 줄, 숫자
+function paint(pre, o) {
+  clear($('#' + pre + '-phases')).append(phasesEl(o.now, o.pct, o.mod));
+  clear($('#' + pre + '-safe')).append(...safePills().filter(Boolean));
+  setRing('#' + pre + '-ring', o.pct, o.ring, o.stale ? 'paused' : o.mod);
+  $('#' + pre + '-hero').classList.toggle('stale', !!o.stale);
+  $('#' + pre + '-big').textContent = o.big;
+  clear($('#' + pre + '-when')).append(ico('clock'), o.when || '');
+  setStats('#' + pre + '-stats', o.stats);
+}
+function lostNote() { return '마지막 업데이트 ' + fmtDur((Date.now() - S.lastOk) / 1000) + ' 전'; }
+function timeLine(j, eta, extra) {
+  const el = j.elapsed_s || 0;
+  if (S.lost) return { big: '남은 시간 확인 중', when: lostNote() };
+  if (eta == null || el < 90) return { big: '남은 시간을 계산하고 있어요', when: '조금 지나면 알려 드려요' + (el ? ' · 시작한 지 ' + fmtDur(el) : '') };
+  return { big: etaWords(eta), when: clockAfter(eta) + ' 끝나요 · 시작한 지 ' + fmtDur(el) + (extra ? ' · ' + extra : '') };
+}
 function renderJob() {
   const j = S.job; if (!j) return;
   const p = j.progress || {}; const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : (p.total ? 100 * p.done / p.total : 0);
-  const eta = j.state === 'running' ? fmtEta(p.eta_s) : '-';
-  if (j.kind === 'scan' && S.screen === 'scan') {
-    if (p.rate_mb_s) S.rate = p.rate_mb_s;
-    setRing('#scan-ring', pct, j.phase === 'sampling' ? '1/2 위치 확인' : '2/2 파일 찾기');
-    setStats('#scan-stats', [[p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [num(p.found || 0) + '개', '찾은 파일'],
-      [eta, '남은 시간'], [(p.rate_mb_s || 0) + ' MB/s', '읽는 속도']]);
-    $('#scancancel') && ($('#scancancel').disabled = j.state !== 'running');
+  const run = j.state === 'running', stale = !!S.lost;
+  const off = id => $(id) && ($(id).disabled = !run || stale);
+  if (p.rate_mb_s) S.rate = p.rate_mb_s;
+  const speed = stale ? '-' : (p.rate_mb_s || 0) + ' MB/s';
+  if (j.kind === 'scan' && S.screen === 'scan' && run) {
+    const sampling = j.phase === 'sampling'; const t = sampling ? { big: '디스크 위치를 확인하는 중이에요', when: stale ? lostNote() : '곧 파일 찾기를 시작해요' } : timeLine(j, p.eta_s);
+    paint('scan', { now: 0, pct, ring: sampling ? '위치 확인' : '사진 찾기', stale, big: t.big, when: t.when,
+      stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [speed, '읽는 속도']] });
+    off('#scancancel');
   }
-  if (j.kind === 'extract' && S.screen === 'run') {
-    if (p.rate_mb_s) S.rate = p.rate_mb_s;
-    setRing('#run-ring', pct, '진행');
-    const bk = p.by_kind || {}; const gk = k => bk[GROUPS[k].dir] ? num(bk[GROUPS[k].dir][0]) + ' / ' + num(bk[GROUPS[k].dir][1]) : '-';
-    setStats('#run-stats', [[num(p.files) + ' / ' + num(p.total_files), '꺼낸 파일'], [fmtSize(p.done_bytes || 0), '저장된 용량'], [eta, '남은 시간'],
-      [gk('photo'), '사진'], [gk('raw'), 'RAW 사진'], [gk('video'), '영상']]);
+  if (j.kind === 'extract' && S.screen === 'run' && run) {
+    const t = timeLine(j, p.eta_s);
+    paint('run', { now: 1, pct, ring: '꺼내기', stale, big: t.big, when: t.when,
+      stats: [[num(p.files) + ' / ' + num(p.total_files), '꺼낸 파일'], [fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), '저장된 용량'], [speed, '속도']] });
+    renderKinds(p.by_kind);
     $('#cur').textContent = p.current || '-';
-    refreshStrip();
-    $('#pause') && ($('#pause').disabled = $('#stop').disabled = j.state !== 'running');
+    if (!stale) refreshStrip();
+    off('#pause'); off('#stop');
   }
-  if (j.kind === 'verify' && S.screen === 'run') {
-    setRing('#run-ring', pct, '확인');
-    setStats('#run-stats', [[num(p.done) + ' / ' + num(p.total), '확인한 파일'], [num(p.ok), '정상'], [num(p.fail), '문제']]);
-    $('#pause') && ($('#pause').disabled = $('#stop').disabled = j.state !== 'running');
+  if (j.kind === 'verify' && S.screen === 'run' && run) {
+    const el = j.elapsed_s || 0; const eta = p.done > 0 && el >= 30 ? el * (p.total - p.done) / p.done : null;
+    const t = timeLine(j, eta, '꺼내기는 모두 끝났어요');
+    paint('run', { now: 2, pct, ring: '열림 확인', stale, big: t.big, when: t.when,
+      stats: [[num(p.done) + ' / ' + num(p.total), '확인한 파일'], [num(p.ok), '잘 열림'], [num(p.fail), '확인 필요']] });
+    off('#stop');
   }
+}
+function renderKinds(by, mod) {
+  const bk = by || {};
+  clear($('#run-kinds')).append(...Object.values(GROUPS).map(g => { const v = bk[g.dir] || [0, 0];
+    const i = h('i', {}); i.style.width = (v[1] ? 100 * v[0] / v[1] : 0).toFixed(0) + '%';
+    return h('div', { class: 'card kind' }, h('div', { class: 'top' }, h('span', {}, g.label), h('span', {}, v[1] ? num(v[0]) + ' / ' + num(v[1]) : '-')), h('div', { class: 'kbar' }, i)); }));
+  $('#runbox').classList.toggle('is-paused', !!mod);
 }
 async function refreshStrip() {
   try {
@@ -512,45 +623,112 @@ const cancelJob = () => api('/api/job/cancel', {}).catch(() => { });
 function pauseJob() { S.pausing = true; cancelJob(); }
 async function stopJob() { if (await ask('중단할까요?', '꺼낸 파일은 그대로 남고, 나중에 이어서 할 수 있습니다.', '중단')) { S.pausing = false; cancelJob(); } }
 
-function watchReconnect(kind, boxSel, resume) {
+async function poll() {
+  let j;
+  try { j = (await api('/api/job')).job; S.lastOk = Date.now(); if (S.lost) { S.lost = false; banner('', '', 'conn'); } }
+  catch (e) {
+    if (e.network) {
+      if (!S.lost) S.lastOk = S.lastOk || Date.now();
+      S.lost = true; banner('bad', '화면이 프로그램과 연결되지 않아요. 다시 연결하는 중입니다. 프로그램이 꺼졌다면 다시 실행하세요. 이미 꺼낸 파일과 원본 디스크는 안전합니다.', 'conn');
+      renderJob(); setTimeout(poll, 3000);
+    }
+    return;
+  }
+  S.job = j; renderJob();
+  if (j && j.state === 'running') setTimeout(poll, 700);
+  else if (j && S.seen !== j.id) { S.seen = j.id; await onFinished(j); }
+}
+setInterval(() => { if (S.lost && (S.screen === 'scan' || S.screen === 'run')) renderJob(); }, 1000);
+
+// 상황 카드: 무슨 일이 있었는지 → 원본은 안전한지 → 할 일
+function sit(cls, icon, title, ...kids) { return h('div', { class: 'sit ' + cls, role: 'status' }, h('div', { class: 'ic' }, ico(icon)), h('div', {}, h('div', { class: 't' }, title), ...kids)); }
+const para = t => h('p', {}, t);
+function heading(pre, title, lead) { $('#' + pre + '-title').textContent = title; $('#' + pre + '-lead').textContent = lead; }
+
+// 연결이 끊겼을 때: 같은 디스크가 다시 꽂히면 알려 주고 [이어서 하기]를 켠다
+function watchReconnect(onMatch) {
   clearInterval(S.watch);
-  const box = $(boxSel); box.append(h('p', { class: 'hint', id: 'watchnote' }, '케이블을 다시 꽂으면 같은 디스크인지 자동으로 확인합니다.'));
   S.watch = setInterval(async () => {
     try {
       const d = await api('/api/devices'); const m = d.devices.find(x => x.matches_session);
       if (!m) return;
-      clearInterval(S.watch); S.sel = m.id; const note = $('#watchnote'); if (note) note.remove();
-      box.append(h('div', { class: 'notice ok' }, h('span', { class: 't' }, '검사했던 디스크와 같은 디스크가 다시 연결되었습니다. 이어서 하면 이미 한 부분은 건너뜁니다.'), btn('이어서 하기', 'primary small', resume)));
+      clearInterval(S.watch); S.sel = m.id; onMatch();
     } catch (e) { }
   }, 3000);
 }
+function resumeActions(first, resume, enabled, hint) {
+  setActions(...first, '|', hint ? h('span', { class: 'hint' }, hint) : '', btn('이어서 하기', 'primary', resume, { disabled: !enabled, id: 'resume' }));
+}
+
 async function onFinished(j) {
   try { S.session = await api('/api/session'); } catch (e) { }
+  const p = j.progress || {}; const r = j.result || {};
+  if (j.state === 'done' && (j.kind === 'scan' || j.kind === 'extract')) S.dur[j.kind] = j.elapsed_s;
   if (j.kind === 'scan') {
-    if (j.state === 'disconnected') watchReconnect('scan', '#scanmsg', () => startScan(true));
     if (j.state === 'done' && !(j.result && j.result.found === 0)) { try { await loadSummary(); go('settings'); return; } catch (e) { } }
-    const m = clear($('#scanmsg'));
-    m.append(h('div', { class: 'notice ' + (j.state === 'cancelled' ? '' : 'warn'), style: 'margin-top:14px' }, h('span', { class: 't' },
-      j.state === 'done' ? (j.error || '사진이나 영상을 찾지 못했습니다.') : stateMsg(j) + (j.state === 'cancelled' ? ' 디스크에는 영향이 없습니다.' : ''))));
-    setActions(btn('디스크 선택으로', '', () => go('disk')), '|', j.state === 'cancelled' || j.state === 'disconnected' ? btn('이어서 검사', 'primary', () => startScan(true)) : '');
+    const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : 0;
+    const base = { now: 0, pct, ring: '멈춤', stale: false, stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], ['멈춤', '상태']] };
+    const m = clear($('#scanmsg')); const first = [btn('디스크 선택으로', '', () => go('disk'))];
+    if (j.state === 'disconnected') {
+      heading('scan', '하드디스크 연결이 끊겼어요', '걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.');
+      paint('scan', { ...base, mod: 'alert', big: num(p.found || 0) + '개 찾았어요', when: '검사를 멈췄어요' });
+      m.append(sit('warn', 'plug', '원본은 안전해요. 지금까지 찾은 기록도 남아 있어요.', para('이 프로그램은 원본 디스크를 읽기만 하므로, 연결이 끊겨도 원본은 바뀌지 않아요.'),
+        h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
+      resumeActions(first, () => startScan(true), false, '다시 연결되면 버튼이 켜져요');
+      watchReconnect(() => {
+        heading('scan', '다시 연결됐어요', '처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.');
+        paint('scan', { ...base, mod: 'paused', big: num(p.found || 0) + '개 찾았어요', when: '검사를 멈췄어요' });
+        clear(m).append(sit('ok', 'check', '같은 하드디스크를 확인했어요', para('이미 읽은 부분은 건너뛰고 남은 부분만 읽습니다.')));
+        resumeActions(first, () => startScan(true), true);
+      });
+    } else if (j.state === 'cancelled') {
+      heading('scan', '검사를 멈췄어요', '읽은 곳까지 기억해 두었어요. 이어서 하면 남은 부분만 찾습니다.');
+      paint('scan', { ...base, mod: 'paused', big: num(p.found || 0) + '개 찾았어요', when: '디스크에는 영향이 없어요' });
+      resumeActions(first, () => startScan(true), true);
+    } else {
+      heading('scan', j.state === 'done' ? '사진이나 영상을 찾지 못했어요' : '검사가 멈췄어요', '원본 디스크는 읽기만 했으므로 그대로예요.');
+      paint('scan', { ...base, mod: 'alert', big: '찾은 파일 ' + num(p.found || 0) + '개', when: '' });
+      m.append(sit(j.state === 'done' ? 'info' : 'bad', 'alert', j.state === 'done' ? '이 디스크에서는 찾지 못했어요' : '무슨 일이 있었나요', para(j.state === 'done' ? (j.error || '사진이나 영상을 찾지 못했습니다.') : stateMsg(j))));
+      setActions(...first, '|');
+    }
+    return;
   }
   if (j.kind === 'extract') {
-    const m = clear($('#runmsg')); const r = j.result || {};
-    if (j.state === 'disconnected') watchReconnect('extract', '#runmsg', startRun);
+    const m = clear($('#runmsg-top')); clear($('#runmsg'));
     if (j.state === 'done') {
       const chk = await api('/api/plan/check', { device_id: S.sel, plan: S.plan }).catch(() => null);
       if (chk && chk.ok) { S.partial = true; go('result'); return; }  // 묶음으로 나눈 경우: 아직 남아 있다
       S.partial = false; startVerify(); return;
     }
-    const kindMsg = j.state === 'cancelled' && S.pausing ? '일시 중지했습니다. 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있습니다.' : stateMsg(j);
-    m.append(h('div', { class: 'notice ' + (j.state === 'cancelled' ? '' : 'bad'), style: 'margin-top:14px' }, h('span', { class: 't' }, kindMsg + (r.files ? ' (이번에 ' + num(r.files) + '개 저장)' : ''))));
-    $('#runbox').hidden = false;
-    const acts = [btn('처음으로', '', () => go('disk')), btn('설정으로', '', () => go('settings')), '|'];
-    if (j.state === 'cancelled' || j.state === 'disconnected' || j.state === 'unstable') acts.push(btn('이어서 하기', 'primary', startRun));
-    setActions(...acts); S.pausing = false;
+    const got = p.files != null ? p.files : (r.files || 0), left = Math.max(0, (p.total_files || 0) - got);
+    const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : 0;
+    const stats = [[fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), '저장된 용량'], [fmtDur(j.elapsed_s), '이번에 걸린 시간'], ['멈춤', '상태']];
+    const hero = mod => paint('run', { now: 1, pct, ring: '멈춤', mod, stale: false, big: num(got) + ' / ' + num(p.total_files) + '개 꺼냄', when: mod === 'alert' ? '꺼낸 파일은 저장 폴더에 그대로 있어요' : left ? '이어서 하면 남은 ' + num(left) + '개를 꺼내요' : '', stats });
+    renderKinds(p.by_kind, 'paused'); $('#runbox').hidden = false; $('#cur').textContent = p.current || '-';
+    const first = [btn('처음으로', '', () => go('disk')), btn('설정 바꾸기', '', () => go('settings'))];
+    if (j.state === 'disconnected') {
+      heading('run', '하드디스크 연결이 끊겼어요', '걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.'); hero('alert');
+      m.append(sit('warn', 'plug', '원본은 안전해요. 꺼낸 ' + num(got) + '개도 그대로 있어요.', para('이 프로그램은 원본 디스크를 읽기만 하므로, 연결이 끊겨도 원본은 바뀌지 않아요.'),
+        h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
+      resumeActions(first.slice(0, 1), startRun, false, '다시 연결되면 버튼이 켜져요');
+      watchReconnect(() => {
+        heading('run', '다시 연결됐어요', '처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.'); hero('paused');
+        clear(m).append(sit('ok', 'check', '같은 하드디스크를 확인했어요', para('이미 꺼낸 ' + num(got) + '개는 건너뛰고 남은 ' + num(left) + '개만 꺼냅니다.')));
+        resumeActions(first.slice(0, 1), startRun, true);
+      });
+    } else if (j.state === 'cancelled') {
+      heading('run', S.pausing ? '잠시 멈췄어요' : '중단했어요', '이미 꺼낸 ' + num(got) + '개는 저장 폴더에 그대로 있어요. 이어서 하면 남은 ' + num(left) + '개만 꺼냅니다.'); hero('paused');
+      resumeActions(first, startRun, true);
+    } else {
+      const T = { unstable: '디스크 읽기가 불안정해서 멈췄어요', nospace: '저장 공간이 부족해서 멈췄어요', refused: '시작할 수 없었어요' };
+      heading('run', T[j.state] || '문제가 생겨 멈췄어요', '꺼낸 ' + num(got) + '개는 저장 폴더에 그대로 있어요.'); hero('alert');
+      m.append(sit('bad', 'alert', '무슨 일이 있었나요', para(stateMsg(j)), para('원본 디스크는 읽기만 했으므로 안전해요.')));
+      if (j.state === 'unstable') resumeActions(first, startRun, true); else setActions(...first, '|', j.state === 'nospace' ? btn('저장 폴더 바꾸기', 'primary', () => go('settings')) : '');
+    }
+    S.pausing = false; return;
   }
   if (j.kind === 'verify') {
-    if (j.state === 'cancelled') { $('#runmsg').append(h('div', { class: 'notice', style: 'margin-top:14px' }, h('span', { class: 't' }, '확인을 중단했습니다.'))); }
+    if (j.state === 'cancelled') toast('확인을 건너뛰었어요. 꺼낸 파일은 그대로 있어요.');
     go('result');
   }
 }
@@ -638,16 +816,16 @@ async function startRun() {
   try {
     await api('/api/extract/start', { device_id: S.sel, plan: S.plan });
     S.flow = 'extract'; S.seen = null; S.stripKey = ''; banner('', '', 'msg');
-    clear($('#runmsg')); clear($('#strip')); $('#runbox').hidden = false;
-    $('#run-title').textContent = '사진을 꺼내는 중입니다'; $('#run-lead').textContent = '창을 열어 두면 됩니다. 컴퓨터가 잠자기에 들어가지 않게 막고 있습니다.';
+    S.job = null; S.lost = false; clear($('#runmsg')); clear($('#runmsg-top')); clear($('#strip')); $('#runbox').hidden = false; $('#strip-title').textContent = '방금 꺼낸 사진';
+    heading('run', '사진을 꺼내고 있어요', '창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.');
     go('run'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
 }
 async function startVerify() {
   try {
     await api('/api/verify/start', { deep: true });
-    S.flow = 'verify'; S.seen = null; clear($('#runmsg')); $('#runbox').hidden = true;
-    $('#run-title').textContent = '꺼낸 파일이 열리는지 확인하는 중입니다'; $('#run-lead').textContent = '저장 폴더의 파일만 읽습니다.';
+    S.flow = 'verify'; S.seen = null; S.job = null; clear($('#runmsg')); clear($('#runmsg-top')); $('#runbox').hidden = true;
+    heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.');
     go('run'); $('#runbox').hidden = true; poll();
   } catch (e) { banner('bad', e.message, 'msg'); go('result'); }
 }
@@ -744,6 +922,7 @@ $('#quit').onclick = async () => {
   try {
     const j = (await api('/api/job')).job;
     if (j && j.state === 'running') { S.job = j; S.flow = j.kind; await loadDevices(); try { await loadSummary(); } catch (e) { }
+      if (j.kind === 'verify') heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.');
       go(j.kind === 'scan' ? 'scan' : 'run'); if (j.kind === 'verify') { $('#runbox').hidden = true; } poll(); return; }
   } catch (e) { }
   go('disk');

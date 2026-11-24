@@ -14,7 +14,7 @@ from collections import Counter
 
 from . import atomic
 from .blockdev import ReadOnlyDevice, device_gone
-from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe)
+from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe, zip_kind, zip_probe)
 from .jsonl import read_jsonl
 from .ownership import expand
 from .scan import BS, CHUNK, REPO
@@ -22,6 +22,8 @@ from .timeutil import local_month
 
 MIN_JPEG = 20_000
 MIN_BMFF = 50_000
+MIN_ZIP = 4096
+MAX_ZIP = 256 << 30
 MAX_BMFF = 64 << 30
 
 
@@ -123,7 +125,7 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
             if not buf:
                 break
             hits = []
-            for sig, kind, delta in ((b"\xff\xd8\xff", "jpg", 0), (b"ftyp", "bmff", 4)):
+            for sig, kind, delta in ((b"\xff\xd8\xff", "jpg", 0), (b"ftyp", "bmff", 4), (b"PK", "zip", 0)):
                 i = buf.find(sig)
                 while i != -1:
                     if (i - delta) % BS == 0:
@@ -161,6 +163,12 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
 
 
 def _probe(dev, off, kind, room):
+    if kind == "zip":
+        z = zip_probe(dev, off, min(MAX_ZIP, room))
+        if not z or z["length"] < MIN_ZIP:
+            return None
+        return _final({"kind": zip_kind(z["names"]), "length": z["length"],
+                       "structure": "ok" if z["complete"] else "suspect", "entries": z["entries"]})
     if kind == "jpg":
         r = jpeg_probe(dev, off)
         if not r or r[0] < MIN_JPEG:

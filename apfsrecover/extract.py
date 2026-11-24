@@ -19,7 +19,7 @@ from .scan import BS
 from .timeutil import local_date
 
 KIND_EXT = {"jpeg": "jpg", "raw-cr3": "cr3", "video-mp4": "mp4", "video-mov": "mov",
-            "heic": "heic", "unknown-bmff": "bin"}
+            "heic": "heic", "unknown-bmff": "bin", "zip": "zip", "docx": "docx", "xlsx": "xlsx", "pptx": "pptx"}
 COPY_CHUNK = 8 * 1024 * 1024
 READ_TRIES = 3          # 읽기 오류(EIO)는 이만큼 다시 시도한다
 RETRY_DELAY = 0.5       # 초. 시도마다 늘어난다
@@ -30,7 +30,7 @@ UNDATED = "날짜불명"
 SUSPECT_DIR = "_의심"
 # 결정(01-plan.md 7절): 종류별 폴더 아래에 날짜별. 구조 점검이 '의심'인 파일은 종류 폴더 안의 _의심 에 따로 둔다.
 KIND_DIR = {"jpeg": "사진", "heic": "사진", "raw-cr3": "RAW", "video-mp4": "영상", "video-mov": "영상",
-            "unknown-bmff": "기타"}
+            "unknown-bmff": "기타", "zip": "압축·문서", "docx": "압축·문서", "xlsx": "압축·문서", "pptx": "압축·문서"}
 
 
 def load_catalog(session):

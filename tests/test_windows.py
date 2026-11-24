@@ -202,6 +202,16 @@ class WindowsDevicesTest(unittest.TestCase):
 
 @unittest.skipUnless(os.name == "nt", "윈도우 전용")
 class WindowsOnlyTest(unittest.TestCase):
+    def test_powershell_is_started_without_a_console_window(self):
+        """창 없는 .exe 가 몇 초마다 PowerShell 을 실행할 때 검은 창이 깜빡이지 않게 한다."""
+        seen = {}
+
+        def runner(cmd, **kw):
+            seen.update(kw)
+            return subprocess.CompletedProcess(cmd, 0, stdout=b"[]", stderr=b"")
+        devices._win_devices(runner)
+        self.assertEqual(seen.get("creationflags", 0) & 0x08000000, 0x08000000)  # CREATE_NO_WINDOW
+
     def test_alive_check_never_kills_the_process(self):
         p = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
         try:
