@@ -406,7 +406,7 @@ details.d summary { white-space: nowrap; overflow: hidden; text-overflow: ellips
     <!-- 복구 시작 1: 검사 (디스크를 훑어 보는 중) -->
     <section class="screen" id="s-scan">
       <div id="scan-phases"></div>
-      <div class="r-head"><h1 class="ell" id="scan-title">사진과 영상을 찾고 있어요</h1><span class="chip" id="scan-chip">진행 중</span></div>
+      <div class="r-head"><h1 class="ell" id="scan-title">파일을 찾고 있어요</h1><span class="chip" id="scan-chip">진행 중</span></div>
       <p class="lead ell" id="scan-lead">디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.</p>
       <div class="safe" id="scan-safe"></div>
       <div class="slot" id="scanmsg"></div>
@@ -739,11 +739,21 @@ $('#help-close').onclick = () => $('#help').close();
 $('#help-refresh').onclick = () => { $('#help').close(); loadDevices(); };
 
 // ---- 검사 ----
+const SCAN_LEAD = '사진·문서 등 모든 종류를 한 번에 찾습니다. 창을 열어 두기만 하면 됩니다.';
 async function startScan(resume, full) {
   clearInterval(S.watch);
+  let reuse;
+  if (!resume && !full) {  // 같은 디스크를 이미 검사한 기록이 있으면, 이미 찾은 구간은 다시 읽지 않고 건너뛸 수 있다
+    try {
+      const c = (await api('/api/sessions/reusable?device_id=' + encodeURIComponent(S.sel))).sessions[0];
+      if (c && await ask('이전 검사 결과를 활용할까요?', '“' + c.name + '”에서 ' + (c.found != null ? num(c.found) + '개를' : '찾은 파일을') + ' 이미 찾았어요. 그 부분은 디스크에서 다시 읽지 않고 건너뛰어서 검사가 훨씬 빨라져요. 새로 지원하는 종류(문서 등)는 나머지 구간에서 찾아요. 처음부터 모두 다시 읽으려면 [아니요]를 누르세요.', '이전 결과 활용')) reuse = c.name;
+    } catch (e) { }
+  }
   try {
-    await api('/api/scan/start', { device_id: S.sel, full: !!full, resume: !!resume });
-    if (!resume) S.dur = {}; S.flow = 'scan'; S.seen = null; S.job = null; S.lost = false; clear($('#scanmsg')); heading('scan', '사진과 영상을 찾고 있어요', '디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.'); banner('', '', 'msg'); go('scan'); poll();
+    await api('/api/scan/start', { device_id: S.sel, full: !!full, resume: !!resume, reuse });
+    if (!resume) S.dur = {}; S.flow = 'scan'; S.seen = null; S.job = null; S.lost = false; clear($('#scanmsg'));
+    heading('scan', '파일을 찾고 있어요', reuse ? '이전 검사 결과를 활용하고 있어요. 이미 찾은 파일 구간은 읽지 않고 건너뜁니다.' : SCAN_LEAD);
+    banner('', '', 'msg'); go('scan'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
 }
 async function loadSummary() { S.summary = await api('/api/catalog/summary'); return S.summary; }
@@ -751,7 +761,7 @@ async function loadSummary() { S.summary = await api('/api/catalog/summary'); re
 // ---- 작업 진행 (검사 / 복구 / 검증 공통) ----
 const NS = 'http://www.w3.org/2000/svg';
 function ico(id) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', 'i'); const u = document.createElementNS(NS, 'use'); u.setAttribute('href', '#' + id); s.append(u); return s; }
-const PHASES = [['scan', '사진 찾기'], ['extract', '꺼내기'], ['verify', '열림 확인']];
+const PHASES = [['scan', '파일 찾기'], ['extract', '꺼내기'], ['verify', '열림 확인']];
 function fmtDur(s) {
   s = Math.max(0, Math.round(s || 0));
   if (s < 90) return s + '초';
@@ -813,7 +823,7 @@ function renderJob() {
   const speed = stale ? '-' : (p.rate_mb_s || 0) + ' MB/s';
   if (j.kind === 'scan' && S.screen === 'scan' && run) {
     const sampling = j.phase === 'sampling'; const t = sampling ? { big: '디스크 위치를 확인하는 중이에요', when: stale ? lostNote() : '곧 파일 찾기를 시작해요' } : timeLine(j, p.eta_s);
-    paint('scan', { now: 0, pct, ring: sampling ? '위치 확인' : '사진 찾기', stale, big: t.big, when: t.when,
+    paint('scan', { now: 0, pct, ring: sampling ? '위치 확인' : '파일 찾기', stale, big: t.big, when: t.when,
       stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [speed, '읽는 속도']] });
     off('#scancancel'); setStatus('검사 중 · 원본은 읽기만 해요', num(p.found || 0) + '개 찾음');
   }

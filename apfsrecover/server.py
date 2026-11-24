@@ -263,8 +263,9 @@ class App:
     DISCONNECT_MSG = ("장치 연결이 끊겼습니다. 원본은 읽기만 했으므로 안전합니다. "
                       "케이블을 다시 꽂고 장치를 다시 선택한 뒤 이어서 하세요.")
 
-    def _scan(self, job, dev, full, resume):
-        """검사 한 번. 반환: (state, info) — state: done | nodata | cancelled | disconnected"""
+    def _scan(self, job, dev, full, resume, reuse=None):
+        """검사 한 번. 반환: (state, info) — state: done | nodata | cancelled | disconnected
+        reuse: 같은 디스크의 이전 검사 세션 폴더. 그 검사에서 찾은 구간은 디스크에서 다시 읽지 않는다."""
         size = dev["size"]
         end_bytes = size
         prev = None
@@ -298,17 +299,49 @@ class App:
             end_bytes = min(size, ext["last_data_offset"] + self.sample_step + MARGIN_AFTER_DATA)
         job.set_phase("cataloging")
         os.makedirs(self.session, exist_ok=True)
+        kf = os.path.join(self.session, "known_from.json")
+        src = compat.read_json(kf, {}).get("path") if resume else reuse
+        known = ex.load_catalog(src) if src and os.path.isdir(src) else None  # 새 검사가 옛 기록을 보관(archive)하기 전에 읽어 둔다
+        if not resume:
+            if known and os.path.realpath(src) != os.path.realpath(self.session):
+                with open(kf, "w", encoding="utf-8") as f:
+                    json.dump({"path": src}, f, ensure_ascii=False)  # 끊겼다 이어할 때 같은 이전 기록을 다시 쓴다
+            elif os.path.exists(kf):
+                os.remove(kf)
         rc = catalog(dev["path"], self.session, 0, end_bytes // BS,
                      on_progress=lambda p: job.update(done_bytes=p["pos"], total_bytes=p["total"], found=p["found"]),
-                     should_cancel=job.cancel.is_set, fresh=not resume)
+                     should_cancel=job.cancel.is_set, fresh=not resume, known=known)
         with open(os.path.join(self.session, "device.json"), "w", encoding="utf-8") as f:
             json.dump({"device": dev["id"], "size": size, "scanned_bytes": end_bytes, "fingerprint": fp,
                        "full": bool(full) and prev is None, "finished": rc == 0}, f)
         return {0: "done", 3: "cancelled"}.get(rc, "disconnected"), {"end_bytes": end_bytes}
 
-    def scan_target(self, dev, full, resume):
+    def reusable(self, dev):
+        """같은 디스크를 이미 끝까지 검사한 세션 폴더(현재 세션과 같은 위치의 session* 폴더)를 최근 순으로."""
+        fp = self.fingerprint(dev)
+        parent = os.path.dirname(self.session)
+        paths = [self.session]
+        try:
+            paths += [os.path.join(parent, d) for d in sorted(os.listdir(parent))
+                      if d.startswith("session") and os.path.join(parent, d) != self.session]
+        except OSError:
+            pass
+        out = []
+        for p in paths:
+            cat = os.path.join(p, "catalog.jsonl")
+            dj = compat.read_json(os.path.join(p, "device.json"), None)
+            if not dj or not os.path.isfile(cat) or not dj.get("finished") or dj.get("size") != dev["size"]:
+                continue
+            if not fp or dj.get("fingerprint") != fp or compat.session_info(p)["newer"]:
+                continue
+            found = compat.read_json(os.path.join(p, "progress.json"), {}).get("found")
+            out.append({"name": "현재 세션" if p == self.session else os.path.basename(p), "path": p,
+                        "found": found if isinstance(found, int) else None, "mtime": os.path.getmtime(cat)})
+        return sorted(out, key=lambda x: -x["mtime"])
+
+    def scan_target(self, dev, full, resume, reuse=None):
         def target(job):
-            state, info = self._scan(job, dev, full, resume)
+            state, info = self._scan(job, dev, full, resume, reuse)
             if state == "done":
                 job.finish("done", summary=summarize(self.session), **info)
             elif state == "nodata":
@@ -521,6 +554,9 @@ def make_handler(app):
                                             "dest": app.saved_dest(), "tools": vf.available_tools(),
                                             "interrupted": app.interrupted(), "on_battery": on_battery(),
                                             "compat": compat.session_info(app.session)})
+                if u.path == "/api/sessions/reusable":
+                    dev = app.find_device((q.get("device_id") or [""])[0])
+                    return self._send(200, {"sessions": [{k: v for k, v in c.items() if k != "path"} for c in app.reusable(dev)] if dev else []})
                 if u.path in ("/api/fs/places", "/api/fs/list"):
                     dev = app.find_device((q.get("device_id") or [""])[0]) if q.get("device_id") else None
                     forb = app.forbidden_mounts(dev)
@@ -590,7 +626,12 @@ def make_handler(app):
                     return
                 if not dev["readable"]:
                     return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한으로 다시 실행하세요(맥: RecoveryTool.command, 윈도우: RecoveryTool.bat).")
-                job = app.start_job("scan", app.scan_target(dev, bool(body.get("full")), bool(body.get("resume"))))
+                reuse = None
+                if body.get("reuse") and not body.get("resume"):  # 목록에 있는(같은 디스크로 확인된) 이전 검사만 쓴다
+                    reuse = next((c["path"] for c in app.reusable(dev) if c["name"] == body["reuse"]), None)
+                    if reuse is None:
+                        return self._err(400, "선택한 이전 검사 기록을 쓸 수 없습니다(같은 디스크가 아니거나 없어졌습니다).")
+                job = app.start_job("scan", app.scan_target(dev, bool(body.get("full")), bool(body.get("resume")), reuse))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/auto/start":
                 dev = self._device(body)

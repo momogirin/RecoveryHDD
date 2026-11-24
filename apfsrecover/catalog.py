@@ -75,9 +75,11 @@ def _repair_catalog(cat_path, pos):
     return len(recs), (max(r["id"] for r in recs) + 1 if recs else 1)
 
 
-def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None, fresh=False):
+def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None, fresh=False, known=None):
     """반환 코드: 0 완료, 3 취소, 4 장치 끊김.
-    같은 범위의 진행 기록이 있으면 이어서 한다. 범위가 다르거나 fresh=True 면 옛 세션을 보관(archive)하고 새로 시작한다."""
+    같은 범위의 진행 기록이 있으면 이어서 한다. 범위가 다르거나 fresh=True 면 옛 세션을 보관(archive)하고 새로 시작한다.
+    known: 같은 디스크의 이전 검사에서 이미 찾은 항목(검사 기록 형식). 그 구간은 디스크에서 다시 읽지 않고 건너뛰며,
+    지나갈 때 항목을 새 검사 기록에 옮겨 적는다(이어하기와 겹치지 않게 지나간 만큼만 적는다)."""
     session = _check_session(session)
     cat_path = os.path.join(session, "catalog.jsonl")
     prog_path = os.path.join(session, "progress.json")
@@ -97,6 +99,11 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
     end = end_block * BS
     skip_until = pos
     t0, read_bytes, consecutive = time.time(), 0, 0
+    kn = sorted((k for k in (known or []) if k["length"] > 0 and k["offset"] % BS == 0), key=lambda k: k["offset"])
+    ki = 0
+    while ki < len(kn) and kn[ki]["offset"] < pos:  # 이어하기: 이미 지나간 것은 새 기록에 들어 있다
+        ki += 1
+    reused = 0
 
     def save(next_pos, state):
         tmp = prog_path + ".tmp"
@@ -110,7 +117,31 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
         while pos < end:
             if should_cancel and should_cancel():
                 save(pos, "cancelled"); result = 3; break
+            carried = False
+            while ki < len(kn) and kn[ki]["offset"] <= pos:  # 이미 아는 파일: 읽지 않고 건너뛴다
+                k = kn[ki]
+                ki += 1
+                kend = k["offset"] + k["length"]
+                if kend <= pos or k["offset"] < skip_until or kend > end:  # 이미 지나갔거나 새로 찾은 것과 겹침
+                    continue
+                rec = {f: v for f, v in k.items() if f not in ("id", "offset")}
+                rec["id"], rec["offset"], rec["reused"] = next_id, k["offset"], True
+                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                next_id += 1
+                found += 1
+                reused += 1
+                skip_until = kend
+                pos = min(end, _align_up(kend))
+                carried = True
+            if carried:
+                out.flush()
+                save(pos, "running")
+                if on_progress:
+                    on_progress({"pos": pos, "total": end, "found": found, "mb_s": read_bytes / 1e6 / max(time.time() - t0, 1e-9)})
+                continue
             n = min(CHUNK, end - pos)
+            if ki < len(kn):
+                n = min(n, kn[ki]["offset"] - pos)  # 아는 파일이 시작하기 전까지만 읽는다
             try:
                 buf = dev.read_at(pos, n)
                 consecutive = 0
@@ -154,6 +185,8 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
         else:
             save(pos, "done")
     print()
+    if reused:
+        print("이전 검사 결과에서 %d개를 디스크에서 다시 읽지 않고 가져왔습니다." % reused)
     return result
 
 
