@@ -14,12 +14,15 @@ import time
 from . import atomic
 from .blockdev import ReadOnlyDevice, device_gone
 from .guards import check_dest, margin_for
+from . import compat
+from . import formats_more as fm
 from .jsonl import read_jsonl
 from .scan import BS
 from .timeutil import local_date
 
 KIND_EXT = {"jpeg": "jpg", "raw-cr3": "cr3", "video-mp4": "mp4", "video-mov": "mov",
-            "heic": "heic", "unknown-bmff": "bin", "zip": "zip", "docx": "docx", "xlsx": "xlsx", "pptx": "pptx"}
+            "heic": "heic", "unknown-bmff": "bin", "zip": "zip", "docx": "docx", "xlsx": "xlsx", "pptx": "pptx",
+            **fm.KIND_EXT}
 COPY_CHUNK = 8 * 1024 * 1024
 READ_TRIES = 3          # 읽기 오류(EIO)는 이만큼 다시 시도한다
 RETRY_DELAY = 0.5       # 초. 시도마다 늘어난다
@@ -30,11 +33,12 @@ UNDATED = "날짜불명"
 SUSPECT_DIR = "_의심"
 # 결정(01-plan.md 7절): 종류별 폴더 아래에 날짜별. 구조 점검이 '의심'인 파일은 종류 폴더 안의 _의심 에 따로 둔다.
 KIND_DIR = {"jpeg": "사진", "heic": "사진", "raw-cr3": "RAW", "video-mp4": "영상", "video-mov": "영상",
-            "unknown-bmff": "기타", "zip": "압축·문서", "docx": "압축·문서", "xlsx": "압축·문서", "pptx": "압축·문서"}
+            "unknown-bmff": "기타", "zip": "압축", "docx": "문서", "xlsx": "문서", "pptx": "문서", **fm.KIND_DIR}
 
 
-def load_catalog(session):
-    return read_jsonl(os.path.join(session, "catalog.jsonl"))
+def load_catalog(session, stats=None):
+    """검사 기록. 다른 버전이 만든 기록도 읽도록 빠진 값은 채우고, 쓸 수 없는 줄은 건너뛴다(stats['skipped'])."""
+    return compat.clean_lines(read_jsonl(os.path.join(session, "catalog.jsonl"), stats), compat.catalog_record, stats)
 
 
 def load_extracted(session):
@@ -42,7 +46,7 @@ def load_extracted(session):
     if not os.path.exists(path):
         return {}
     done = {}
-    for r in read_jsonl(path):
+    for r in compat.clean_lines(read_jsonl(path), compat.extracted_record):
         if r.get("invalid"):  # 이어하기 때 다시 확인해 보니 파일이 이상해서 무효로 표시한 항목
             done.pop(r["id"], None)
         else:
@@ -107,13 +111,13 @@ def next_batch(selected, done_ids, batch):
 
 def load_failed(session):
     path = os.path.join(session, "failed.jsonl")
-    return {r["id"] for r in read_jsonl(path)} if os.path.exists(path) else set()
+    return {r["id"] for r in compat.clean_lines(read_jsonl(path), compat.extracted_record)} if os.path.exists(path) else set()
 
 
 def load_dups(session):
     """내용이 이미 꺼낸 파일과 같아서 건너뛴 항목(duplicates.jsonl): {id: 같은 내용의 파일 경로}"""
     path = os.path.join(session, "duplicates.jsonl")
-    return {r["id"]: r.get("duplicate_of", "") for r in read_jsonl(path)} if os.path.exists(path) else {}
+    return {r["id"]: r.get("duplicate_of", "") for r in compat.clean_lines(read_jsonl(path), compat.extracted_record)} if os.path.exists(path) else {}
 
 
 def overview(records, plan, done, failed=frozenset(), dups=frozenset()):

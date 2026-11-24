@@ -17,6 +17,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
+from . import compat
 from . import devices as devmod
 from . import extract as ex
 from . import fsbrowse, guards
@@ -187,13 +188,7 @@ class App:
 
     def session_device(self):
         p = os.path.join(self.session, "device.json")
-        if not os.path.exists(p):
-            return None
-        try:
-            with open(p, encoding="utf-8") as f:
-                return json.load(f)
-        except ValueError:
-            return None
+        return compat.read_json(p, None)
 
     WRONG_DISK = ("이 디스크는 검사했던 디스크와 다릅니다. 디스크를 바꿨다면 다시 검사하세요. "
                   "같은 디스크인데 이 메시지가 나오면 연결 상태를 확인하세요.")
@@ -216,20 +211,18 @@ class App:
             p = os.path.join(self.session, "progress.json")
             dj = self.session_device() or {}
             if os.path.exists(p) and dj.get("finished") is False:
-                with open(p, encoding="utf-8") as f:
-                    st = json.load(f)
+                st = compat.read_json(p, None)
+                if st is None:
+                    return {"kind": "unknown", "state": "broken"}
                 if st.get("state") in ("running", "disconnected"):
                     return {"kind": "scan", "state": st["state"], "found": st.get("found", 0)}
             p = os.path.join(self.session, "run_state.json")
             if os.path.exists(p):
-                with open(p, encoding="utf-8") as f:
-                    st = json.load(f)
+                st = compat.read_json(p, None)
+                if st is None:
+                    return {"kind": "unknown", "state": "broken"}
                 if st.get("state") in ex.UNCLEAN:
-                    plan = None
-                    pp = os.path.join(self.session, "plan.json")
-                    if os.path.exists(pp):
-                        with open(pp, encoding="utf-8") as f:
-                            plan = json.load(f)
+                    plan = compat.read_json(os.path.join(self.session, "plan.json"), None)
                     return {"kind": "extract", "state": st["state"], "plan": plan}
         except (OSError, ValueError):
             return {"kind": "unknown", "state": "broken"}
@@ -240,6 +233,10 @@ class App:
         with self.lock:
             if self.job and self.job.state == "running":
                 return None
+            try:
+                compat.stamp(self.session)  # 기록 형식 번호를 남긴다(이전 버전 기록이면 이어 쓰기 전에 표시)
+            except OSError:
+                pass
             job = Job(kind)
             self.job = job
 
@@ -274,8 +271,7 @@ class App:
         fp = self.fingerprint(dev)
         djp = os.path.join(self.session, "device.json")
         if resume and os.path.exists(djp):
-            with open(djp, encoding="utf-8") as f:
-                prev = json.load(f)
+            prev = compat.read_json(djp, {})
             if prev.get("fingerprint") and fp and prev["fingerprint"] != fp:
                 return "wrongdisk", {}
             if prev.get("size") == size and prev.get("scanned_bytes") and not prev.get("finished"):
@@ -391,11 +387,7 @@ class App:
         return target
 
     def saved_dest(self):
-        p = os.path.join(self.session, "plan.json")
-        if os.path.exists(p):
-            with open(p, encoding="utf-8") as f:
-                return json.load(f).get("dest")
-        return None
+        return compat.read_json(os.path.join(self.session, "plan.json"), {}).get("dest")
 
     def result_summary(self, n_samples=12):
         """결과 화면용: 꺼낸 파일의 종류별 개수, 용량, 촬영일 범위, 미리보기 후보."""
@@ -421,10 +413,15 @@ class App:
 
     def report(self):
         home = real_home()
-        lines = ["APFS 복구 보고서 (개인정보는 가렸습니다)", ""]
+        info = compat.session_info(self.session)
+        lines = ["APFS 복구 보고서 (개인정보는 가렸습니다)",
+                 "[형식] 보고서 v%d · 기록 v%d%s" % (compat.REPORT_FORMAT, info["schema"],
+                                               " (이전 버전 기록을 읽음)" if info["legacy"] else " (더 새 버전 기록: 일부만 읽음)" if info["newer"] else ""), ""]
         cat = os.path.join(self.session, "catalog.jsonl")
         if os.path.exists(cat):
             s = summarize(self.session)
+            if s.get("skipped"):
+                lines += ["[주의] 읽지 못해 건너뛴 검사 기록 %d줄" % s["skipped"]]
             lines += ["[검사 결과] 총 %d개, %.2f GB" % (s["total"], sum(s["bytes"].values()) / 1e9)]
             for k in sorted(s["kinds"]):
                 st = s["structure"][k]
@@ -432,15 +429,15 @@ class App:
                     k, s["kinds"][k], s["bytes"][k] / 1e9, st.get("ok", 0), st.get("suspect", 0)))
             lines.append("  촬영일 없음: %d개" % s["undated"])
         done = ex.load_extracted(self.session)
-        lines += ["", "[복구] 꺼낸 파일 %d개 (%.2f GB)" % (len(done), sum(r["bytes"] for r in done.values()) / 1e9)]
+        lines += ["", "[복구] 꺼낸 파일 %d개 (%.2f GB)" % (len(done), sum(r.get("bytes", 0) for r in done.values()) / 1e9)]
         vs = vf.load_summary(self.session)
         if vs:
             lines += ["", "[검증] 전체 %d · 열림 확인 %d · 실패 %d · 미검사 %d" % (
                 vs["total"], vs["ok"], vs["fail"], vs["unchecked"]),
-                "  검증 수준: " + ", ".join("%s %d" % kv for kv in sorted(vs["levels"].items())),
+                "  검증 수준: " + ", ".join("%s %s" % kv for kv in sorted(vs["levels"].items())),
                 "  사용한 도구: " + (", ".join(k for k, v in vs["tools"].items() if v) or "없음(구조 확인만)")]
             for r in vf.load_failures(self.session, 50):
-                lines.append("  실패: %s — %s" % (r["path"], r["reason"]))
+                lines.append("  실패: %s — %s" % (r.get("path", ""), r.get("reason", "")))
         lines += ["", "[알려진 한계]",
                   "  - 원래 파일명·폴더 구조는 복구하지 못합니다.",
                   "  - 지워진 옛 파일이 섞였는지 구분할 수 없습니다.",
@@ -518,15 +515,12 @@ def make_handler(app):
                                             "is_root": is_admin()})
                 if u.path == "/api/session":
                     has = os.path.exists(os.path.join(app.session, "catalog.jsonl"))
-                    dev = None
-                    p = os.path.join(app.session, "device.json")
-                    if os.path.exists(p):
-                        with open(p, encoding="utf-8") as f:
-                            dev = json.load(f)
+                    dev = compat.read_json(os.path.join(app.session, "device.json"), None)
                     return self._send(200, {"session": app.session.replace(real_home(), "~"),
                                             "has_catalog": has, "device": dev,
                                             "dest": app.saved_dest(), "tools": vf.available_tools(),
-                                            "interrupted": app.interrupted(), "on_battery": on_battery()})
+                                            "interrupted": app.interrupted(), "on_battery": on_battery(),
+                                            "compat": compat.session_info(app.session)})
                 if u.path in ("/api/fs/places", "/api/fs/list"):
                     dev = app.find_device((q.get("device_id") or [""])[0]) if q.get("device_id") else None
                     forb = app.forbidden_mounts(dev)
@@ -633,6 +627,12 @@ def make_handler(app):
                 self._send(200, {"ok": True})
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return
+            if path == "/api/fs/pick":  # 운영체제 기본 폴더 선택 창
+                from . import nativepick
+                try:
+                    return self._send(200, {"path": nativepick.pick_folder(body.get("path"))})
+                except nativepick.NativePickUnavailable:
+                    return self._err(501, "이 환경에서는 기본 폴더 선택 창을 쓸 수 없습니다.")
             if path == "/api/fs/mkdir":
                 dev = app.find_device(body.get("device_id")) if body.get("device_id") else None
                 try:

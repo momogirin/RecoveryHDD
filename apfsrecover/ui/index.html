@@ -215,7 +215,132 @@ footer.actions { position: sticky; bottom: 0; background: var(--win); border-top
 .strip-h .mono { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .more button.linkish { white-space: nowrap; flex: none; }
 .screen.noscroll-strip .strip { overflow: hidden; }
-@media (max-width: 760px) { main, footer.actions, #banner { padding-left: 20px; padding-right: 20px; } .types { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(3, 1fr); } .hero { flex-direction: column; } .stats { grid-template-columns: 1fr 1fr; } .kinds { grid-template-columns: 1fr; } .bar { width: 24px; } .step .lbl { display: none; } }
+
+/* =====================================================================
+   v4 사이드바 앱 + 레이아웃 고정 규칙
+   1 버튼 크기 고정 · 2 짧은 글 한 줄(말줄임+툴팁) · 3 고정폭 숫자 · 4 나중에 나오는 것은 자리 미리 확보
+   5 로딩은 같은 크기 빈 틀 · 6 뼈대 크기 고정, 최소 창 이하는 스크롤 · 7 목록/갤러리 칸 고정 · 9 투명도 애니메이션만
+   ===================================================================== */
+html, body { overflow: auto; }
+body { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; line-height: 20px; }
+.ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hide { visibility: hidden; }
+.sub { color: var(--sub); }
+
+.shell { display: grid; grid-template-columns: 224px minmax(0, 1fr); grid-template-rows: 48px minmax(0, 1fr) 32px; height: 100vh; min-width: 960px; min-height: 620px; }
+.top { grid-column: 1 / 3; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-bottom: 1px solid var(--line); min-width: 0; }
+.top .name { width: 200px; flex: none; display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.top .topdisk { flex: 1; color: var(--sub); }
+.top .pill.ro { width: 176px; flex: none; }
+.side { background: var(--card); border-right: 1px solid var(--line); padding: 12px 8px; overflow: hidden; }
+.nav { display: flex; align-items: center; gap: 10px; height: 40px; width: 100%; padding: 0 10px; border: 0; border-radius: 8px; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.nav:hover { background: var(--line); }
+.nav.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav .t { flex: 1; min-width: 0; }
+.nav .tag { flex: none; width: 52px; text-align: center; font-size: 11.5px; line-height: 18px; border-radius: 99px; background: var(--line); color: var(--sub); font-weight: 400; }
+.nav.dis { color: var(--faint); }
+.navsep { height: 1px; background: var(--line); margin: 8px 10px; }
+.content { overflow: auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.content > main { flex: 1; padding: 4px 32px 16px; max-width: 1100px; width: 100%; }
+.status { grid-column: 1 / 3; display: flex; align-items: center; gap: 16px; padding: 0 16px; border-top: 1px solid var(--line); background: var(--card); font-size: 12.5px; color: var(--sub); min-width: 0; }
+.status #st-l { flex: 1; } .status #st-r { width: 170px; text-align: right; flex: none; }
+
+#banner { height: 48px; flex: none; padding: 6px 32px 0; max-width: 1100px; width: 100%; }
+#banner:empty { display: block; } #banner { min-width: 0; overflow: hidden; } #banner .notice { min-width: 0; max-width: 100%; width: 100%; }
+.notice { height: 40px; padding: 0 14px; }
+.notice span.t { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notice .btn { width: 112px; height: 28px; flex: none; }
+.notice .more { flex: none; font-size: 12px; color: var(--sub); width: 36px; text-align: right; }
+
+main { padding: 4px 32px 16px; }
+.screen.on { animation: fade .2s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+h1 { font-size: 22px; line-height: 32px; margin: 4px 0 0; }
+.lead { height: 20px; margin: 2px 0 14px; line-height: 20px; min-height: 0; }
+
+.btn { height: 36px; min-width: 96px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn.primary { padding: 0 14px; } .btn.small { height: 28px; padding: 0 12px; min-width: 0; }
+.top .btn.ghost { width: 72px; min-width: 0; flex: none; }
+footer.actions { position: sticky; bottom: 0; flex: none; display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-top: 1px solid var(--line); background: var(--win); z-index: 5; max-width: 1100px; width: 100%; }
+footer.actions .btn { width: 144px; } footer.actions .btn.primary { width: 160px; }
+footer.actions .al, footer.actions .ar { height: 36px; align-items: center; }
+footer.actions .al { width: 298px; flex: none; display: flex; gap: 10px; } footer.actions .ar { width: 160px; flex: none; display: flex; justify-content: flex-end; }
+footer.actions .hint { flex: 1; min-width: 0; height: 20px; display: block; text-align: right; }
+
+/* 홈 */
+.cards4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.sc { height: 96px; padding: 14px 16px; }
+.sc .v { font-size: 22px; line-height: 32px; height: 32px; font-weight: 600; } .sc .l { color: var(--sub); font-size: 13px; height: 20px; } .sc .x { color: var(--faint); font-size: 12px; height: 18px; }
+.skel { background: linear-gradient(90deg, var(--line) 0, var(--line2) 50%, var(--line) 100%); background-size: 200% 100%; animation: sh 1.2s linear infinite; }
+.sc.skel > * { visibility: hidden; }
+@keyframes sh { to { background-position: -200% 0; } }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.panel { height: 136px; padding: 14px 16px; } .panel h3 { margin: 0; font-size: 14px; line-height: 20px; height: 20px; } .panel .sub { margin-top: 6px; height: 20px; } .panel .pbtn { margin-top: 14px; } .panel .btn { width: 144px; }
+.stub { min-height: 200px; display: grid; place-items: center; text-align: center; padding: 24px; }
+.stub p { max-width: 640px; margin: 10px auto 0; color: var(--sub); }
+.stub .tag2 { display: inline-block; width: 64px; height: 22px; line-height: 22px; border-radius: 99px; background: var(--warn-soft); color: var(--warn); font-size: 12px; }
+.stub.left { place-items: start; text-align: left; } .stub ul { margin: 0 0 0 18px; padding: 0; color: var(--sub); } .stub li { margin: 6px 0; }
+
+/* 디스크 */
+#devlist { height: 236px; overflow-y: auto; }
+.disk { height: 108px; margin-bottom: 12px; padding: 0 20px; }
+.disk .ico { width: 56px; height: 56px; font-size: 26px; }
+.disk .name, .disk .meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.disk .name { height: 24px; } .disk .meta { height: 20px; }
+.disk .usage { margin-top: 8px; } .disk .usage-l { height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.disk .chip { width: 120px; text-align: center; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.note { height: 52px; margin-top: 4px; align-items: center; } .note > div { min-width: 0; flex: 1; }
+.helplink { height: 28px; margin: 10px 0 0; }
+.skdisk { height: 108px; margin-bottom: 12px; border-radius: 12px; }
+
+/* 진행(검사·꺼내기·열림 확인) */
+#scan-phases, #run-phases { height: 56px; margin: 12px 0 0; }  /* 내용이 아직 없어도 자리는 그대로 */
+.phases { height: 56px; margin: 0; }
+.phases li small, .phases li b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 20px; display: block; margin-right: 8px; }
+.r-head { display: flex; align-items: center; gap: 12px; height: 32px; margin-top: 12px; } .r-head h1 { flex: 1; min-width: 0; margin: 0; }
+.chip { display: inline-block; width: 96px; height: 24px; line-height: 24px; text-align: center; border-radius: 99px; font-size: 12.5px; flex: none; white-space: nowrap; }
+.chip.pause { background: var(--line); color: var(--sub); } .chip.alert { background: var(--warn-soft); color: var(--warn); } .chip.ok { background: var(--ok-soft); color: var(--ok); } .chip.bad { background: var(--bad-soft); color: var(--bad); }
+.safe { height: 28px; margin-bottom: 14px; flex-wrap: nowrap; overflow: hidden; }
+.safe .pill { height: 28px; flex: none; min-width: 0; } .safe .pill:last-child { flex: 1; } .safe .pill.ro { flex: none; }
+.pill > span, .pill { white-space: nowrap; } .pill .t2 { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hero { height: 188px; padding: 0 28px; gap: 28px; }
+.ring { width: 132px; height: 132px; } .ring > div { width: 80%; height: 80%; align-content: center; }
+.ring .pc { font-size: 26px; line-height: 32px; width: 100%; } .ring .pl { width: 100%; height: 16px; line-height: 16px; padding: 0 6px; }
+.hero .big { height: 30px; line-height: 30px; font-size: 22px; }
+.hero .when { height: 20px; margin-top: 2px; min-width: 0; } .hero .when .ell { min-width: 0; }
+.hero .stats { margin-top: 14px; padding-top: 12px; height: 64px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hero .stat { min-width: 0; } .hero .stat .v { height: 24px; line-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .hero .stat .l { height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot { height: 64px; margin-top: 0; } .slot + .hero { margin-top: 12px; }
+.sit { height: 64px; margin-top: 0; padding: 0 16px; align-items: center; }
+.sit .tx { flex: 1; min-width: 0; } .sit .t { height: 20px; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .sit .s { height: 20px; line-height: 20px; color: var(--sub); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sit .wait { margin: 0; flex: none; }
+.kinds { grid-template-columns: repeat(3, minmax(0, 1fr)); height: 134px; }  /* 6개 카드 = 3열 x 2행 고정. 카드가 없는 상태(대기·열림 확인)에서도 같은 높이 */
+.kind { height: 60px; padding: 10px 14px; } .kind .top { height: 20px; gap: 8px; } .kind .top span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.strip-h { height: 20px; margin: 14px 0 8px; gap: 12px; } .strip-h .ell { flex: 1; text-align: right; }
+.strip { display: grid; grid-template-columns: repeat(auto-fill, 96px); gap: 10px; height: 72px; overflow: hidden; margin-top: 0; min-height: 72px; }
+.strip .th { width: 96px; height: 72px; }
+
+/* 설정 */
+.types { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.type { height: 156px; overflow: hidden; } .type .t, .type .s, .type .g { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .type .n { white-space: nowrap; }
+.free { height: 24px; min-height: 0; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+.field { height: 40px; } .row .btn#pickdest { width: 120px; }
+.switch { height: 24px; }
+.summary { height: 112px; overflow: auto; }
+.summary .tx { min-width: 0; }
+#start { width: 160px; }
+
+/* 결과 탐색 */
+.okbanner { height: 84px; } .okbanner > div:nth-child(2) { min-width: 0; flex: 0 1 auto; } .okbanner .t, .okbanner .s { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.okbanner .btn { width: 144px; } .okbanner .sp { flex: 1; }
+.grid { grid-template-columns: repeat(auto-fill, 128px); gap: 10px; min-height: 96px; }
+.grid .th { width: 128px; height: 96px; }
+.more { height: 24px; } .more span { min-width: 0; }
+.mono { word-break: normal; }
+details.d summary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resskel { height: 84px; border-radius: 12px; }
+
+@media (max-width: 760px) { .shell { min-width: 960px; } }
 </style>
 </head>
 <body>
@@ -225,49 +350,76 @@ footer.actions { position: sticky; bottom: 0; background: var(--win); border-top
   <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
   <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   <symbol id="plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></symbol>
+  <symbol id="disk" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 14h.01M11 14h6"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+  <symbol id="grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></symbol>
+  <symbol id="list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="tool" viewBox="0 0 24 24"><path d="M14 6a4 4 0 0 0 5 5l-9 9a2 2 0 0 1-3-3l9-9a4 4 0 0 0-2-2z"/></symbol>
+  <symbol id="doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6"/></symbol>
+  <symbol id="cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
   <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
   <symbol id="alert" viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
 </svg>
-<div class="app">
-  <div class="titlebar">
-    <div class="name"><span class="logo"></span>사진 복구 도구</div>
-    <span class="badge-ro">🔒 읽기 전용</span>
-    <span class="sp"></span>
-    <button class="btn ghost small" id="quit" title="프로그램을 끕니다. 꺼낸 파일과 검사 결과는 그대로 남습니다.">⏻ 종료</button>
-  </div>
-  <div class="stepper" id="stepper"></div>
-  <div id="banner"></div>
+<div class="shell">
+  <header class="top">
+    <div class="name"><span class="logo"></span><span class="ell">RecoveryHDD</span></div>
+    <div class="topdisk ell" id="t-disk">선택한 디스크 없음</div>
+    <span class="pill ro"><svg class="i"><use href="#lock"/></svg><span class="ell">원본은 읽기 전용</span></span>
+    <button class="btn ghost small" id="quit" title="프로그램을 끕니다. 꺼낸 파일과 검사 결과는 그대로 남습니다.">종료</button>
+  </header>
 
+  <nav class="side" id="nav" aria-label="메뉴"></nav>
+
+  <div class="content" id="content">
+  <div id="banner"></div>
   <main>
-    <!-- 1. 디스크 -->
-    <section class="screen" id="s-disk">
-      <h1>복구할 디스크를 고르세요</h1>
-      <p class="lead" id="disk-lead">연결된 외장 디스크를 찾는 중입니다…</p>
-      <div id="devlist"></div>
-      <div class="note" id="disknote" hidden>
-        <span>🔒</span>
-        <div><b>이 디스크에는 아무것도 쓰지 않습니다.</b> 읽기만 하므로 안심하고 진행하세요. 윈도우가 “포맷하시겠습니까?”라고 물어도 누르지 마세요.</div>
+    <!-- 홈 -->
+    <section class="screen" id="s-home">
+      <h1 class="ell">홈</h1>
+      <p class="lead ell" id="home-lead">디스크를 고르고 복구를 시작하세요. 멈춘 작업이 있으면 이어서 할 수 있어요.</p>
+      <div class="cards4" id="home-cards">
+        <div class="card sc skel"><div class="v ell" id="hc1">-</div><div class="l ell">연결된 디스크</div><div class="x ell" id="hx1">&nbsp;</div></div>
+        <div class="card sc skel"><div class="v ell" id="hc2">-</div><div class="l ell">찾은 파일</div><div class="x ell" id="hx2">&nbsp;</div></div>
+        <div class="card sc skel"><div class="v ell" id="hc3">-</div><div class="l ell">꺼낸 파일</div><div class="x ell" id="hx3">&nbsp;</div></div>
+        <div class="card sc skel"><div class="v ell" id="hc4" style="color:var(--ok)">읽기 전용</div><div class="l ell">원본 디스크</div><div class="x ell">쓰기 요청을 보내지 않아요</div></div>
       </div>
-      <p style="margin:14px 0 0"><button class="linkish" id="nodisk">원하는 디스크가 보이지 않나요?</button></p>
+      <div class="row2">
+        <div class="card panel"><h3 class="ell">이어서 하기</h3><div class="ell sub" id="hp1">&nbsp;</div><div class="pbtn"><button class="btn primary" id="hb1">복구 시작</button></div></div>
+        <div class="card panel"><h3 class="ell">복구 결과</h3><div class="ell sub" id="hp2">&nbsp;</div><div class="pbtn"><button class="btn" id="hb2">결과 보기</button></div></div>
+      </div>
     </section>
 
-    <!-- 1-2. 검사 (디스크를 훑어 보는 중) -->
+    <!-- 디스크 -->
+    <section class="screen" id="s-disk">
+      <h1 class="ell">복구할 디스크를 고르세요</h1>
+      <p class="lead ell" id="disk-lead">연결된 외장 디스크를 찾는 중입니다…</p>
+      <div id="devlist"></div>
+      <div class="note hide" id="disknote">
+        <span>🔒</span>
+        <div class="ell" title="읽기만 하므로 안심하고 진행하세요. 윈도우가 “포맷하시겠습니까?”라고 물어도 누르지 마세요."><b>이 디스크에는 아무것도 쓰지 않습니다.</b> 윈도우가 “포맷하시겠습니까?”라고 물어도 누르지 마세요.</div>
+      </div>
+      <p class="helplink"><button class="linkish" id="nodisk">원하는 디스크가 보이지 않나요?</button></p>
+    </section>
+
+    <!-- 복구 시작 1: 검사 (디스크를 훑어 보는 중) -->
     <section class="screen" id="s-scan">
       <div id="scan-phases"></div>
-      <h1 id="scan-title">사진과 영상을 찾고 있어요</h1>
-      <p class="lead" id="scan-lead">디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.</p>
+      <div class="r-head"><h1 class="ell" id="scan-title">사진과 영상을 찾고 있어요</h1><span class="chip" id="scan-chip">진행 중</span></div>
+      <p class="lead ell" id="scan-lead">디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.</p>
       <div class="safe" id="scan-safe"></div>
+      <div class="slot" id="scanmsg"></div>
       <div class="card hero" id="scan-hero">
-        <div class="ring" id="scan-ring"><div><div><div class="pc">0%</div><div class="pl" id="scan-pl">진행</div></div></div></div>
-        <div class="main"><div class="big" id="scan-big">계산 중이에요</div><div class="when" id="scan-when"></div><div class="stats" id="scan-stats"></div></div>
+        <div class="ring" id="scan-ring"><div><div class="pc">0%</div><div class="pl ell" id="scan-pl">진행</div></div></div>
+        <div class="main"><div class="big ell" id="scan-big">계산 중이에요</div><div class="when" id="scan-when"></div><div class="stats" id="scan-stats"></div></div>
       </div>
-      <div id="scanmsg"></div>
     </section>
 
-    <!-- 2. 복구 설정 -->
+    <!-- 복구 시작 2: 설정 -->
     <section class="screen" id="s-settings">
-      <h1>무엇을 꺼낼까요?</h1>
-      <p class="lead" id="settings-lead">디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.</p>
+      <h1 class="ell">무엇을 꺼낼까요?</h1>
+      <p class="lead ell" id="settings-lead">디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.</p>
       <div class="types" id="types"></div>
 
       <div class="sec">저장할 폴더</div>
@@ -277,7 +429,7 @@ footer.actions { position: sticky; bottom: 0; background: var(--win); border-top
       </div>
       <div class="free" id="free"></div>
 
-      <div class="switch" id="suspect-sw" role="switch" tabindex="0" aria-checked="true"><span class="tg" id="suspect-tg"></span><span>깨졌을 수 있는 파일도 함께 꺼내기 <span style="color:var(--faint)">(‘_의심’ 폴더에 따로 저장)</span></span></div>
+      <div class="switch" id="suspect-sw" role="switch" tabindex="0" aria-checked="true"><span class="tg" id="suspect-tg"></span><span class="ell">깨졌을 수 있는 파일도 함께 꺼내기 <span style="color:var(--faint)">(‘_의심’ 폴더에 따로 저장)</span></span></div>
 
       <div class="summary" id="summary"><span style="font-size:22px">📦</span><div class="tx" id="sumtx">저장할 폴더를 먼저 고르세요.</div></div>
 
@@ -285,39 +437,68 @@ footer.actions { position: sticky; bottom: 0; background: var(--win); border-top
         <summary>고급 설정</summary>
         <div class="box">
           <div class="row"><span>한 번에 꺼낼 양</span><input type="number" id="batch" min="0.01" step="any" placeholder="전부"><span>GB <span class="hint">(비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼냅니다)</span></span></div>
-          <div class="row"><button class="btn small" id="rescan">다시 검사</button><button class="btn small" id="fullscan">디스크 전체 검사 (느림)</button><span class="hint">기본 검사는 데이터가 있는 구간까지만 읽습니다</span></div>
+          <div class="row"><button class="btn small" id="rescan">다시 검사</button><button class="btn small" id="fullscan">전체 검사 (느림)</button><span class="hint">기본 검사는 데이터가 있는 구간까지만 읽습니다</span></div>
         </div>
       </details>
     </section>
 
-    <!-- 3. 진행 -->
+    <!-- 복구 시작 3: 꺼내기 · 열림 확인 -->
     <section class="screen" id="s-run">
       <div id="run-phases"></div>
-      <h1 id="run-title">사진을 꺼내고 있어요</h1>
-      <p class="lead" id="run-lead">창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.</p>
+      <div class="r-head"><h1 class="ell" id="run-title">사진을 꺼내고 있어요</h1><span class="chip" id="run-chip">진행 중</span></div>
+      <p class="lead ell" id="run-lead">창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.</p>
       <div class="safe" id="run-safe"></div>
-      <div id="runmsg-top"></div>
+      <div class="slot" id="runmsg-top"></div>
       <div class="card hero" id="run-hero">
-        <div class="ring" id="run-ring"><div><div><div class="pc">0%</div><div class="pl">진행</div></div></div></div>
-        <div class="main"><div class="big" id="run-big">계산 중이에요</div><div class="when" id="run-when"></div><div class="stats" id="run-stats"></div></div>
+        <div class="ring" id="run-ring"><div><div class="pc">0%</div><div class="pl ell">진행</div></div></div>
+        <div class="main"><div class="big ell" id="run-big">계산 중이에요</div><div class="when" id="run-when"></div><div class="stats" id="run-stats"></div></div>
       </div>
       <div id="runbox">
         <div class="kinds" id="run-kinds"></div>
-        <div class="strip-h"><span id="strip-title">방금 꺼낸 사진</span><span class="mono" id="cur">-</span></div>
+        <div class="strip-h"><span id="strip-title">방금 꺼낸 파일</span><span class="mono ell" id="cur">-</span></div>
         <div class="strip" id="strip"></div>
       </div>
-      <div id="runmsg"></div>
+      <div id="runmsg" hidden></div>
     </section>
 
-    <!-- 4. 결과 -->
+    <!-- 결과 탐색 -->
     <section class="screen" id="s-result">
-      <h1 id="res-title">복구를 마쳤습니다</h1>
-      <p class="lead">&nbsp;</p>
+      <h1 class="ell" id="res-title">복구 결과</h1>
+      <p class="lead ell" id="res-lead">꺼낸 파일과 확인 결과를 한눈에 봅니다.</p>
       <div id="resbox"></div>
     </section>
-  </main>
 
+    <!-- 그 밖의 메뉴 -->
+    <section class="screen" id="s-history">
+      <h1 class="ell">작업 내역</h1><p class="lead ell">검사·꺼내기·열림 확인 기록을 날짜순으로 보고, 멈춘 작업을 이어서 하는 화면입니다.</p>
+      <div class="card stub"><div><span class="tag2">곧</span><p class="ell">기록 파일은 이미 저장되고 있어서 화면만 만들면 됩니다. 지금은 [홈]의 “이어서 하기”로 멈춘 작업을 이어 갈 수 있어요.</p></div></div>
+    </section>
+    <section class="screen" id="s-backup">
+      <h1 class="ell">디스크 백업</h1><p class="lead ell">디스크 전체를 읽기 전용으로 이미지 파일에 복사해 두고, 복사본에서 복구하는 기능입니다.</p>
+      <div class="card stub"><div><span class="tag2">준비 중</span><p class="ell">새 엔진이 필요해요: 읽기 오류 구간을 건너뛰며 재시도하는 복사. 아직 만들지 않았습니다.</p></div></div>
+    </section>
+    <section class="screen" id="s-tools">
+      <h1 class="ell">도구</h1><p class="lead ell">사라진 파티션 찾기, 폴더 구조 복원 시도, 디스크 상태 확인 같은 도구를 모아 둘 자리입니다.</p>
+      <div class="card stub"><div><span class="tag2">준비 중</span><p class="ell">새 엔진이 필요해요: 파티션 탐색, 폴더 구조 복원. 아직 만들지 않았습니다.</p></div></div>
+    </section>
+    <section class="screen" id="s-report">
+      <h1 class="ell">리포트</h1><p class="lead ell">복구 결과 보고서를 저장 폴더에 글 파일로 저장합니다. 개인정보는 가립니다.</p>
+      <div class="card stub"><div><button class="btn primary" id="rep-save">보고서 저장</button><p class="ell">작업 결과가 있을 때 저장할 수 있어요.</p></div></div>
+    </section>
+    <section class="screen" id="s-prefs">
+      <h1 class="ell">설정·도움말</h1><p class="lead ell">이 프로그램은 원본 디스크에 아무것도 쓰지 않고, 읽기만 합니다.</p>
+      <div class="card stub left"><ul>
+        <li>윈도우가 “디스크를 초기화/포맷해야 합니다”라고 물어도 절대 누르지 마세요. 누르면 복구할 데이터가 지워집니다.</li>
+        <li>디스크가 보이지 않으면 케이블과 전원을 확인하고, 프로그램이 관리자 권한으로 실행됐는지 확인하세요.</li>
+        <li>컴퓨터에 원래 들어 있는 디스크(시스템·내장 디스크)는 일부러 보여 주지 않습니다.</li>
+        <li>꺼낸 파일은 항상 원본 디스크가 아닌 다른 곳에만 저장합니다.</li>
+      </ul></div>
+    </section>
+  </main>
   <footer class="actions" id="actions"></footer>
+  </div>
+
+  <footer class="status"><span class="ell" id="st-l">대기 중 · 원본 디스크에는 쓰지 않아요</span><span class="ell" id="st-r"></span></footer>
 </div>
 
 <dialog id="picker" aria-labelledby="pk-title">
@@ -352,19 +533,23 @@ footer.actions { position: sticky; bottom: 0; background: var(--win); border-top
 <script>
 const T = new URLSearchParams(location.search).get('token') || '';
 const $ = (s, r = document) => r.querySelector(s);
-const GROUPS = {
-  photo: { label: '사진', sub: 'JPEG · HEIC', icon: '📷', kinds: ['jpeg', 'heic'], unit: '장', dir: '사진' },
+const GROUPS = {  // dir 은 엔진(extract.KIND_DIR)이 쓰는 폴더 이름과 같아야 한다(진행 화면의 종류별 막대가 이 이름으로 맞춰진다)
+  photo: { label: '사진', sub: 'JPEG · PNG · GIF · WebP · HEIC · BMP', icon: '📷', kinds: ['jpeg', 'heic', 'png', 'gif', 'webp', 'bmp'], unit: '장', dir: '사진' },
   raw: { label: 'RAW 사진', sub: 'Canon CR3', icon: '🎞️', kinds: ['raw-cr3'], unit: '장', dir: 'RAW' },
-  video: { label: '영상', sub: 'MP4 · MOV', icon: '🎬', kinds: ['video-mp4', 'video-mov'], unit: '개', dir: '영상' },
-  zip: { label: '압축·문서', sub: 'ZIP · DOCX · XLSX', icon: '🗜️', kinds: ['zip', 'docx', 'xlsx', 'pptx'], unit: '개', dir: '압축·문서' },
+  video: { label: '영상', sub: 'MP4 · MOV · AVI', icon: '🎬', kinds: ['video-mp4', 'video-mov', 'avi'], unit: '개', dir: '영상' },
+  doc: { label: '문서', sub: 'PDF · 한글 · 오피스 · RTF', icon: '📄', kinds: ['pdf', 'hwp', 'hwpx', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'rtf'], unit: '개', dir: '문서' },
+  zip: { label: '압축', sub: 'ZIP · 7z', icon: '🗜️', kinds: ['zip', '7z'], unit: '개', dir: '압축' },
+  misc: { label: '음성·데이터', sub: 'WAV · SQLite', icon: '🎵', kinds: ['wav', 'sqlite'], unit: '개', dir: '음성·데이터' },
 };
 const FMT = { Apple_APFS: 'APFS 형식', 'disk-image': '디스크 이미지', RAW: '형식 없음(초기화 안 됨)', Microsoft_Basic_Data: 'Windows 형식', Apple_HFS: 'Mac OS 확장 형식' };
 const STEPS = ['디스크', '복구 설정', '진행 · 결과'];
-const STEP_OF = { disk: 0, scan: 0, settings: 1, run: 2, result: 2 };
+const NAV = [['home', '홈', 'home'], ['disk', '디스크', 'disk'], ['run', '복구 시작', 'play'], ['result', '결과 탐색', 'grid'], ['history', '작업 내역', 'list'], '-',
+  ['backup', '디스크 백업', 'copy', '준비 중'], ['tools', '도구', 'tool', '준비 중'], ['report', '리포트', 'doc'], ['prefs', '설정·도움말', 'cog']];
+const NAV_OF = { home: 'home', disk: 'disk', scan: 'run', settings: 'run', run: 'run', result: 'result', history: 'history', backup: 'backup', tools: 'tools', report: 'report', prefs: 'prefs' };
 const REASON_STATE = { unstable: '디스크가 불안정해 중단했습니다.', refused: '시작할 수 없습니다.', cancelled: '중단했습니다.',
   disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.', error: '오류가 발생했습니다.' };
 const S = { screen: 'disk', devices: [], sel: null, session: null, summary: null, job: null, flow: null, seen: null,
-  kinds: { photo: true, raw: true, video: true, zip: true }, suspect: true, dest: '', batchGb: '', plan: null, rate: null,
+  kinds: { photo: true, raw: true, video: true, doc: true, zip: true, misc: false }, suspect: true, dest: '', batchGb: '', plan: null, rate: null,
   check: null, banners: {}, stripKey: '', ended: false, pausing: false, dur: {}, lost: false, lastOk: 0 };
 
 // ---- 안전한 DOM 생성 (서버가 준 문자열은 항상 textContent 로만 넣는다) ----
@@ -406,12 +591,14 @@ async function api(path, body) {
 }
 const thumbUrl = p => '/api/thumb?token=' + encodeURIComponent(T) + '&p=' + encodeURIComponent(p);
 
-// 배너는 key 별로 동시에 보여 준다 (배터리·비정상 종료·오류 등이 서로 덮어쓰지 않게)
+// 배너 자리는 항상 같은 높이(한 줄). 여러 개면 가장 급한 것 하나만 보이고 나머지는 "+N"(툴팁)으로 알린다
 function banner(kind, text, key = 'msg', action = null) {
   if (text) S.banners[key] = { kind, text, action }; else delete S.banners[key];
-  const b = clear($('#banner'));
-  Object.values(S.banners).forEach(x => b.append(h('div', { class: 'notice ' + x.kind, role: 'status' }, h('span', { class: 't' }, x.text),
-    x.action ? h('button', { class: 'btn small', onclick: x.action.fn }, x.action.label) : null)));
+  const b = clear($('#banner')); const all = Object.values(S.banners); if (!all.length) return;
+  const x = all.filter(v => v.kind === 'bad').pop() || all[all.length - 1];
+  b.append(h('div', { class: 'notice ' + x.kind, role: 'status' }, h('span', { class: 't', title: x.text }, x.text),
+    all.length > 1 ? h('span', { class: 'more', title: all.map(v => v.text).join('\n') }, '+' + (all.length - 1)) : null,
+    x.action ? h('button', { class: 'btn small', onclick: x.action.fn }, x.action.label) : null));
 }
 function toast(text) { const t = h('div', { class: 'toast', role: 'status' }, text); document.body.append(t); setTimeout(() => t.remove(), 3500); }
 function ask(title, text, yes = '예') {
@@ -424,22 +611,43 @@ function ask(title, text, yes = '예') {
 }
 
 // ---- 화면 전환 ----
-function renderStepper() {
-  $('#stepper').hidden = S.screen === 'scan' || S.screen === 'run';  // 오래 걸리는 화면은 3칸 단계 길이 대신한다
-  const s = STEP_OF[S.screen], fin = S.screen === 'result';
-  clear($('#stepper')).append(...STEPS.flatMap((l, i) => {
-    const done = i < s || (fin && i === 2);
-    return [i ? h('span', { class: 'bar' + (i <= s ? ' done' : '') }) : null,
-      h('div', { class: 'step ' + (done ? 'done' : i === s ? 'now' : '') }, h('span', { class: 'dot' }, done ? '✓' : String(i + 1)), h('span', { class: 'lbl' }, l))];
-  }).filter(Boolean));
+function buildNav() {
+  $('#nav').append(...NAV.map(n => n === '-' ? h('div', { class: 'navsep' }) :
+    h('button', { class: 'nav' + (n[3] ? ' dis' : ''), type: 'button', 'data-nav': n[0], onclick: () => navTo(n[0]) }, ico(n[2]), h('span', { class: 't ell', title: n[1] }, n[1]), n[3] ? h('span', { class: 'tag' }, n[3]) : null)));
 }
-function btn(label, cls, fn, opts = {}) { const b = h('button', { class: 'btn ' + cls, type: 'button' }, label); b.onclick = fn; if (opts.id) b.id = opts.id; if (opts.disabled) b.disabled = true; return b; }
-function setActions(...items) { clear($('#actions')).append(...items.map(i => i === '|' ? h('span', { class: 'sp' }) : typeof i === 'string' ? h('span', { class: 'hint' }, i) : i)); }
+function navTo(k) { if (k === 'run') openRun(); else go(k); }
+// [복구 시작]: 진행 중이면 진행 화면, 검사 결과가 있으면 설정, 아니면 디스크 선택
+function openRun() {
+  const j = S.job;
+  if (j && j.state === 'running') return go(j.kind === 'scan' ? 'scan' : 'run');
+  if (S.summary || (S.session && S.session.has_catalog)) {
+    if (!S.sel) { go('disk'); banner('warn', '복구하려면 먼저 디스크를 고르세요.', 'pick'); return; }
+    return go('settings');
+  }
+  go('disk');
+}
+function setStatus(l, r) { const e = $('#st-l'); e.textContent = l || ''; e.title = l || ''; $('#st-r').textContent = r || ''; }
+function updateTop() {
+  const dv = S.devices.find(x => x.id === S.sel);
+  const t = dv ? '선택한 디스크: ' + diskName(dv) + ' · ' + fmtSize(dv.size) : '선택한 디스크 없음';
+  $('#t-disk').textContent = t; $('#t-disk').title = t;
+}
+function btn(label, cls, fn, opts = {}) { const b = h('button', { class: 'btn ' + cls, type: 'button', title: label }, label); b.onclick = fn; if (opts.id) b.id = opts.id; if (opts.disabled) b.disabled = true; return b; }
+// 아래 버튼 줄: [왼쪽 버튼들] [안내 글(자리 고정, 오른쪽 정렬)] [오른쪽 버튼]. 글이 없어도 자리는 그대로
+function setActions(...items) {
+  const i = items.indexOf('|'); const left = (i < 0 ? items : items.slice(0, i)).filter(x => x instanceof Node);
+  const right = i < 0 ? [] : items.slice(i + 1); const hint = right.find(x => typeof x === 'string' && x) || '';
+  clear($('#actions')).append(h('div', { class: 'al' }, ...left), h('span', { class: 'hint ell', title: hint }, hint), h('div', { class: 'ar' }, ...right.filter(x => x instanceof Node)));
+}
 function go(name) {
   S.screen = name;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
-  renderStepper(); window.scrollTo(0, 0);
-  if (name === 'disk') { setActions('|', btn('다음', 'primary', next, { id: 'next', disabled: true })); loadDevices(); }
+  document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.nav === NAV_OF[name]));
+  $('#content').scrollTop = 0; setActions();
+  if (!(S.job && S.job.state === 'running' && (name === 'scan' || name === 'run'))) setStatus('대기 중 · 원본 디스크에는 쓰지 않아요', '');
+  if (name === 'home') loadHome();
+  if (name === 'report') { $('#rep-save').onclick = saveReport; }
+  if (name === 'disk') { setActions('|', btn('다음', 'primary', next, { id: 'next', disabled: true })); if (!S.devLoaded) renderDevices(); loadDevices(); }
   if (name === 'scan') setActions(btn('취소', '', cancelJob, { id: 'scancancel' }), '|', '취소해도 나중에 이어서 할 수 있어요');
   if (name === 'settings') { setActions('|', btn('복구 시작', 'primary', startRun, { id: 'start', disabled: true })); initSettings(); }
   if (name === 'run') { if (S.flow === 'verify') setActions(btn('확인 건너뛰기', '', cancelJob, { id: 'stop' }), '|', '확인을 건너뛰어도 꺼낸 파일은 그대로 있어요');
@@ -447,17 +655,38 @@ function go(name) {
   if (name === 'result') loadResult();
 }
 
+// ---- 홈 ----
+async function loadHome() {
+  document.querySelectorAll('#home-cards .sc').forEach(c => c.classList.add('skel'));
+  await loadDevices();
+  let sum = null, res = null;
+  try { sum = await api('/api/catalog/summary'); } catch (e) { }
+  try { res = await api('/api/result'); } catch (e) { }
+  const T = (id, t) => { const e = $(id); e.textContent = t; e.title = t; };
+  T('#hc1', num(S.devices.length)); T('#hx1', S.sel ? '디스크를 골랐어요' : '아직 고르지 않았어요');
+  T('#hc2', sum ? num(sum.total) : '-'); T('#hx2', sum ? Object.values(GROUPS).filter(g => groupSum(sum, g)).map(g => g.label + ' ' + num(groupSum(sum, g))).join(' · ') : '아직 검사하지 않았어요');
+  T('#hc3', res && res.files ? num(res.files) : '-'); T('#hx3', res && res.files ? fmtSize(res.bytes) : '아직 꺼낸 파일이 없어요');
+  const it = S.session && S.session.interrupted;
+  T('#hp1', it ? (it.kind === 'scan' ? '검사가 중간에 멈췄어요. 이어서 할 수 있어요.' : '복구가 중간에 멈췄어요. 이어서 할 수 있어요.') : sum ? '검사를 마친 디스크가 있어요. 꺼낼 종류를 고르세요.' : '아직 검사한 디스크가 없어요.');
+  const b1 = $('#hb1'); b1.textContent = it ? '이어서 하기' : sum ? '복구 시작' : '디스크 고르기'; b1.onclick = () => (sum || it ? openRun() : go('disk'));
+  T('#hp2', res && res.files ? num(res.files) + '개를 꺼냈어요.' : '아직 꺼낸 파일이 없어요.'); $('#hb2').disabled = !(res && res.files); $('#hb2').onclick = () => go('result');
+  document.querySelectorAll('#home-cards .sc').forEach(c => c.classList.remove('skel'));
+}
+const groupSum = (sum, g) => g.kinds.reduce((a, k) => a + ((sum.kinds || {})[k] || 0), 0);
+
 // ---- 1. 디스크 ----
 const diskName = dv => dv.label || '외장 디스크';
 async function loadDevices() {
   try {
     const [d, s] = await Promise.all([api('/api/devices'), api('/api/session')]);
-    S.devices = d.devices; S.session = s; S.isAdmin = d.is_root; S.images = d.images;
+    S.devices = d.devices; S.session = s; S.isAdmin = d.is_root; S.images = d.images; S.devLoaded = true;
     if (S.sel && !S.devices.find(x => x.id === S.sel)) S.sel = null;
-    if (S.screen === 'disk') renderDevices();
+    if (S.screen === 'disk') renderDevices(); updateTop();
     const noadm = !d.is_root && !d.images;
     banner(noadm ? 'warn' : '', noadm ? '관리자 권한이 아니라서 디스크를 읽을 수 없습니다. 프로그램을 닫고 다시 실행하세요(관리자 확인 창에서 [예]).' : '', 'root');
     banner(s.on_battery ? 'warn' : '', s.on_battery ? '배터리로 실행 중입니다. 전원을 연결하세요. 덮개를 닫거나 배터리가 떨어지면 디스크 연결이 끊겨 작업이 멈춥니다.' : '', 'power');
+    const cp = s.compat || {};  // 다른 버전이 만든 기록 안내
+    banner(cp.newer ? 'warn' : '', cp.newer ? '이 세션은 더 새 버전 도구가 만든 기록이에요. 보기만 하고 이어서 하기는 하지 마세요.' : '', 'compat');
     const it = s.interrupted;
     if (it && it.kind === 'scan') banner('warn', '검사가 중간에 멈춘 기록이 있습니다(찾은 파일 ' + (it.found || 0) + '개). 디스크를 고른 뒤 이어서 할 수 있습니다.', 'interrupted',
       { label: '이어서 검사', fn: () => { if (!S.sel) { banner('bad', '먼저 위에서 디스크를 고르세요.', 'pick'); return; } startScan(true); } });
@@ -469,8 +698,10 @@ async function loadDevices() {
 }
 function renderDevices() {
   const box = clear($('#devlist'));
-  $('#disk-lead').textContent = S.devices.length ? '연결된 외장 디스크를 찾았습니다.' : '연결된 외장 디스크가 없습니다. 케이블을 연결하면 자동으로 나타납니다.';
-  $('#disknote').hidden = !S.devices.length;
+  if (!S.devLoaded) { box.append(h('div', { class: 'skdisk skel' }), h('div', { class: 'skdisk skel' })); return; }  // 불러오는 동안 같은 크기의 빈 틀
+  const lead = S.devices.length ? '연결된 외장 디스크를 찾았습니다.' : '연결된 외장 디스크가 없습니다. 케이블을 연결하면 자동으로 나타납니다.';
+  $('#disk-lead').textContent = lead; $('#disk-lead').title = lead;
+  $('#disknote').classList.toggle('hide', !S.devices.length);
   S.devices.forEach(dv => {
     const apfs = dv.content === 'Apple_APFS' || dv.content === 'disk-image';
     const dj = S.session && S.session.device;
@@ -478,12 +709,12 @@ function renderDevices() {
     const meta = [dv.bus === 'USB' ? 'USB 연결' : dv.bus, FMT[dv.content] || dv.content, fmtSize(dv.size)].filter(Boolean).join(' · ');
     const el = h('div', { class: 'disk' + (dv.id === S.sel ? ' sel' : '') + (dv.readable ? '' : ' off'), tabindex: 0, role: 'radio', 'aria-checked': String(dv.id === S.sel) },
       h('div', { class: 'ico' + (apfs ? '' : ' gray') }, apfs ? '💽' : '💾'),
-      h('div', { class: 'main' }, h('div', { class: 'name' }, diskName(dv)), h('div', { class: 'meta' }, meta),
-        used != null ? [h('div', { class: 'usage' }, h('i', { style: 'width:' + Math.max(2, used) + '%' })),
-          h('div', { class: 'usage-l' }, '데이터가 있는 영역 약 ' + fmtSize(dj.scanned_bytes) + ' (전체의 ' + Math.round(used) + '%)')] : null),
+      h('div', { class: 'main' }, h('div', { class: 'name', title: diskName(dv) }, diskName(dv)), h('div', { class: 'meta', title: meta }, meta),
+        h('div', { class: 'usage' + (used != null ? '' : ' hide') }, h('i', { style: 'width:' + Math.max(2, used || 0) + '%' })),
+        h('div', { class: 'usage-l' + (used != null ? '' : ' hide') }, used != null ? '데이터가 있는 영역 약 ' + fmtSize(dj.scanned_bytes) + ' (전체의 ' + Math.round(used) + '%)' : '-')),
       !dv.readable ? chip('bad', '관리자 권한 필요') : apfs ? chip('', '읽을 수 있음') : chip('warn', 'APFS가 아닙니다'),
       h('span', { class: 'radio' }));
-    const pick = () => { if (!dv.readable) return; S.sel = dv.id; banner('', '', 'pick'); renderDevices(); };
+    const pick = () => { if (!dv.readable) return; S.sel = dv.id; banner('', '', 'pick'); renderDevices(); updateTop(); };
     el.onclick = pick; el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } };
     box.append(el);
   });
@@ -544,15 +775,16 @@ function phasesEl(now, pct, mod) {
 }
 function safePills() {
   const dest = S.dest || (S.session && S.session.dest) || '';
+  const dt = '저장 위치: ' + (dest || '아직 고르지 않았어요');
   return [h('span', { class: 'pill ro' }, ico('lock'), '원본 디스크는 읽기만 해요'),
-    S.lost ? null : h('span', { class: 'pill' }, ico('moon'), '잠자기 방지 켜짐'),
-    dest ? h('span', { class: 'pill', title: dest }, ico('folder'), '저장 위치: ' + dest) : null];
+    h('span', { class: 'pill' }, ico('moon'), S.lost ? '잠자기 방지 확인 중' : '잠자기 방지 켜짐'),
+    h('span', { class: 'pill', title: dt }, ico('folder'), h('span', { class: 't2 ell' }, dt))];
 }
 function setRing(id, pct, label, mod) {
   const r = $(id); r.className = 'ring' + (mod ? ' ' + mod : ''); r.style.setProperty('--p', Math.max(0, Math.min(100, pct)).toFixed(1));
   r.querySelector('.pc').textContent = Math.round(pct) + '%'; if (label) r.querySelector('.pl').textContent = label;
 }
-function setStats(id, rows) { clear($(id)).append(...rows.map(([v, l]) => h('div', { class: 'stat' }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l)))); }
+function setStats(id, rows) { clear($(id)).append(...rows.map(([v, l]) => h('div', { class: 'stat' }, h('div', { class: 'v', title: v }, v), h('div', { class: 'l', title: l }, l)))); }
 // 진행 화면 그리기(검사 'scan' / 꺼내기·확인 'run'): 단계 길, 안심 줄, 큰 제목 줄, 숫자
 function paint(pre, o) {
   clear($('#' + pre + '-phases')).append(phasesEl(o.now, o.pct, o.mod));
@@ -560,8 +792,10 @@ function paint(pre, o) {
   setRing('#' + pre + '-ring', o.pct, o.ring, o.stale ? 'paused' : o.mod);
   $('#' + pre + '-hero').classList.toggle('stale', !!o.stale);
   $('#' + pre + '-big').textContent = o.big;
-  clear($('#' + pre + '-when')).append(ico('clock'), o.when || '');
-  setStats('#' + pre + '-stats', o.stats);
+  clear($('#' + pre + '-when')).append(ico('clock'), h('span', { class: 'ell', title: o.when || '' }, o.when || ''));
+  $('#' + pre + '-big').title = o.big; setStats('#' + pre + '-stats', o.stats);
+  const m = o.stale ? 'paused' : o.mod, c = o.chip || (o.stale ? ['확인 중', 'pause'] : m === 'paused' ? ['멈춤', 'pause'] : m === 'alert' ? ['확인 필요', 'alert'] : ['진행 중', '']);
+  const ch = $('#' + pre + '-chip'); ch.textContent = c[0]; ch.className = 'chip ' + c[1];
 }
 function lostNote() { return '마지막 업데이트 ' + fmtDur((Date.now() - S.lastOk) / 1000) + ' 전'; }
 function timeLine(j, eta, extra) {
@@ -581,7 +815,7 @@ function renderJob() {
     const sampling = j.phase === 'sampling'; const t = sampling ? { big: '디스크 위치를 확인하는 중이에요', when: stale ? lostNote() : '곧 파일 찾기를 시작해요' } : timeLine(j, p.eta_s);
     paint('scan', { now: 0, pct, ring: sampling ? '위치 확인' : '사진 찾기', stale, big: t.big, when: t.when,
       stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [speed, '읽는 속도']] });
-    off('#scancancel');
+    off('#scancancel'); setStatus('검사 중 · 원본은 읽기만 해요', num(p.found || 0) + '개 찾음');
   }
   if (j.kind === 'extract' && S.screen === 'run' && run) {
     const t = timeLine(j, p.eta_s);
@@ -590,14 +824,14 @@ function renderJob() {
     renderKinds(p.by_kind);
     $('#cur').textContent = p.current || '-';
     if (!stale) refreshStrip();
-    off('#pause'); off('#stop');
+    off('#pause'); off('#stop'); setStatus('꺼내는 중 · 원본에는 쓰지 않아요', num(p.files) + ' / ' + num(p.total_files) + '개');
   }
   if (j.kind === 'verify' && S.screen === 'run' && run) {
     const el = j.elapsed_s || 0; const eta = p.done > 0 && el >= 30 ? el * (p.total - p.done) / p.done : null;
     const t = timeLine(j, eta, '꺼내기는 모두 끝났어요');
     paint('run', { now: 2, pct, ring: '열림 확인', stale, big: t.big, when: t.when,
       stats: [[num(p.done) + ' / ' + num(p.total), '확인한 파일'], [num(p.ok), '잘 열림'], [num(p.fail), '확인 필요']] });
-    off('#stop');
+    off('#stop'); setStatus('열림 확인 중 · 저장 폴더만 읽어요', num(p.done) + ' / ' + num(p.total) + '개');
   }
 }
 function renderKinds(by, mod) {
@@ -607,14 +841,15 @@ function renderKinds(by, mod) {
     return h('div', { class: 'card kind' }, h('div', { class: 'top' }, h('span', {}, g.label), h('span', {}, v[1] ? num(v[0]) + ' / ' + num(v[1]) : '-')), h('div', { class: 'kbar' }, i)); }));
   $('#runbox').classList.toggle('is-paused', !!mod);
 }
+function fillStrip(items) { const els = items.map(thumbEl); while (els.length < 8) els.push(h('div', { class: 'th skel' })); clear($('#strip')).append(...els); }
 async function refreshStrip() {
   try {
     const r = await api('/api/recent?n=8'); const key = r.items.map(i => i.path).join('|');
     if (key === S.stripKey) return; S.stripKey = key;
-    clear($('#strip')).append(...r.items.slice().reverse().map(thumbEl));
+    fillStrip(r.items.slice().reverse());
   } catch (e) { }
 }
-function thumbEl(it) {
+function thumbEl(it) {  // 칸 크기는 CSS 가 고정(96x72 / 128x96)
   if (it.kind === 'jpeg') { const el = h('div', { class: 'th' }, h('img', { src: thumbUrl(it.path), alt: '' })); el.querySelector('img').onerror = e => { e.target.remove(); el.append(h('span', { class: 'lab' }, '사진')); }; return el; }
   if (it.kind && it.kind.startsWith('video')) return h('div', { class: 'th v' });
   return h('div', { class: 'th' }, h('span', { class: 'lab' }, it.kind === 'raw-cr3' ? 'RAW' : '파일'));
@@ -640,10 +875,19 @@ async function poll() {
 }
 setInterval(() => { if (S.lost && (S.screen === 'scan' || S.screen === 'run')) renderJob(); }, 1000);
 
-// 상황 카드: 무슨 일이 있었는지 → 원본은 안전한지 → 할 일
-function sit(cls, icon, title, ...kids) { return h('div', { class: 'sit ' + cls, role: 'status' }, h('div', { class: 'ic' }, ico(icon)), h('div', {}, h('div', { class: 't' }, title), ...kids)); }
+// 상황 카드(자리 64px 고정): 제목 = 무슨 일 / 설명 = 원본은 안전한지·할 일. 길면 말줄임 + 툴팁
+function sit(cls, icon, title, ...kids) {
+  const parts = []; let waiting = false;
+  kids.forEach(k => { if (!(k instanceof Node)) return;
+    if (k.tagName === 'OL') parts.push([...k.children].map((li, i) => '①②③'[i] + ' ' + li.textContent).join('   '));
+    else if (k.classList.contains('wait')) waiting = true; else parts.push(k.textContent); });
+  const detail = parts.join(' ');
+  return h('div', { class: 'sit ' + cls, role: 'status' }, h('div', { class: 'ic' }, ico(icon)),
+    h('div', { class: 'tx' }, h('div', { class: 't', title }, title), h('div', { class: 's', title: detail }, detail)),
+    waiting ? h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결 기다리는 중') : null);
+}
 const para = t => h('p', {}, t);
-function heading(pre, title, lead) { $('#' + pre + '-title').textContent = title; $('#' + pre + '-lead').textContent = lead; }
+function heading(pre, title, lead) { const t = $('#' + pre + '-title'), l = $('#' + pre + '-lead'); t.textContent = title; t.title = title; l.textContent = lead; l.title = lead; setStatus(title, ''); }
 
 // 연결이 끊겼을 때: 같은 디스크가 다시 꽂히면 알려 주고 [이어서 하기]를 켠다
 function watchReconnect(onMatch) {
@@ -657,7 +901,7 @@ function watchReconnect(onMatch) {
   }, 3000);
 }
 function resumeActions(first, resume, enabled, hint) {
-  setActions(...first, '|', hint ? h('span', { class: 'hint' }, hint) : '', btn('이어서 하기', 'primary', resume, { disabled: !enabled, id: 'resume' }));
+  setActions(...first, '|', hint || '', btn('이어서 하기', 'primary', resume, { disabled: !enabled, id: 'resume' }));
 }
 
 async function onFinished(j) {
@@ -672,8 +916,7 @@ async function onFinished(j) {
     if (j.state === 'disconnected') {
       heading('scan', '하드디스크 연결이 끊겼어요', '걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.');
       paint('scan', { ...base, mod: 'alert', big: num(p.found || 0) + '개 찾았어요', when: '검사를 멈췄어요' });
-      m.append(sit('warn', 'plug', '원본은 안전해요. 지금까지 찾은 기록도 남아 있어요.', para('이 프로그램은 원본 디스크를 읽기만 하므로, 연결이 끊겨도 원본은 바뀌지 않아요.'),
-        h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
+      m.append(sit('warn', 'plug', '원본은 안전해요. 지금까지 찾은 기록도 남아 있어요.', h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
       resumeActions(first, () => startScan(true), false, '다시 연결되면 버튼이 켜져요');
       watchReconnect(() => {
         heading('scan', '다시 연결됐어요', '처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.');
@@ -688,7 +931,7 @@ async function onFinished(j) {
     } else {
       heading('scan', j.state === 'done' ? '사진이나 영상을 찾지 못했어요' : '검사가 멈췄어요', '원본 디스크는 읽기만 했으므로 그대로예요.');
       paint('scan', { ...base, mod: 'alert', big: '찾은 파일 ' + num(p.found || 0) + '개', when: '' });
-      m.append(sit(j.state === 'done' ? 'info' : 'bad', 'alert', j.state === 'done' ? '이 디스크에서는 찾지 못했어요' : '무슨 일이 있었나요', para(j.state === 'done' ? (j.error || '사진이나 영상을 찾지 못했습니다.') : stateMsg(j))));
+      m.append(sit(j.state === 'done' ? 'info' : 'bad', 'alert', j.state === 'done' ? (j.error || '이 디스크에서는 찾지 못했어요') : stateMsg(j), para('원본 디스크는 읽기만 했으므로 그대로예요.')));
       setActions(...first, '|');
     }
     return;
@@ -704,12 +947,11 @@ async function onFinished(j) {
     const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : 0;
     const stats = [[fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), '저장된 용량'], [fmtDur(j.elapsed_s), '이번에 걸린 시간'], ['멈춤', '상태']];
     const hero = mod => paint('run', { now: 1, pct, ring: '멈춤', mod, stale: false, big: num(got) + ' / ' + num(p.total_files) + '개 꺼냄', when: mod === 'alert' ? '꺼낸 파일은 저장 폴더에 그대로 있어요' : left ? '이어서 하면 남은 ' + num(left) + '개를 꺼내요' : '', stats });
-    renderKinds(p.by_kind, 'paused'); $('#runbox').hidden = false; $('#cur').textContent = p.current || '-';
+    renderKinds(p.by_kind, 'paused'); $('#runbox').classList.toggle('hide', false); $('#cur').textContent = p.current || '-';
     const first = [btn('처음으로', '', () => go('disk')), btn('설정 바꾸기', '', () => go('settings'))];
     if (j.state === 'disconnected') {
       heading('run', '하드디스크 연결이 끊겼어요', '걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.'); hero('alert');
-      m.append(sit('warn', 'plug', '원본은 안전해요. 꺼낸 ' + num(got) + '개도 그대로 있어요.', para('이 프로그램은 원본 디스크를 읽기만 하므로, 연결이 끊겨도 원본은 바뀌지 않아요.'),
-        h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
+      m.append(sit('warn', 'plug', '원본은 안전해요. 꺼낸 ' + num(got) + '개도 그대로 있어요.', h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
       resumeActions(first.slice(0, 1), startRun, false, '다시 연결되면 버튼이 켜져요');
       watchReconnect(() => {
         heading('run', '다시 연결됐어요', '처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.'); hero('paused');
@@ -722,7 +964,7 @@ async function onFinished(j) {
     } else {
       const T = { unstable: '디스크 읽기가 불안정해서 멈췄어요', nospace: '저장 공간이 부족해서 멈췄어요', refused: '시작할 수 없었어요' };
       heading('run', T[j.state] || '문제가 생겨 멈췄어요', '꺼낸 ' + num(got) + '개는 저장 폴더에 그대로 있어요.'); hero('alert');
-      m.append(sit('bad', 'alert', '무슨 일이 있었나요', para(stateMsg(j)), para('원본 디스크는 읽기만 했으므로 안전해요.')));
+      m.append(sit('bad', 'alert', stateMsg(j), para('원본 디스크는 읽기만 했으므로 안전해요. 꺼낸 파일은 그대로 있어요.')));
       if (j.state === 'unstable') resumeActions(first, startRun, true); else setActions(...first, '|', j.state === 'nospace' ? btn('저장 폴더 바꾸기', 'primary', () => go('settings')) : '');
     }
     S.pausing = false; return;
@@ -752,6 +994,9 @@ async function initSettings() {
   if (!S.summary) { try { await loadSummary(); } catch (e) { banner('bad', '검사 결과가 없습니다. 디스크를 먼저 검사하세요.', 'msg'); go('disk'); return; } }
   if (!S.dest && S.session && S.session.dest) S.dest = S.session.dest;
   const total = Object.values(GROUPS).reduce((a, g) => a + groupStat(g).n, 0);
+  const unk = (S.summary.total || 0) - total, sk = S.summary.skipped || 0;  // 이 화면이 모르는 종류 / 읽지 못한 줄: 조용히 사라지지 않게 알린다
+  banner(unk > 0 ? 'warn' : '', unk > 0 ? '이 검사 기록에는 이 화면이 모르는 종류의 파일이 ' + num(unk) + '개 있어요. 꺼내지 않고 그대로 둡니다.' : '', 'unk');
+  banner(sk > 0 ? 'warn' : '', sk > 0 ? '검사 기록 ' + num(sk) + '줄을 읽지 못해 건너뛰었어요.' : '', 'skip');
   for (const k of Object.keys(GROUPS)) if (!groupStat(GROUPS[k]).n) S.kinds[k] = false;
   $('#settings-lead').textContent = total ? '디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.' : '이 디스크에서 사진이나 영상을 찾지 못했습니다.';
   renderTypes(); renderDest(); $('#batch').value = S.batchGb;
@@ -786,7 +1031,7 @@ function renderSummary() {
   if (!plan.kinds.length) { tx.append('꺼낼 종류를 하나 이상 고르세요.'); return; }
   if (!plan.dest) { tx.append('저장할 폴더를 먼저 고르세요.'); return; }
   if (!r) { tx.append('확인하는 중입니다…'); return; }
-  if (r.free != null) free.append('여유 공간 ' + fmtSize(r.free), r.ok ? chip('', '충분합니다') : null);
+  if (r.free != null) { free.append('여유 공간 ' + fmtSize(r.free)); if (r.ok) free.append(chip('', '충분합니다')); }
   const ov = r.overview || {};
   const allDone = (r.reasons || []).some(x => x.includes('모두 꺼냈습니다'));
   if (allDone) { tx.append('이 설정의 파일은 이미 모두 꺼냈습니다.'); if (start) { start.disabled = false; start.textContent = '결과 보기'; start.onclick = () => { S.plan = buildPlan(); S.partial = false; go('result'); }; } return; }
@@ -816,7 +1061,7 @@ async function startRun() {
   try {
     await api('/api/extract/start', { device_id: S.sel, plan: S.plan });
     S.flow = 'extract'; S.seen = null; S.stripKey = ''; banner('', '', 'msg');
-    S.job = null; S.lost = false; clear($('#runmsg')); clear($('#runmsg-top')); clear($('#strip')); $('#runbox').hidden = false; $('#strip-title').textContent = '방금 꺼낸 사진';
+    S.job = null; S.lost = false; clear($('#runmsg')); clear($('#runmsg-top')); fillStrip([]); $('#runbox').classList.toggle('hide', false); $('#strip-title').textContent = '방금 꺼낸 사진';
     heading('run', '사진을 꺼내고 있어요', '창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.');
     go('run'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
@@ -824,9 +1069,9 @@ async function startRun() {
 async function startVerify() {
   try {
     await api('/api/verify/start', { deep: true });
-    S.flow = 'verify'; S.seen = null; S.job = null; clear($('#runmsg')); clear($('#runmsg-top')); $('#runbox').hidden = true;
+    S.flow = 'verify'; S.seen = null; S.job = null; clear($('#runmsg')); clear($('#runmsg-top')); $('#runbox').classList.toggle('hide', true);
     heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.');
-    go('run'); $('#runbox').hidden = true; poll();
+    go('run'); $('#runbox').classList.toggle('hide', true); poll();
   } catch (e) { banner('bad', e.message, 'msg'); go('result'); }
 }
 
@@ -834,13 +1079,14 @@ async function startVerify() {
 async function loadResult() {
   setActions(btn('처음으로', '', () => go('disk')), '|', btn('보고서 저장', '', saveReport));
   const box = clear($('#resbox'));
+  box.append(h('div', { class: 'resskel skel' }));  // 불러오는 동안 같은 크기의 빈 틀
   let r, v, rem = 0;
-  try { [r, v] = await Promise.all([api('/api/result'), api('/api/verify/summary')]); } catch (e) { box.append(h('p', { class: 'hint' }, '결과를 불러오지 못했습니다: ' + e.message)); return; }
+  try { [r, v] = await Promise.all([api('/api/result'), api('/api/verify/summary')]); } catch (e) { clear(box).append(h('p', { class: 'hint' }, '결과를 불러오지 못했습니다: ' + e.message)); return; }
   if (S.partial && S.plan) { try { const c = await api('/api/plan/check', { device_id: S.sel, plan: S.plan }); rem = c.ok ? (c.overview.pending_files || 0) : 0; } catch (e) { } }
   const vs = v.summary, fail = vs ? vs.fail : 0, verified = !!vs && !rem;
   const bk = r.by_kind || {};
   const parts = Object.values(GROUPS).filter(g => bk[g.dir]).map(g => g.label + ' ' + num(bk[g.dir]) + g.unit);
-  const good = verified && !fail;
+  const good = verified && !fail; clear(box);
   $('#res-title').textContent = rem ? '일부를 꺼냈습니다' : '복구를 마쳤습니다';
   box.append(h('div', { class: 'okbanner' + (good ? '' : ' warn') },
     h('div', { class: 'big' }, good ? '✓' : '!'),
@@ -900,7 +1146,21 @@ async function pkGo(path) {
   if (r.problems.length) pr.append(h('div', { class: 'notice bad' }, h('span', { class: 't' }, r.problems.join(' / '))));
   $('#pk-ok').disabled = !PK.ok; $('#pk-up').disabled = !r.parent; $('#pk-new').disabled = !!r.problems.length;
 }
-$('#pickdest').onclick = async () => { $('#pk-newrow').hidden = true; $('#picker').showModal(); await pkLoadPlaces(); await pkGo(S.dest); };
+// [폴더 선택]: 윈도우 기본 폴더 선택 창을 띄운다. 쓸 수 없는 환경이면 프로그램 안의 선택창으로 대신한다.
+$('#pickdest').onclick = async () => {
+  const bt = $('#pickdest'); bt.disabled = true;
+  try {
+    const r = await api('/api/fs/pick', { path: S.dest || '' });
+    if (!r.path) return;  // 취소
+    const dq2 = S.sel ? '&device_id=' + encodeURIComponent(S.sel) : '';
+    const info = await api('/api/fs/list?path=' + encodeURIComponent(r.path) + dq2);
+    if (info.problems.length || !info.writable) { toast('이 폴더는 쓸 수 없어요: ' + (info.problems.join(' / ') || '쓸 수 없는 폴더입니다.')); return; }
+    S.dest = info.path; renderDest(); schedCheck();
+  } catch (e) {
+    if (e.status === 501) { $('#pk-newrow').hidden = true; $('#picker').showModal(); await pkLoadPlaces(); await pkGo(S.dest); }
+    else toast(e.message);
+  } finally { bt.disabled = false; }
+};
 $('#pk-up').onclick = () => PK.parent && pkGo(PK.parent);
 $('#pk-cancel').onclick = () => $('#picker').close();
 $('#pk-ok').onclick = () => { if (!PK.ok) return; S.dest = PK.path; renderDest(); $('#picker').close(); schedCheck(); };
@@ -919,13 +1179,14 @@ $('#quit').onclick = async () => {
 };
 
 (async function init() {
+  buildNav();
   try {
     const j = (await api('/api/job')).job;
     if (j && j.state === 'running') { S.job = j; S.flow = j.kind; await loadDevices(); try { await loadSummary(); } catch (e) { }
       if (j.kind === 'verify') heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.');
-      go(j.kind === 'scan' ? 'scan' : 'run'); if (j.kind === 'verify') { $('#runbox').hidden = true; } poll(); return; }
+      go(j.kind === 'scan' ? 'scan' : 'run'); if (j.kind === 'verify') { $('#runbox').classList.toggle('hide', true); } poll(); return; }
   } catch (e) { }
-  go('disk');
+  go('home');
 })();
 </script>
 </body>

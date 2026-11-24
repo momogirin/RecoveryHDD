@@ -15,6 +15,8 @@ from collections import Counter
 from . import atomic
 from .blockdev import ReadOnlyDevice, device_gone
 from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe, zip_kind, zip_probe)
+from . import formats_more as fm
+from . import compat
 from .jsonl import read_jsonl
 from .ownership import expand
 from .scan import BS, CHUNK, REPO
@@ -82,9 +84,8 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
     pos, next_id, found = start_block * BS, 1, 0
     resumed = False
     if not fresh and os.path.exists(prog_path) and os.path.exists(cat_path):
-        with open(prog_path, encoding="utf-8") as f:
-            st = json.load(f)
-        if st.get("start_block") == start_block and st.get("end_block") == end_block:
+        st = compat.read_json(prog_path, {})  # 깨진 진행 기록이면 이어하지 않고 새로 시작한다(옛 기록은 보관)
+        if st.get("start_block") == start_block and st.get("end_block") == end_block and isinstance(st.get("next_pos"), int):
             pos = st["next_pos"]
             found, next_id = _repair_catalog(cat_path, pos)
             resumed = True
@@ -124,14 +125,8 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
                 continue
             if not buf:
                 break
-            hits = []
-            for sig, kind, delta in ((b"\xff\xd8\xff", "jpg", 0), (b"ftyp", "bmff", 4), (b"PK", "zip", 0)):
-                i = buf.find(sig)
-                while i != -1:
-                    if (i - delta) % BS == 0:
-                        hits.append((i - delta, kind))
-                    i = buf.find(sig, i + 1)
-            for rel, kind in sorted(hits):
+            hits = _block_hits(buf)
+            for rel, kind in hits:
                 off = pos + rel
                 if off < skip_until:
                     continue
@@ -162,7 +157,20 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
     return result
 
 
+def _block_hits(buf):
+    """4096 바이트로 정렬된 블록의 시작만 보고 후보 (상대 위치, 종류)를 모은다. 종류가 늘어도 한 번만 훑는다."""
+    hits = []
+    for rel in range(0, len(buf), BS):
+        k = fm.sniff(buf[rel:rel + 16])
+        if k:
+            hits.append((rel, k))
+    return hits
+
+
 def _probe(dev, off, kind, room):
+    if kind in fm.PROBES:
+        rec = fm.probe(kind, dev, off, room)
+        return _final(rec) if rec else None
     if kind == "zip":
         z = zip_probe(dev, off, min(MAX_ZIP, room))
         if not z or z["length"] < MIN_ZIP:
@@ -205,7 +213,8 @@ def summarize(session):
     models = Counter()
     undated = 0
     total = 0
-    for r in read_jsonl(os.path.join(session, "catalog.jsonl")):
+    stats = {}
+    for r in compat.clean_lines(read_jsonl(os.path.join(session, "catalog.jsonl"), stats), compat.catalog_record, stats):
         total += 1
         kinds[r["kind"]] += 1
         sizes[r["kind"]] += r["length"]
@@ -220,7 +229,7 @@ def summarize(session):
     return {"total": total, "kinds": dict(kinds), "bytes": dict(sizes),
             "structure": {k: dict(v) for k, v in structure.items()},
             "months": dict(sorted(months.items())), "undated": undated,
-            "models": dict(models.most_common(10))}
+            "models": dict(models.most_common(10)), "skipped": stats.get("skipped", 0)}
 
 
 def print_summary(session):

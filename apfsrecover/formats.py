@@ -289,6 +289,8 @@ def zip_probe(dev, off, max_len):
 
 def zip_kind(names):
     """첫 항목들의 이름으로 docx/xlsx/pptx 를 구별한다. 아니면 'zip'."""
+    if any(n == "Contents/header.xml" or n.startswith("Contents/section") for n in names):
+        return "hwpx"  # 한글(HWPX)은 ZIP 구조이고 Contents/ 아래에 본문이 있다
     if names and names[0] == "[Content_Types].xml" or any(n == "[Content_Types].xml" for n in names):
         for pre, k in ZIP_OFFICE:
             if any(n.startswith(pre) for n in names):

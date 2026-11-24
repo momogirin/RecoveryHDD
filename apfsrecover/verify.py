@@ -17,6 +17,8 @@ from collections import Counter
 
 from .extract import load_catalog, load_extracted
 from .formats import BMFF_TYPES, jpeg_parse
+from . import compat
+from . import formats_more as fm
 from .jsonl import read_jsonl
 
 MAX_WHOLE_READ = 256 << 20
@@ -80,6 +82,44 @@ def _decode_image(path, tools):
     return None, None, ""
 
 
+def _sqlite_check(path):
+    import sqlite3
+    uri = "file:" + path.replace("\\", "/").replace("?", "%3f").replace("#", "%23") + "?mode=ro&immutable=1"
+    con = sqlite3.connect(uri, uri=True, timeout=10)
+    try:
+        return con.execute("PRAGMA quick_check").fetchone()[0]
+    finally:
+        con.close()
+
+
+def _verify_more(path, kind, size, tools, deep):
+    """PDF·한글·옛 오피스·PNG·GIF·WebP·AVI·WAV·BMP·RTF·7z·SQLite: 같은 판별 코드를 꺼낸 파일에 다시 돌려
+    길이와 구조가 맞는지 보고(structure), 가능한 것은 실제로 열어 본다(decode)."""
+    with fm.FileAt(path) as f:
+        rec = fm.probe(fm.KIND_PROBE[kind], f, 0, size)
+    if not rec or rec["kind"] != kind:
+        return {"status": "fail", "level": "structure", "reason": "구조를 확인하지 못함(잘렸거나 손상)"}
+    if rec["length"] != size:
+        return {"status": "fail", "level": "structure", "reason": "구조상 길이(%d)와 파일 크기(%d)가 다름" % (rec["length"], size)}
+    if rec["structure"] != "ok":
+        return {"status": "fail", "level": "structure", "reason": "구조 일부가 맞지 않음"}
+    if deep and kind in ("png", "gif", "webp", "bmp"):
+        ok, level, why = _decode_image(path, tools)
+        if ok is False:
+            return {"status": "fail", "level": level, "reason": why}
+        if ok:
+            return {"status": "ok", "level": level, "reason": ""}
+    if deep and kind == "sqlite" and size <= (1 << 30):
+        try:
+            res = _sqlite_check(path)
+        except Exception as e:  # sqlite3 는 다양한 예외를 낸다
+            return {"status": "fail", "level": "decode", "reason": "데이터베이스를 열지 못함: %s" % str(e)[:100]}
+        if res != "ok":
+            return {"status": "fail", "level": "decode", "reason": "데이터베이스 검사 결과: %s" % str(res)[:100]}
+        return {"status": "ok", "level": "decode", "reason": ""}
+    return {"status": "ok", "level": "structure", "reason": ""}
+
+
 def verify_file(path, kind, expected_size, tools, deep=True):
     """반환: {"status": ok|fail, "level": ..., "reason": ...}"""
     if not os.path.exists(path):
@@ -105,7 +145,9 @@ def verify_file(path, kind, expected_size, tools, deep=True):
             if ok:
                 return {"status": "ok", "level": level, "reason": ""}
         return {"status": "ok", "level": "structure", "reason": ""}
-    if kind in ("zip", "docx", "xlsx", "pptx"):
+    if kind in fm.KIND_PROBE:
+        return _verify_more(path, kind, size, tools, deep)
+    if kind in ("zip", "docx", "xlsx", "pptx", "hwpx"):
         import zipfile
         try:
             with zipfile.ZipFile(path) as z:
@@ -167,8 +209,7 @@ def load_summary(session):
     p = os.path.join(session, "verify_summary.json")
     if not os.path.exists(p):
         return None
-    with open(p, encoding="utf-8") as f:
-        return json.load(f)
+    return compat.verify_summary(compat.read_json(p, None))
 
 
 def load_failures(session, limit=200):
@@ -176,7 +217,7 @@ def load_failures(session, limit=200):
     if not os.path.exists(p):
         return []
     out = []
-    for r in read_jsonl(p):
+    for r in compat.clean_lines(read_jsonl(p), compat.verify_record):
         if r["status"] == "fail":
             out.append(r)
             if len(out) >= limit:
