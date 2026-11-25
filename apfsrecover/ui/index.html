@@ -136,7 +136,7 @@ button:focus-visible, .disk:focus-visible, .type:focus-visible { outline: 3px so
 .th { border-radius: 8px; position: relative; overflow: hidden; background: linear-gradient(160deg, var(--line), var(--line2)); }
 .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .th .lab { position: absolute; inset: 0; display: grid; place-items: center; color: var(--sub); font-size: 12px; font-weight: 600; }
-.th.v::before { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 18px; z-index: 1; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.th.v::before { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; border-style: solid; border-width: 10px 0 10px 16px; border-color: transparent transparent transparent #fff; transform: translate(-40%, -50%); filter: drop-shadow(0 1px 3px rgba(0,0,0,.5)); z-index: 1; }
 .th.v { background: linear-gradient(160deg, #3d3a5c, #1d1b30); }
 .sublead { margin-top: 18px; font-size: 14px; color: var(--sub); }
 
@@ -161,7 +161,7 @@ dialog h2 { margin: 0 0 10px; font-size: 19px; font-weight: 600; }
 dialog ul { margin: 8px 0 0 18px; padding: 0; color: var(--sub); }
 dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; align-items: center; }
 .dirs { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; background: var(--card); }
-.dirbtn { display: block; width: 100%; text-align: left; background: transparent; color: var(--text); border: 0; border-bottom: 1px solid var(--line); padding: 9px 12px; font: inherit; cursor: pointer; }
+.dirbtn { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: transparent; color: var(--text); border: 0; border-bottom: 1px solid var(--line); padding: 9px 12px; font: inherit; cursor: pointer; }
 .dirbtn:hover, .dirbtn:focus-visible { background: var(--accent-soft); }
 .places { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px; }
 .newrow { display: flex; gap: 8px; margin: 8px 0; }
@@ -486,6 +486,24 @@ main h1 { font-size: 18px; line-height: 28px; }
 .fails .fr .btn { width: 92px; min-width: 0; flex: none; }
 .fails .fr.done .mono { color: var(--sub); }
 
+/* v13: 정리해서 복사 */
+.oopts { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+.orow { display: flex; align-items: center; gap: 12px; height: 32px; }
+.orow .lab { width: 72px; flex: none; font-size: 14px; color: var(--sub); }
+.oopts .switch { height: auto; margin: 2px 0 0; color: var(--text); }
+.opv { margin: 14px 0 8px; }
+.oprev { padding: 4px 16px; }
+.oprev .pr { display: flex; align-items: center; gap: 10px; height: 34px; border-top: 1px solid var(--line); font-size: 12.5px; }
+.oprev .pr:first-child { border-top: 0; }
+.oprev .pr .a { width: 34%; flex: none; color: var(--sub); } .oprev .pr .ar { flex: none; color: var(--faint); } .oprev .pr .b { flex: 1; }
+.osum { margin-top: 4px; } .osum .big { font-size: 18px; font-weight: 600; height: 26px; } .osum .sub { font-size: 12.5px; height: 18px; }
+.split-r .pbar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.split-r .pbar i { display: block; height: 100%; background: var(--accent); }
+.split-r .c { font-size: 12.5px; color: var(--sub); min-height: 18px; }
+.olast { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 2px; }
+.olast:empty { display: none; }
+.olast .lt { display: flex; align-items: center; gap: 8px; font-size: 13px; } .olast .sub { font-size: 12.5px; } .olast .btn { align-self: flex-start; margin-top: 6px; }
+
 /* 홈 · 개요 */
 .secx { font-size: 13px; color: var(--sub); margin: 20px 0 8px; font-weight: 600; height: 20px; }
 .secx:first-child { margin-top: 0; }
@@ -531,6 +549,14 @@ main h1 { font-size: 18px; line-height: 28px; }
 .helpcard { padding: 6px 20px; } .helpcard ul { margin: 0; padding-left: 18px; } .helpcard li { margin: 10px 0; }
 .side { padding: 0; }
 @media (max-width: 760px) { .shell { min-width: 960px; } }
+.adv-ops { margin-top: 6px; }
+.adv-ops > summary { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border-radius: 10px; cursor: pointer; list-style: none; color: var(--text); }
+.adv-ops > summary::-webkit-details-marker { display: none; }
+.adv-ops > summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--sub); border-bottom: 2px solid var(--sub); transform: rotate(-45deg); transition: transform .15s; flex: none; }
+.adv-ops[open] > summary::before { transform: rotate(45deg); }
+.adv-ops > summary:hover { background: var(--line); } .adv-ops > summary b { flex: none; } .adv-ops > summary .hint { flex: 1; }
+.adv-ops[open] > summary { margin-bottom: 10px; }
+.okbanner .big svg.i { width: 24px; height: 24px; stroke-width: 3; }
 /* =====================================================================
    v6 꺼내기 전 탐색 (design/mockup/ui-v6-browse.html)
    고정 높이: 종류 줄 44 · 타임라인 92 · 아래 버튼 줄 64. 격자와 미리보기는 남은 높이 안에서 각자 스크롤.
@@ -544,6 +570,7 @@ main h1 { font-size: 18px; line-height: 28px; }
 .bx-kc b { font-weight: 600; } .bx-kc span { color: var(--sub); }
 .bx-kc.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); } .bx-kc.on span { color: var(--accent); }
 .bx-kc:disabled { opacity: .45; cursor: default; }
+.bx-kc i svg.i { width: 11px; height: 11px; stroke-width: 3; }
 .bx-kc i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 10px; line-height: 1; font-style: normal; }
 .bx-tl { flex: none; height: 92px; display: flex; flex-direction: column; padding-bottom: 6px; }
 .bx-tl .hd { flex: none; height: 30px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
@@ -576,7 +603,7 @@ main h1 { font-size: 18px; line-height: 28px; }
 .bxt .lab { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--sub); font-size: 12px; }
 .bxt .lab b { font-size: 14px; color: var(--text); letter-spacing: .5px; }
 .bxt.vid { background: linear-gradient(160deg, #3d3a5c, #1d1b30); }
-.bxt.vid::after { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 20px; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.bxt.vid::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; border-style: solid; border-width: 10px 0 10px 16px; border-color: transparent transparent transparent #fff; transform: translate(-40%, -50%); filter: drop-shadow(0 1px 3px rgba(0,0,0,.5)); z-index: 1; }
 .bxt .bx-cb { position: absolute; top: 6px; right: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); z-index: 2; }
 .bxt .bd { position: absolute; left: 6px; bottom: 6px; height: 18px; line-height: 18px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: rgba(0,0,0,.6); color: #fff; z-index: 2; }
 .bxt .bd.sus { top: 6px; bottom: auto; background: var(--warn); }
@@ -633,13 +660,16 @@ main h1 { font-size: 18px; line-height: 28px; }
   <symbol id="cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
   <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
   <symbol id="alert" viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+  <symbol id="up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/></symbol>
 </svg>
 <div class="shell">
   <nav class="side" aria-label="메뉴">
     <div class="grp"><button class="nv" type="button" data-v="home"><svg class="i"><use href="#home"/></svg><span class="ell">홈</span></button></div>
     <div class="sep"></div>
-    <div class="shead"><b>장치 목록</b><button class="iconbtn" type="button" id="u-refresh" title="장치 목록 새로 고침">⟳</button></div>
+    <div class="shead"><b>장치 목록</b><button class="iconbtn" type="button" id="u-refresh" title="장치 목록 새로 고침" aria-label="장치 목록 새로 고침"><svg class="i"><use href="#refresh"/></svg></button></div>
     <div class="units" id="units"></div>
     <div class="sep"></div>
     <div class="shead"><b>시스템</b></div>
@@ -671,6 +701,8 @@ main h1 { font-size: 18px; line-height: 28px; }
           <div class="c ell num" id="op-base-c"></div></div>
         <div class="act" id="op-base-act"></div>
       </div>
+      <details class="adv-ops" id="adv-ops">
+        <summary><b>고급 검사</b><span class="hint ell">기본 검사로 부족할 때 · 끝부분 촘촘 검사 · 파티션 찾기 · 전체 검사</span></summary>
       <div class="card op tall" id="tail-card">
         <div class="tx"><div class="a"><span class="ell">끝부분 촘촘 검사</span><span class="chip" id="tail-chip">-</span></div>
           <div class="b ell" id="tail-desc">기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.</div>
@@ -693,6 +725,7 @@ main h1 { font-size: 18px; line-height: 28px; }
           <div class="c ell" id="op-full-c"></div></div>
         <div class="act" id="op-full-act"></div>
       </div>
+    </details>
     </section>
 
     <!-- 장치 > 검사: 진행 -->
@@ -751,10 +784,38 @@ main h1 { font-size: 18px; line-height: 28px; }
         <div class="a"><span class="ell">디스크 백업 (이미지 파일)</span><span class="chip pause" id="bak-chip">-</span></div>
         <div class="b ell" id="bak-msg"></div>
         <div class="brow"><span class="lab">복사할 범위</span><span class="seg" id="bak-range"></span></div>
-        <div class="brow"><span class="lab">저장할 폴더</span><div class="field"><span>📁</span><span class="path empty" id="bak-dest">폴더를 선택하세요</span></div><button class="btn" id="bak-pick" type="button">폴더 선택</button></div>
+        <div class="brow"><span class="lab">저장할 폴더</span><div class="field"><svg class="i"><use href="#folder"/></svg><span class="path empty" id="bak-dest">폴더를 선택하세요</span></div><button class="btn" id="bak-pick" type="button">폴더 선택</button></div>
         <div class="c ell num" id="bak-need"></div>
         <div class="pbar"><i id="bak-bar" style="width:0%"></i></div>
         <div class="c ell num" id="bak-c"></div>
+      </div>
+    </section>
+
+    <!-- 장치 > 정리해서 복사 -->
+    <section class="screen" id="s-organize">
+      <div class="split org">
+        <div class="split-l">
+          <h1 class="ell">정리해서 복사</h1>
+          <p class="lead ell">꺼낸 파일을 날짜별로 정리해 다른 곳에 복사해요. 꺼낸 폴더와 원본 하드는 바꾸지 않아요.</p>
+          <div class="card oopts">
+            <div class="orow"><span class="lab">파일 이름</span><span class="seg" id="org-rename"></span></div>
+            <div class="orow"><span class="lab">폴더</span><span class="seg" id="org-layout"></span></div>
+            <div class="orow"><span class="lab">종류</span><span class="seg" id="org-merge"></span></div>
+            <div class="orow"><span class="lab">대상</span><span class="seg multi" id="org-groups"></span></div>
+            <div class="switch" id="org-review" role="switch" tabindex="0" aria-checked="true"><span class="tg"></span><span>날짜를 모르는 것 · 작은 사진 · 깨졌을 수 있는 것은 <b>_확인용</b> 폴더로</span></div>
+          </div>
+          <div class="sec opv">미리보기</div>
+          <div class="card oprev" id="org-prev"></div>
+        </div>
+        <aside class="card split-r">
+          <div class="sec">저장할 곳</div>
+          <div class="field"><span>📁</span><span class="path empty" id="org-out">폴더를 선택하세요</span></div>
+          <div class="row prow"><div class="free" id="org-free"></div><button class="btn" id="org-pick" type="button">폴더 선택</button></div>
+          <div class="osum" id="org-sum"></div>
+          <div class="pbar"><i id="org-bar" style="width:0%"></i></div>
+          <div class="c ell num" id="org-c"></div>
+          <div class="olast" id="org-last"></div>
+        </aside>
       </div>
     </section>
 
@@ -780,6 +841,7 @@ main h1 { font-size: 18px; line-height: 28px; }
         <li>꺼낸 파일은 항상 원본 장치가 아닌 다른 곳에만 저장해요. 원본 장치 안의 폴더는 고를 수 없어요.</li>
         <li>장치가 목록에 안 보이면 케이블과 전원을 확인하고 다시 연결해 보세요. 연결하면 몇 초 안에 목록에 나타나요.</li>
         <li>프로그램은 관리자 권한으로 실행돼야 장치를 읽을 수 있어요. 컴퓨터 안의 시스템·내장 디스크는 [설정]에서 켜야 보여요.</li>
+        <li>용어: <b>검사</b> = 디스크를 훑어 파일 찾기(딥 스캔) · <b>꺼내기</b> = 복구 · <b>열림 확인</b> = 복구한 파일이 열리는지 검증 · <b>의심</b> = 구조가 일부 맞지 않아 열리지 않을 수 있는 파일 · <b>고급 검사</b> = 기본 검사로 못 찾은 것을 더 찾는 방법들.</li>
         <li>창을 닫으면 프로그램이 끝나요. 작업 중에는 닫기를 막아요. 멈춘 뒤 닫으면 나중에 이어서 할 수 있어요.</li>
       </ul></div>
     </section>
@@ -802,7 +864,7 @@ main h1 { font-size: 18px; line-height: 28px; }
   <div class="dirs" id="pk-dirs"></div>
   <div id="pk-problems"></div>
   <div class="newrow" id="pk-newrow" hidden><input type="text" id="pk-name" placeholder="새 폴더 이름" maxlength="100"><button class="btn" id="pk-make" type="button">만들기</button></div>
-  <div class="acts"><button class="btn ghost" id="pk-up" type="button">↑ 상위 폴더</button><button class="btn ghost" id="pk-new" type="button">＋ 새 폴더</button>
+  <div class="acts"><button class="btn ghost" id="pk-up" type="button"><svg class="i"><use href="#up"/></svg>상위 폴더</button><button class="btn ghost" id="pk-new" type="button"><svg class="i"><use href="#plus"/></svg>새 폴더</button>
     <span class="sp"></span><button class="btn" id="pk-cancel" type="button">취소</button><button class="btn primary" id="pk-ok" type="button">이 폴더 선택</button></div>
 </dialog>
 
@@ -834,12 +896,12 @@ main h1 { font-size: 18px; line-height: 28px; }
 const T = new URLSearchParams(location.search).get('token') || '';
 const $ = (s, r = document) => r.querySelector(s);
 const GROUPS = {  // dir 은 엔진(extract.KIND_DIR)이 쓰는 폴더 이름과 같아야 한다(진행 화면의 종류별 막대가 이 이름으로 맞춰진다)
-  photo: { label: '사진', sub: 'JPEG · PNG · GIF · WebP · HEIC · BMP', icon: '📷', kinds: ['jpeg', 'heic', 'png', 'gif', 'webp', 'bmp'], unit: '장', dir: '사진' },
-  raw: { label: 'RAW 사진', sub: 'Canon CR3', icon: '🎞️', kinds: ['raw-cr3'], unit: '장', dir: 'RAW' },
-  video: { label: '영상', sub: 'MP4 · MOV · AVI', icon: '🎬', kinds: ['video-mp4', 'video-mov', 'avi'], unit: '개', dir: '영상' },
-  doc: { label: '문서', sub: 'PDF · 한글 · 오피스 · RTF', icon: '📄', kinds: ['pdf', 'hwp', 'hwpx', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'rtf'], unit: '개', dir: '문서' },
-  zip: { label: '압축', sub: 'ZIP · 7z', icon: '🗜️', kinds: ['zip', '7z'], unit: '개', dir: '압축' },
-  misc: { label: '음성·데이터', sub: 'WAV · SQLite', icon: '🎵', kinds: ['wav', 'sqlite'], unit: '개', dir: '음성·데이터' },
+  photo: { label: '사진', sub: 'JPEG · PNG · GIF · WebP · HEIC · BMP', kinds: ['jpeg', 'heic', 'png', 'gif', 'webp', 'bmp'], unit: '장', dir: '사진' },
+  raw: { label: 'RAW 사진', sub: 'Canon CR3', kinds: ['raw-cr3'], unit: '장', dir: 'RAW' },
+  video: { label: '영상', sub: 'MP4 · MOV · AVI', kinds: ['video-mp4', 'video-mov', 'avi'], unit: '개', dir: '영상' },
+  doc: { label: '문서', sub: 'PDF · 한글 · 오피스 · RTF', kinds: ['pdf', 'hwp', 'hwpx', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'rtf'], unit: '개', dir: '문서' },
+  zip: { label: '압축', sub: 'ZIP · 7z', kinds: ['zip', '7z'], unit: '개', dir: '압축' },
+  misc: { label: '음성·데이터', sub: 'WAV · SQLite', kinds: ['wav', 'sqlite'], unit: '개', dir: '음성·데이터' },
 };
 const FMT = { Apple_APFS: 'APFS 형식', 'disk-image': '디스크 이미지', RAW: '형식 없음(초기화 안 됨)', Microsoft_Basic_Data: 'Windows 형식', Apple_HFS: 'Mac OS 확장 형식' };
 const STEPS = ['디스크', '복구 설정', '진행 · 결과'];
@@ -850,9 +912,10 @@ const S = { screen: 'home', view: 'home', tab: 'over', units: [], unit: null, cu
   check: null, banners: {}, stripKey: '', ended: false, pausing: false, dur: {}, lost: false, lastOk: 0 };
 
 // ---- 안전한 DOM 생성 (서버가 준 문자열은 항상 textContent 로만 넣는다) ----
+const BOOL_ATTR = new Set(['disabled', 'hidden', 'checked', 'readonly', 'selected']);  // false 면 속성을 아예 붙이지 않는다(붙이면 켜진 것으로 본다)
 function h(tag, attrs, ...kids) {
   const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else e.setAttribute(k, v); }
+  for (const [k, v] of Object.entries(attrs || {})) { if ((v === false || v == null) && BOOL_ATTR.has(k)) continue; if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else e.setAttribute(k, v); }
   for (const c of kids.flat()) if (c != null && c !== false) e.append(c instanceof Node ? c : document.createTextNode(String(c)));
   return e;
 }
@@ -917,8 +980,8 @@ function setActions(...items) {
   $('#actions').style.display = left.length || right.some(x => x instanceof Node) ? '' : 'none';
 }
 // ---- 화면 전환: 사이드바(홈 / 장치 목록 / 시스템) + 장치 화면의 탭 ----
-const TABS = [['over', '개요'], ['scan', '검사'], ['ext', '추출'], ['res', '결과'], ['bak', '백업'], ['fmt', '포맷 점검']];
-const SCREEN_TAB = { over: 'over', scanops: 'scan', scan: 'scan', settings: 'ext', run: 'ext', result: 'res', backup: 'bak', fmt: 'fmt' };
+const TABS = [['over', '개요'], ['scan', '검사'], ['ext', '추출'], ['res', '결과'], ['org', '정리'], ['bak', '백업'], ['fmt', '포맷 점검']];
+const SCREEN_TAB = { over: 'over', scanops: 'scan', scan: 'scan', settings: 'ext', run: 'ext', result: 'res', organize: 'org', backup: 'bak', fmt: 'fmt' };
 const PAGE = { home: ['홈', ''], prefs: ['설정', '기록 폴더, 장치 목록에 보일 장치, 화면 테마'], help: ['도움말', 'RecoveryHDD · 원본 장치는 읽기만 합니다'] };
 const curUnit = () => S.units.find(u => u.key === S.unit) || null;
 const jobMine = j => !!(j && S.curSid && j.session === S.curSid);
@@ -948,6 +1011,7 @@ function go(name) {
   if (name === 'result') loadResult();
   if (name === 'fmt') loadFormatCheck();
   if (name === 'backup') loadBackup();
+  if (name === 'organize') loadOrganize();
   if (name === 'prefs') loadPrefs();
   if (name === 'help') setActions('|', btn('장치 목록 새로 고침', '', () => loadUnits('fresh')));
 }
@@ -959,9 +1023,10 @@ function openTab(t) {
   if (t === 'ext') return go((mine && (j.kind === 'extract' || j.kind === 'verify' || j.kind === 'auto')) || S.hold === 'run' ? 'run' : 'settings');
   if (t === 'res') return go('result');
   if (t === 'bak') return go('backup');
+  if (t === 'org') return go('organize');
   if (t === 'fmt') return go('fmt');
 }
-function tabOk(t) { const u = curUnit(); if (!u) return false; if (t === 'over' || t === 'scan' || t === 'bak') return true; return !!u.sid && (u.found > 0 || u.extracted > 0); }
+function tabOk(t) { const u = curUnit(); if (!u) return false; if (t === 'over' || t === 'scan' || t === 'bak') return true; if (t === 'org') return !!u.extracted; return !!u.sid && (u.found > 0 || u.extracted > 0); }
 function renderNav() {
   document.querySelectorAll('.nv').forEach(n => n.classList.toggle('on', n.dataset.v === S.view));
   document.querySelectorAll('.un').forEach(n => n.classList.toggle('on', S.view === 'unit' && n.dataset.key === S.unit));
@@ -1174,6 +1239,9 @@ async function loadScanOps() {
   const fc = u.scanned != null && u.size ? (u.scanned >= u.size ? '이미 전체를 검사했어요' : '아직 안 읽은 구간 ' + fmtSize(u.size - u.scanned)) : '';
   $('#op-full-c').textContent = fc;
   loadTail(); loadParts();
+  // 고급 검사가 돌고 있거나 멈춰 있으면 접어 두지 않는다
+  const adv = run && jobMine(S.job) && ['tail', 'partfind'].includes(S.job.kind) || (it && ['tail', 'partfind'].includes(it.kind));
+  if (adv) $('#adv-ops').open = true;
 }
 
 // ---- 장치 > 검사 > 끝부분 촘촘 검사 ----
@@ -1231,11 +1299,12 @@ const SIDE = {
       c1: '살펴본 위치 ' + num(p.done || 0) + ' / ' + num(p.total || 0) + ' · 찾은 시작 표시 ' + num(p.found || 0) + '개', c2: '원본은 읽기만 해요' }); partActions(true); },
     done: () => loadScanOps() },
   backup: { screen: 'backup', tick: j => bakTick(j), done: () => loadBackup() },
+  organize: { screen: 'organize', tick: j => orgTick(j), done: () => loadOrganize() },
   names: { screen: 'result', tick: j => { const p = j.progress || {}; namesSet('찾는 중', '', p.total ? '꺼낸 파일 ' + num(p.done || 0) + ' / ' + num(p.total) + ' 확인 · 이름 찾음 ' + num(p.matched || 0) + '개' : 'APFS 파일 목록을 읽고 있어요(원본은 읽기만 해요)', true); },
     done: j => { if (j.result && j.result.names_error) banner('warn', '원래 이름을 찾지 못했어요: ' + j.result.names_error, 'msg'); loadResult(); } },
 };
-KIND_TXT.partfind = '파티션 찾기'; KIND_TXT.backup = '디스크 백업'; KIND_TXT.names = '원래 이름 찾기';
-const KIND_SCREEN = { scan: 'scan', tail: 'scanops', partfind: 'scanops', backup: 'backup', names: 'result' };
+KIND_TXT.partfind = '파티션 찾기'; KIND_TXT.backup = '디스크 백업'; KIND_TXT.names = '원래 이름 찾기'; KIND_TXT.organize = '정리해서 복사';
+const KIND_SCREEN = { scan: 'scan', tail: 'scanops', partfind: 'scanops', backup: 'backup', names: 'result', organize: 'organize' };
 function sidePoll() { if (S.sidePolling) return; S.sidePolling = true; sideTick(); }
 async function sideTick() {
   let j; try { j = (await api('/api/job')).job; } catch (e) { setTimeout(sideTick, 2000); return; }
@@ -1254,7 +1323,7 @@ async function sideTick() {
 }
 const tailPoll = sidePoll;
 async function startSide(path, body, kind) {
-  try { await api(path, Object.assign({ device_id: S.sel }, body || {})); S.job = { kind, state: 'running', session: S.curSid, progress: {} }; statusBar(); sidePoll(); if (SIDE[kind].screen === S.screen) SIDE[kind].tick(S.job); }
+  try { await api(path, Object.assign(S.sel ? { device_id: S.sel } : {}, body || {})); S.job = { kind, state: 'running', session: S.curSid, progress: {} }; statusBar(); sidePoll(); if (SIDE[kind].screen === S.screen) SIDE[kind].tick(S.job); }
   catch (e) { banner('bad', e.message, 'msg'); }
 }
 
@@ -1362,6 +1431,78 @@ async function loadBackup() {
 }
 $('#bak-pick').onclick = async () => {
   try { const r = await api('/api/fs/pick', { path: S.bakDest || '' }); if (r.path) { S.bakDest = r.path; loadBackup(); } }
+  catch (e) { toast(e.message); }
+};
+
+
+// ---- 정리해서 복사 ----
+const ORG = { out: '', opts: { rename: 'time', layout: 'ymd', merge: true, review: true, groups: ['photo', 'raw', 'video'] }, t: null, seq: 0 };
+const ORG_SEG = {
+  'org-rename': ['rename', [['time', '촬영 시각+카메라'], ['orig', '원래 이름']]],
+  'org-layout': ['layout', [['ymd', '연도 › 월 › 날짜'], ['day', '날짜만']]],
+  'org-merge': ['merge', [[true, '날짜 폴더에 합치기'], [false, '사진·RAW·영상 따로']]],
+};
+const ORG_GROUPS = [['photo', '사진'], ['raw', 'RAW'], ['video', '영상'], ['docs', '문서·압축']];
+function orgOpts(running) {
+  Object.entries(ORG_SEG).forEach(([id, [k, list]]) => { const box = clear($('#' + id));
+    list.forEach(([v, l]) => box.append(h('button', { type: 'button', class: ORG.opts[k] === v ? 'on' : '', disabled: running, onclick: () => { ORG.opts[k] = v; orgOpts(); orgCheck(); } }, l))); });
+  const g = clear($('#org-groups'));
+  ORG_GROUPS.forEach(([v, l]) => g.append(h('button', { type: 'button', class: ORG.opts.groups.includes(v) ? 'on' : '', disabled: running,
+    onclick: () => { const a = ORG.opts.groups; ORG.opts.groups = a.includes(v) ? a.filter(x => x !== v) : a.concat(v); orgOpts(); orgCheck(); } }, (ORG.opts.groups.includes(v) ? '✓ ' : '') + l)));
+  const sw = $('#org-review'); sw.querySelector('.tg').classList.toggle('off', !ORG.opts.review); sw.setAttribute('aria-checked', String(ORG.opts.review));
+  sw.onclick = running ? null : () => { ORG.opts.review = !ORG.opts.review; orgOpts(); orgCheck(); };
+}
+function orgSetText(id, t) { const e = $(id); e.textContent = t || ''; e.title = t || ''; }
+function orgCheck() { clearTimeout(ORG.t); ORG.t = setTimeout(orgCheckNow, 250); }
+async function orgCheckNow() {
+  const seq = ++ORG.seq;
+  let r; try { r = await api('/api/organize/check', Object.assign({ out: ORG.out, opts: ORG.opts }, S.sel ? { device_id: S.sel } : {})); } catch (e) { banner('bad', e.message, 'msg'); return; }
+  if (seq !== ORG.seq || S.screen !== 'organize' || jobRunning()) return;
+  $('#org-out').textContent = ORG.out || '폴더를 선택하세요'; $('#org-out').classList.toggle('empty', !ORG.out); $('#org-out').title = ORG.out || '';
+  orgSetText('#org-free', r.free != null ? '여유 공간 ' + fmtSize(r.free) : '');
+  const c = r.counts || {}, present = r.present || 0;
+  const sum = clear($('#org-sum'));
+  sum.append(h('div', { class: 'big num' }, num(r.files) + '개 · ' + fmtSize(r.bytes)),
+    h('div', { class: 'sub ell' }, [c.undated ? '날짜불명 ' + num(c.undated) : '', c.small ? '작은 사진 ' + num(c.small) : '', c.suspect ? '깨졌을 수 있음 ' + num(c.suspect) : '', c.docs ? '문서·압축 ' + num(c.docs) : ''].filter(Boolean).join(' · ') || ' '),
+    h('div', { class: 'sub ell' }, c.extra ? '직접 넣은 파일(압축 푼 사진 등) ' + num(c.extra) + '개 포함' : ' '),
+    h('div', { class: 'sub ell' }, present ? '이미 복사돼 있는 것 ' + fmtSize(present) + ' — 남은 것만 복사해요' : ' '));
+  $('#org-bar').style.width = (r.bytes ? 100 * present / r.bytes : 0).toFixed(1) + '%';
+  orgSetText('#org-c', '');
+  const pv = clear($('#org-prev'));
+  if (!r.samples.length) pv.append(h('div', { class: 'pr sub' }, '복사할 파일이 없어요.'));
+  r.samples.forEach(([a, b]) => pv.append(h('div', { class: 'pr' }, h('span', { class: 'mono ell a', title: a }, a), h('span', { class: 'ar' }, '→'), h('span', { class: 'mono ell b', title: b }, b))));
+  orgLast(r.last);
+  const why = jobRunning() ? '다른 작업이 실행 중이에요' : (r.reasons || [])[0] || '';
+  setActions('|', why, btn(present && present < r.bytes ? '이어서 복사' : '정리해서 복사 시작', 'primary', async () => {
+    if (!(await ask('정리해서 복사할까요?', num(r.files) + '개(' + fmtSize(r.bytes - present) + ')를 ' + ORG.out + ' 에 복사하고, 다 되면 하나씩 다시 읽어 제대로 복사됐는지 확인해요. 꺼낸 폴더는 바꾸지 않아요.', '시작'))) return;
+    startSide('/api/organize/start', { out: ORG.out, opts: ORG.opts }, 'organize'); }, { disabled: !r.ok || jobRunning() }));
+}
+function orgLast(last) {
+  const box = clear($('#org-last')); if (!last) return;
+  const bad = last.mismatch;
+  box.append(h('div', { class: 'lt' }, chip(!last.finished ? 'pause' : bad ? 'bad' : 'ok', !last.finished ? '멈춤' : bad ? '불일치 ' + num(bad) : '완료'),
+    h('span', { class: 'ell', title: last.dir }, '지난번 ' + (last.at || '') )),
+    h('div', { class: 'sub ell', title: last.dir }, last.dir),
+    h('div', { class: 'sub ell' }, num(last.files) + '개 · 확인 ' + num(last.checked) + '개' + (last.finished ? (bad ? ' · 다르게 복사된 것 ' + num(bad) + '개' : ' · 모두 같음') : ' · 중간에 멈춤')),
+    btn('폴더 열기', 'small', () => api('/api/organize/open', {}).catch(e => banner('bad', e.message, 'msg'))));
+}
+function orgTick(j) {
+  const p = j.progress || {}, ver = j.phase === 'verify';
+  orgOpts(true);
+  $('#org-bar').style.width = (p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : 0).toFixed(1) + '%';
+  orgSetText('#org-c', (ver ? '2/2 제대로 복사됐는지 확인 ' : '1/2 복사 ') + num(p.done || 0) + ' / ' + num(p.total || 0) + '개 · ' + fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0) + (p.eta_s != null ? ' · 남은 시간 ' + fmtEta(p.eta_s) : ''));
+  setActions('|', '멈춰도 다시 시작하면 남은 것만 복사해요', btn('멈추기', '', cancelJob));
+}
+async function loadOrganize() {
+  const u = curUnit(); if (!u) return;
+  if (!ORG.out) { try { const l = (await api('/api/organize')).last; if (l && l.dir) { ORG.out = l.dir; if (l.opts) ORG.opts = Object.assign({}, ORG.opts, l.opts); } } catch (e) { } }
+  if (S.screen !== 'organize') return;
+  const j = S.job;
+  if (j && j.state === 'running' && j.kind === 'organize' && jobMine(j)) { orgTick(j); return sidePoll(); }
+  orgOpts(false); orgCheck();
+}
+$('#org-pick').onclick = async () => {
+  try { const r = await api('/api/fs/pick', { path: ORG.out || '' }); if (r.path) { ORG.out = r.path; orgCheck(); } }
   catch (e) { toast(e.message); }
 };
 
@@ -1797,7 +1938,7 @@ function bxRenderKinds() {
     const on = !!S.kinds[k];
     const b = h('button', { class: 'bx-kc' + (on ? ' on' : ''), type: 'button', 'aria-pressed': String(on),
       title: g.label + ' ' + num(rs.length) + g.unit + ' · ' + fmtSize(rs.reduce((a, r) => a + r.length, 0)) + ' (' + g.sub + ')' },
-      h('i', {}, on ? '✓' : ''), h('b', {}, g.label), h('span', {}, num(rs.length)));
+      h('i', {}, on ? ico('check') : null), h('b', {}, g.label), h('span', {}, num(rs.length)));
     if (!rs.length && !on) b.disabled = true;
     b.onclick = () => { S.kinds[k] = !on; bxRender(); };
     box.append(b);
@@ -1906,7 +2047,7 @@ function bxPaint() {
     gin.style.height = 'auto';
     const none = !BX.items.some(r => r.g);
     clear(gin).append(none
-      ? h('div', { class: 'bx-empty' }, h('b', {}, scanningHere() ? '아직 찾은 파일이 없어요' : '찾은 파일이 없어요'), scanningHere() ? '찾는 대로 여기에 나타나요.' : '데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 다른 검사로 더 찾아볼 수 있어요.')
+      ? h('div', { class: 'bx-empty' }, h('b', {}, scanningHere() ? '아직 찾은 파일이 없어요' : '찾은 파일이 없어요'), scanningHere() ? '찾는 대로 여기에 나타나요.' : '데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 ‘고급 검사’로 더 찾아볼 수 있어요.')
       : h('div', { class: 'bx-empty' }, h('b', {}, '조건에 맞는 파일이 없어요'), '종류·기간·카메라·판정 조건을 바꿔 보세요. ',
         h('button', { class: 'linkish', type: 'button', onclick: bxResetFilters }, '조건 모두 해제')));
     return;
@@ -2116,7 +2257,7 @@ async function loadResult() {
   const good = verified && !fail && !fixed; clear(box);
   $('#res-title').textContent = rem ? '일부를 꺼냈습니다' : '복구를 마쳤습니다';
   box.append(h('div', { class: 'okbanner' + (good ? '' : ' warn') },
-    h('div', { class: 'big' }, good ? '✓' : '!'),
+    h('div', { class: 'big' }, ico(good ? 'check' : 'alert')),
     h('div', {}, h('div', { class: 't' }, rem ? '지금까지 ' + num(r.files) + '개를 꺼냈습니다. 아직 ' + num(rem) + '개가 남았습니다'
         : !vs ? num(r.files) + '개를 꺼냈습니다'
         : fail ? num(r.files) + '개를 꺼냈고, ' + num(fail) + '개는 확인이 필요합니다' + (fixed ? ' · ZIP ' + num(fixed) + '개는 복원본으로 열 수 있어요' : '')
@@ -2179,7 +2320,7 @@ async function pkLoadPlaces() {
   try {
     const r = await api('/api/fs/places?' + dq().slice(1));
     r.places.forEach(p => box.append(h('button', { class: 'btn small', type: 'button', onclick: () => pkGo(p.path), title: p.path },
-      (p.external ? '💾 ' : '') + p.name + (p.free != null ? ' (' + fmtSize(p.free) + ' 여유)' : ''))));
+      p.external ? ico('disk') : null, p.name + (p.free != null ? ' (' + fmtSize(p.free) + ' 여유)' : ''))));
   } catch (e) { }
 }
 async function pkGo(path) {
@@ -2194,7 +2335,7 @@ async function pkGo(path) {
   $('#pk-info').textContent = (r.free != null ? '여유 공간 ' + fmtSize(r.free) : '') + (r.writable ? '' : ' · 쓸 수 없는 폴더');
   const box = clear($('#pk-dirs'));
   if (!r.entries.length) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, '(하위 폴더 없음)'));
-  r.entries.forEach(e => box.append(h('button', { class: 'dirbtn', type: 'button', onclick: () => pkGo(e.path) }, '📁 ' + e.name)));
+  r.entries.forEach(e => box.append(h('button', { class: 'dirbtn', type: 'button', onclick: () => pkGo(e.path) }, ico('folder'), e.name)));
   if (r.truncated) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, '폴더가 너무 많아 일부만 보여 줍니다.'));
   const pr = clear($('#pk-problems')); PK.ok = !r.problems.length && r.writable;
   if (r.problems.length) pr.append(h('div', { class: 'notice bad' }, h('span', { class: 't' }, r.problems.join(' / '))));
