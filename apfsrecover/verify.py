@@ -3,8 +3,9 @@
 검증 수준(level)을 결과에 같이 기록해서, 무엇까지 확인했는지 숨기지 않는다.
   structure : 파일 구조가 처음부터 끝까지 맞는지(JPEG 마커/EOI, MP4·CR3 박스 합계=파일 크기)
   decode    : 이미지를 끝까지 디코딩해 봄 (Pillow 가 있을 때, 또는 macOS sips)
-  probe     : ffprobe 로 영상 메타데이터를 읽어 봄 (ffprobe 가 있을 때)
-재생·현상 프로그램에서의 열림은 확인하지 않는다.
+  probe     : ffprobe 로 영상 메타데이터를 읽어 봄 (ffprobe 만 있을 때)
+  play      : ffmpeg 로 영상의 끝부분을 실제로 풀어 봄 (ffmpeg 가 있을 때, media.py)
+RAW 현상 프로그램에서의 열림은 확인하지 않는다.
 """
 import json
 import os
@@ -20,20 +21,22 @@ from .formats import BMFF_TYPES, jpeg_parse
 from . import compat
 from . import formats_more as fm
 from . import zipfix
+from . import media
 from .jsonl import read_jsonl
 
 MAX_WHOLE_READ = 256 << 20
 
 
 def available_tools():
-    tools = {"pillow": False, "sips": False, "ffprobe": False}
+    tools = {"pillow": False, "sips": False, "ffprobe": False, "ffmpeg": False}
     try:
         import PIL  # noqa: F401
         tools["pillow"] = True
     except ImportError:
         pass
     tools["sips"] = sys.platform == "darwin" and shutil.which("sips") is not None
-    tools["ffprobe"] = shutil.which("ffprobe") is not None
+    tools["ffprobe"] = media.find_tool("ffprobe") is not None
+    tools["ffmpeg"] = media.find_tool("ffmpeg") is not None
     return tools
 
 
@@ -165,8 +168,14 @@ def verify_file(path, kind, expected_size, tools, deep=True):
     need = {b"meta", b"mdat"} if kind == "heic" else {b"moov", b"mdat"}
     if not need <= seen:
         return {"status": "fail", "level": "structure", "reason": "필수 박스 없음"}
+    if deep and kind in ("video-mp4", "video-mov") and tools.get("ffmpeg"):
+        ok, why = media.play_check(path)
+        if ok is False:
+            return {"status": "fail", "level": "play", "reason": why}
+        if ok:
+            return {"status": "ok", "level": "play", "reason": ""}
     if deep and kind in ("video-mp4", "video-mov") and tools["ffprobe"]:
-        r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+        r = subprocess.run([media.find_tool("ffprobe") or "ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
                            capture_output=True, text=True, timeout=120,
                            creationflags=0x08000000 if os.name == "nt" else 0)  # 윈도우: 검은 창이 뜨지 않게
         if r.returncode != 0 or r.stderr.strip():

@@ -69,7 +69,7 @@ def _inside(path, base):
 
 
 def thumbnail(path):
-    """저장 폴더 안의 사진 한 장의 작은 미리보기(JPEG 바이트). 만들 수 없으면 None."""
+    """저장 폴더 안의 사진 한 장의 작은 미리보기(JPEG 바이트). 영상은 첫 장면(ffmpeg 가 있을 때). 만들 수 없으면 None."""
     try:
         st = os.stat(path)
     except OSError:
@@ -78,6 +78,11 @@ def thumbnail(path):
     if key in _thumbs:
         return _thumbs[key]
     data = None
+    if path.lower().endswith((".mp4", ".mov", ".avi")):
+        from . import media
+        data = media.video_frame(path, THUMB_PX)
+        _thumbs[key] = data
+        return data
     try:
         from PIL import Image, ImageOps
         with Image.open(path) as im:

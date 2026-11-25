@@ -1725,7 +1725,9 @@ async function refreshStrip() {
 }
 function thumbEl(it) {  // 칸 크기는 CSS 가 고정(96x72 / 128x96)
   if (it.kind === 'jpeg') { const el = h('div', { class: 'th' }, h('img', { src: thumbUrl(it.path), alt: '' })); el.querySelector('img').onerror = e => { e.target.remove(); el.append(h('span', { class: 'lab' }, '사진')); }; return el; }
-  if (it.kind && it.kind.startsWith('video')) return h('div', { class: 'th v' });
+  if (it.kind && it.kind.startsWith('video')) {  // 첫 장면(ffmpeg 가 있을 때). 없으면 영상 표시만
+    const el = h('div', { class: 'th v' }); if (!it.path) return el;
+    const img = h('img', { src: thumbUrl(it.path), alt: '' }); img.onerror = () => img.remove(); el.append(img); return el; }
   return h('div', { class: 'th' }, h('span', { class: 'lab' }, it.kind === 'raw-cr3' ? 'RAW' : '파일'));
 }
 const cancelJob = () => api('/api/job/cancel', {}).catch(() => { });
@@ -2302,8 +2304,9 @@ async function loadResult() {
     det.append(h('p', {}, h('span', { class: 'mono' }, f.path), ' → 복원본 ', h('span', { class: 'mono' }, sv.path || ''), ' (온전한 항목 ' + num(sv.entries || 0) + '개' + (sv.lost ? ', 마지막 항목 하나는 잘려서 뺐어요' : '') + ')')); });
   if (r.suspect) det.append(h('p', {}, '깨졌을 수 있는 파일 ' + num(r.suspect) + '개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.'));
   if (r.duplicates) det.append(h('p', {}, '내용이 같은 파일 ' + num(r.duplicates) + '개는 하나만 저장했습니다.'));
-  if (vs) det.append(h('p', {}, '검증 수준: ' + Object.entries(vs.levels).map(([k, n]) => ({ structure: '구조 확인', decode: '사진 끝까지 열기', probe: '영상 정보 읽기' }[k] || k) + ' ' + num(n)).join(', ')
-    + '. 재생 프로그램이나 RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.'));
+  if (vs) det.append(h('p', {}, '검증 수준: ' + Object.entries(vs.levels).map(([k, n]) => ({ structure: '구조 확인', decode: '사진 끝까지 열기', probe: '영상 정보 읽기', play: '영상 끝부분 재생' }[k] || k) + ' ' + num(n)).join(', ')
+    + (vs.levels.play ? '. 영상은 끝부분을 실제로 재생해 봤습니다(처음부터 끝까지 본 것은 아닙니다). RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.'
+      : '. 재생 프로그램이나 RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.' + (vs.levels.probe || vs.levels.structure ? ' ffmpeg 가 있으면 영상도 재생까지 확인해요.' : ''))));
   else det.append(h('p', {}, '아직 열림 확인을 하지 않았습니다.'));
   det.append(h('p', {}, '원래 파일명과 폴더 구조는 복구할 수 없습니다. 지워진 옛 파일이 섞여 있을 수 있습니다.'));
   box.append(det);
