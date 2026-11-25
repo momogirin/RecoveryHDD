@@ -44,7 +44,7 @@ def _check_session(session):
 
 
 SESSION_FILES = ("catalog.jsonl", "progress.json", "extracted.jsonl", "failed.jsonl", "run_state.json",
-                 "plan.json", "verify.jsonl", "verify_summary.json", "duplicates.jsonl")
+                 "plan.json", "verify.jsonl", "verify_summary.json", "duplicates.jsonl", "tail_check.json")
 
 
 def archive_session(session):

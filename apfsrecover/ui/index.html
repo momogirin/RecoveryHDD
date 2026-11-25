@@ -279,6 +279,15 @@ footer.actions .hint { flex: 1; min-width: 0; height: 20px; display: block; text
 .stub { min-height: 200px; display: grid; place-items: center; text-align: center; padding: 24px; }
 .stub p { max-width: 640px; margin: 10px auto 0; color: var(--sub); }
 .stub .tag2 { display: inline-block; width: 64px; height: 22px; line-height: 22px; border-radius: 99px; background: var(--warn-soft); color: var(--warn); font-size: 12px; }
+.tool { padding: 18px 22px; height: 196px; box-sizing: border-box; margin-bottom: 14px; }
+.tool .th2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 26px; font-size: 16px; }
+.tool .th2 b { min-width: 0; }
+.tool p { margin: 4px 0 0; height: 20px; line-height: 20px; color: var(--sub); font-size: 14px; }
+.tool .tstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: 50px; margin-top: 12px; }
+.tool .stat { min-width: 0; } .tool .stat .v { height: 26px; line-height: 26px; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.tool .stat .l { height: 18px; line-height: 18px; font-size: 12.5px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tool .tmsg { margin-top: 10px; color: var(--ink, inherit); font-weight: 500; }
+.stub.small { min-height: 0; height: 96px; box-sizing: border-box; }
 .stub.left { place-items: start; text-align: left; } .stub ul { margin: 0 0 0 18px; padding: 0; color: var(--sub); } .stub li { margin: 6px 0; }
 
 /* 디스크 */
@@ -478,8 +487,19 @@ details.d summary { white-space: nowrap; overflow: hidden; text-overflow: ellips
       <div class="card stub"><div><span class="tag2">준비 중</span><p class="ell">새 엔진이 필요해요: 읽기 오류 구간을 건너뛰며 재시도하는 복사. 아직 만들지 않았습니다.</p></div></div>
     </section>
     <section class="screen" id="s-tools">
-      <h1 class="ell">도구</h1><p class="lead ell">사라진 파티션 찾기, 폴더 구조 복원 시도, 디스크 상태 확인 같은 도구를 모아 둘 자리입니다.</p>
-      <div class="card stub"><div><span class="tag2">준비 중</span><p class="ell">새 엔진이 필요해요: 파티션 탐색, 폴더 구조 복원. 아직 만들지 않았습니다.</p></div></div>
+      <h1 class="ell">도구</h1><p class="lead ell">검사를 마친 디스크를 더 살펴보는 도구입니다. 모두 원본 디스크를 읽기만 해요.</p>
+      <div class="card tool" id="tail-card">
+        <div class="th2"><b class="ell">끝부분 촘촘 검사</b><span class="chip" id="tail-chip">-</span></div>
+        <p class="ell" id="tail-desc" title="기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.">기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.</p>
+        <div class="kbar"><i id="tail-bar" style="width:0%"></i></div>
+        <div class="tstats">
+          <div class="stat"><div class="v num" id="tail-s1">-</div><div class="l">확인한 범위</div></div>
+          <div class="stat"><div class="v num" id="tail-s2">-</div><div class="l">내용이 있는 곳</div></div>
+          <div class="stat"><div class="v num" id="tail-s3">-</div><div class="l">파일 시작 표시</div></div>
+        </div>
+        <p class="ell tmsg" id="tail-msg"></p>
+      </div>
+      <div class="card stub small"><div><span class="tag2">준비 중</span><p class="ell">사라진 파티션 찾기, 폴더 구조 복원, 디스크 상태(SMART) 확인은 아직 만들지 않았습니다.</p></div></div>
     </section>
     <section class="screen" id="s-report">
       <h1 class="ell">리포트</h1><p class="lead ell">복구 결과 보고서를 저장 폴더에 글 파일로 저장합니다. 개인정보는 가립니다.</p>
@@ -544,7 +564,7 @@ const GROUPS = {  // dir 은 엔진(extract.KIND_DIR)이 쓰는 폴더 이름과
 const FMT = { Apple_APFS: 'APFS 형식', 'disk-image': '디스크 이미지', RAW: '형식 없음(초기화 안 됨)', Microsoft_Basic_Data: 'Windows 형식', Apple_HFS: 'Mac OS 확장 형식' };
 const STEPS = ['디스크', '복구 설정', '진행 · 결과'];
 const NAV = [['home', '홈', 'home'], ['disk', '디스크', 'disk'], ['run', '복구 시작', 'play'], ['result', '결과 탐색', 'grid'], ['history', '작업 내역', 'list'], '-',
-  ['backup', '디스크 백업', 'copy', '준비 중'], ['tools', '도구', 'tool', '준비 중'], ['report', '리포트', 'doc'], ['prefs', '설정·도움말', 'cog']];
+  ['backup', '디스크 백업', 'copy', '준비 중'], ['tools', '도구', 'tool'], ['report', '리포트', 'doc'], ['prefs', '설정·도움말', 'cog']];
 const NAV_OF = { home: 'home', disk: 'disk', scan: 'run', settings: 'run', run: 'run', result: 'result', history: 'history', backup: 'backup', tools: 'tools', report: 'report', prefs: 'prefs' };
 const REASON_STATE = { unstable: '디스크가 불안정해 중단했습니다.', refused: '시작할 수 없습니다.', cancelled: '중단했습니다.',
   disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.', error: '오류가 발생했습니다.' };
@@ -619,7 +639,7 @@ function navTo(k) { if (k === 'run') openRun(); else go(k); }
 // [복구 시작]: 진행 중이면 진행 화면, 검사 결과가 있으면 설정, 아니면 디스크 선택
 function openRun() {
   const j = S.job;
-  if (j && j.state === 'running') return go(j.kind === 'scan' ? 'scan' : 'run');
+  if (j && j.state === 'running') return go(j.kind === 'scan' ? 'scan' : j.kind === 'tail' ? 'tools' : 'run');
   if (S.summary || (S.session && S.session.has_catalog)) {
     if (!S.sel) { go('disk'); banner('warn', '복구하려면 먼저 디스크를 고르세요.', 'pick'); return; }
     return go('settings');
@@ -653,6 +673,67 @@ function go(name) {
   if (name === 'run') { if (S.flow === 'verify') setActions(btn('확인 건너뛰기', '', cancelJob, { id: 'stop' }), '|', '확인을 건너뛰어도 꺼낸 파일은 그대로 있어요');
     else setActions(btn('일시 중지', '', pauseJob, { id: 'pause' }), btn('중단', 'danger', stopJob, { id: 'stop' }), '|', '멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요'); }
   if (name === 'result') loadResult();
+  if (name === 'tools') loadTools();
+}
+
+// ---- 도구: 끝부분 촘촘 검사 ----
+const TAIL_VERDICT = {
+  empty: ['ok', '비어 있음', '뒤쪽에서 내용을 찾지 못했어요. 이미 꺼낸 파일이 전부일 가능성이 높아요(추정).'],
+  residue: ['alert', '흔적 있음', '내용은 있지만 파일 시작은 못 찾았어요(지워진 찌꺼기일 수 있음).'],
+  files: ['bad', '파일 있음', '파일 시작 표시를 찾았어요. 그 구간까지 검사해 볼 만해요.'],
+  partial: ['pause', '멈춤', '중간에 멈췄어요. 이어서 하면 멈춘 곳부터 계속해요.'],
+};
+function tailSet(o) {
+  const T = (id, t) => { const e = $(id); e.textContent = t; e.title = t; };
+  const c = $('#tail-chip'); c.className = 'chip ' + (o.chip || ''); c.textContent = o.chipText || '-';
+  $('#tail-bar').style.width = Math.max(0, Math.min(100, o.pct || 0)).toFixed(1) + '%';
+  T('#tail-s1', o.s1 || '-'); T('#tail-s2', o.s2 || '-'); T('#tail-s3', o.s3 || '-'); T('#tail-msg', o.msg || '');
+}
+async function loadTools() {
+  const j = S.job;
+  if (j && j.state === 'running' && j.kind === 'tail') { tailActions(true); return tailPoll(); }
+  let t;
+  if (!S.sel) { try { const d = await api('/api/devices'); const m = d.devices.find(x => x.matches_session); if (m) { S.sel = m.id; S.devices = d.devices; updateTop(); } } catch (e) { } }
+  try { t = await api('/api/tail'); } catch (e) { tailSet({ msg: '불러오지 못했어요: ' + e.message }); tailActions(false, null); return; }
+  S.tail = t; const st = t.state;
+  const range = t.size && t.scanned_bytes != null ? fmtSize(t.scanned_bytes) + ' ~ ' + fmtSize(t.size) : '-';
+  $('#tail-desc').textContent = t.can ? range + ' 구간을 ' + (t.step >= 1048576 ? Math.round(t.step / 1048576) + 'MB' : Math.round(t.step / 1024) + 'KB') + '마다 찍어 봐요. 원본은 읽기만 해요.' : '기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.';
+  if (st) {
+    const v = TAIL_VERDICT[t.verdict] || TAIL_VERDICT.partial, done = st.pos - st.start, all = st.end - st.start;
+    const where = Object.keys(st.buckets || {}).map(Number).sort((a, b) => a - b);
+    const at = where.length ? ' 위치: ' + where.slice(0, 5).map(k => k + '~' + (k + 1) + 'GB').join(', ') + (where.length > 5 ? ' 외 ' + (where.length - 5) + '곳' : '') : '';
+    tailSet({ chip: v[0], chipText: v[1], pct: all ? 100 * done / all : 0, s1: fmtSize(done) + ' / ' + fmtSize(all), s2: num(st.nonzero) + '곳', s3: num(st.hits.length) + '개', msg: v[2] + at });
+  } else tailSet({ chip: 'pause', chipText: '안 해 봄', s1: t.can ? '0 / ' + fmtSize(t.size - t.scanned_bytes) : '-', msg: t.can ? '약 ' + num(t.samples) + '곳을 찍어 봐요. 하드디스크에서는 20분 안팎 걸릴 수 있어요(추정).' : t.why });
+  tailActions(false, t);
+}
+function tailActions(running, t) {
+  if (S.screen !== 'tools') return;
+  if (running) return setActions('|', '멈춰도 나중에 이어서 할 수 있어요', btn('멈추기', '', cancelJob, { id: 'tailstop' }));
+  const partial = t && t.state && !t.state.finished, can = t && t.can && !!S.sel;
+  const hint = !t || !t.can ? '' : !S.sel ? '먼저 [디스크]에서 검사했던 디스크를 고르세요' : '';
+  setActions(...(partial ? [btn('처음부터 다시', '', () => startTail(false), { disabled: !can })] : []), '|', hint,
+    btn(partial ? '이어서 하기' : t && t.state ? '다시 확인' : '확인 시작', 'primary', () => startTail(partial), { id: 'tailgo', disabled: !can }));
+}
+async function startTail(resume) {
+  try { await api('/api/tail/start', { device_id: S.sel, resume }); S.job = { kind: 'tail', state: 'running', progress: {} }; tailActions(true); tailPoll(); }
+  catch (e) { banner('bad', e.message, 'msg'); }
+}
+function tailPoll() { if (S.tailPolling) return; S.tailPolling = true; tailTick(); }
+async function tailTick() {
+  let j; try { j = (await api('/api/job')).job; } catch (e) { setTimeout(tailTick, 2000); return; }
+  S.job = j; if (!j || j.kind !== 'tail') { S.tailPolling = false; return; }
+  const p = j.progress || {};
+  if (j.state === 'running') {
+    if (S.screen === 'tools') tailSet({ chip: '', chipText: '확인 중', pct: p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : 0,
+      s1: fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), s2: num(p.nonzero || 0) + '곳', s3: num(p.hits || 0) + '개',
+      msg: '남은 시간 ' + fmtEta(p.eta_s) + ' · 원본은 읽기만 해요' });
+    setStatus('끝부분 촘촘 검사 중 · 원본에는 쓰지 않아요', p.total_bytes ? (100 * (p.done_bytes || 0) / p.total_bytes).toFixed(0) + '%' : '');
+    setTimeout(tailTick, 700); return;
+  }
+  S.tailPolling = false;
+  if (j.state !== 'done' && j.state !== 'cancelled') banner('bad', stateMsg(j), 'msg');
+  setStatus('대기 중 · 원본 디스크에는 쓰지 않아요', '');
+  if (S.screen === 'tools') loadTools();
 }
 
 // ---- 홈 ----
@@ -1195,6 +1276,7 @@ $('#quit').onclick = async () => {
   buildNav();
   try {
     const j = (await api('/api/job')).job;
+    if (j && j.state === 'running' && j.kind === 'tail') { S.job = j; await loadDevices(); go('tools'); return; }
     if (j && j.state === 'running') { S.job = j; S.flow = j.kind; await loadDevices(); try { await loadSummary(); } catch (e) { }
       if (j.kind === 'verify') heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.');
       go(j.kind === 'scan' ? 'scan' : 'run'); if (j.kind === 'verify') { $('#runbox').classList.toggle('hide', true); } poll(); return; }

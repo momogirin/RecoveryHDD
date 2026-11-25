@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, urlparse
 from . import compat
 from . import devices as devmod
 from . import extract as ex
-from . import fsbrowse, guards
+from . import fsbrowse, guards, tailcheck
 from . import verify as vf
 from .blockdev import ReadOnlyDevice, device_gone
 from .identity import fingerprint
@@ -148,10 +148,11 @@ class Job:
 
 
 class App:
-    def __init__(self, session, images=None, sample_step=128 * 1024 * 1024, token=None):
+    def __init__(self, session, images=None, sample_step=128 * 1024 * 1024, token=None, tail_step=32 * 1024 * 1024):
         self.session = os.path.realpath(expand(session))
         self.images = dict(images or {})
         self.sample_step = sample_step
+        self.tail_step = tail_step
         self.token = token or secrets.token_urlsafe(24)
         self.job = None
         self.lock = threading.Lock()
@@ -409,6 +410,42 @@ class App:
                        duplicates=r["duplicates"], dest=dest)
         return target
 
+    def tail_info(self):
+        """끝부분 촘촘 검사를 할 수 있는지와 지난 결과. 검사(기본)를 끝까지 마친 세션만 대상."""
+        dj = self.session_device() or {}
+        size, end = dj.get("size"), dj.get("scanned_bytes")
+        st = tailcheck.load(self.session)
+        out = {"state": st, "verdict": tailcheck.verdict(st) if st else None, "size": size, "scanned_bytes": end,
+               "step": self.tail_step, "can": False, "why": None}
+        if not dj or not dj.get("finished") or not isinstance(end, int) or not isinstance(size, int):
+            out["why"] = "먼저 디스크 검사를 끝까지 마쳐야 해요."
+        elif end >= size:
+            out["why"] = "이미 디스크 끝까지 검사했어요. 더 볼 곳이 없어요."
+        else:
+            out["can"] = True
+            out["samples"] = (size - end) // self.tail_step
+        return out
+
+    def tail_target(self, dev, resume):
+        def target(job):
+            bad = self.disk_mismatch(dev)
+            if bad:
+                return job.finish("refused", bad)
+            info = self.tail_info()
+            if not info["can"]:
+                return job.finish("refused", info["why"])
+            job.set_phase("tailcheck")
+            with ReadOnlyDevice(dev["path"]) as d:
+                st = tailcheck.tail_check(
+                    d, self.session, info["scanned_bytes"], info["size"], self.tail_step,
+                    fingerprint=(self.session_device() or {}).get("fingerprint"), resume=resume,
+                    on_progress=lambda p: job.update(done_bytes=p["pos"], total_bytes=p["total"],
+                                                     nonzero=p["nonzero"], hits=p["hits"]),
+                    should_cancel=job.cancel.is_set)
+            job.finish("done" if st["finished"] else "cancelled", verdict=tailcheck.verdict(st),
+                       samples=st["samples"], nonzero=st["nonzero"], hits=len(st["hits"]))
+        return target
+
     def verify_target(self, dest, deep):
         def target(job):
             job.set_phase("verifying")
@@ -477,6 +514,21 @@ class App:
                                                                  ", 마지막 항목 하나는 잘려서 뺌" if sv.get("lost") else "", sv.get("path", "")))
             for r in vf.load_failures(self.session, 50):
                 lines.append("  실패: %s — %s" % (r.get("path", ""), r.get("reason", "")))
+        tc = tailcheck.load(self.session)
+        if tc:
+            v = tailcheck.verdict(tc)
+            step = "%d MB" % (tc["step"] >> 20) if tc["step"] >= 1 << 20 else "%d KB" % (tc["step"] >> 10)
+            where = sorted(int(k) for k in tc.get("buckets", {}))
+            lines += ["", "[끝부분 촘촘 검사] %.1f GB ~ %.1f GB 를 %s 마다 확인 · 찍어 본 곳 %d · 내용 있음 %d · 파일 시작 표시 %d%s" % (
+                tc["start"] / 1e9, tc["end"] / 1e9, step, tc["samples"], tc["nonzero"], len(tc["hits"]),
+                "" if tc.get("finished") else " (중간에 멈춤)")]
+            if where:
+                lines.append("  내용이 있는 위치: " + ", ".join("%d~%d GB" % (k, k + 1) for k in where[:20]) + (" 외" if len(where) > 20 else ""))
+            for hit in tc["hits"][:20]:
+                lines.append("  파일 시작 표시: %.2f GB 지점, 종류 %s" % (hit["offset"] / 1e9, hit["kind"]))
+            lines += [
+                "  결론: " + {"empty": "뒤쪽은 비어 있음(추정)", "residue": "내용은 있으나 파일 시작은 못 찾음(지워진 찌꺼기일 수 있음)",
+                             "files": "파일 시작 표시가 있음 — 그 구간 검사를 권함", "partial": "끝까지 확인하지 않음"}[v]]
         lines += ["", "[알려진 한계]",
                   "  - 원래 파일명·폴더 구조는 복구하지 못합니다.",
                   "  - 지워진 옛 파일이 섞였는지 구분할 수 없습니다.",
@@ -581,6 +633,8 @@ def make_handler(app):
                 if u.path == "/api/verify/summary":
                     return self._send(200, {"summary": vf.load_summary(app.session),
                                             "failures": vf.load_failures(app.session), "fixed": vf.load_fixed(app.session)})
+                if u.path == "/api/tail":
+                    return self._send(200, app.tail_info())
                 if u.path == "/api/report":
                     return self._send(200, app.report().encode("utf-8"), "text/plain; charset=utf-8")
                 if u.path == "/api/result":
@@ -709,6 +763,20 @@ def make_handler(app):
                 if not chk["ok"]:
                     return self._err(400, " / ".join(chk["reasons"]))
                 job = app.start_job("extract", app.extract_target(dev, plan))
+                return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
+            if path == "/api/tail/start":
+                dev = self._device(body)
+                if not dev:
+                    return
+                if not dev["readable"]:
+                    return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한으로 다시 실행하세요.")
+                info = app.tail_info()
+                if not info["can"]:
+                    return self._err(400, info["why"])
+                bad = app.disk_mismatch(dev)
+                if bad:
+                    return self._err(400, bad)
+                job = app.start_job("tail", app.tail_target(dev, bool(body.get("resume"))))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/verify/start":
                 dest = body.get("dest") or app.saved_dest()

@@ -47,7 +47,8 @@ def main(argv):
     for item in a.image:
         name, _, path = item.partition("=")
         images[name] = os.path.realpath(expand(path))
-    app = App(a.session, images=images, sample_step=(64 * 1024 if images else 128 * 1024 * 1024))
+    app = App(a.session, images=images, sample_step=(64 * 1024 if images else 128 * 1024 * 1024),
+              tail_step=(16 * 1024 if images else 32 * 1024 * 1024))
     app.all_disks = a.all_disks
     try:
         lockfile = lock.acquire(app.session)
