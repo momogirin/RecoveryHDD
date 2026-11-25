@@ -410,6 +410,106 @@ class App:
                        duplicates=r["duplicates"], dest=dest)
         return target
 
+    def related_sessions(self, limit=6):
+        """현재 세션 + '이전 검사 결과 재사용'으로 이어진 옛 세션들(같은 디스크). 옛 세션에서 꺼낸 파일도 같이 센다."""
+        out, p = [], self.session
+        while p and os.path.isdir(p) and len(out) < limit and os.path.realpath(p) not in [os.path.realpath(x) for x in out]:
+            out.append(p)
+            p = compat.read_json(os.path.join(p, "known_from.json"), {}).get("path")
+        return out
+
+    def format_check(self, dev=None):
+        """포맷해도 되는지 점검. 항목은 늘 같은 7개, 같은 순서(화면 자리 고정).
+        level: ok | warn | bad | info. 판단은 기록 파일과 저장 폴더만 읽고, 원본 디스크는 읽지 않는다."""
+        items = {}
+        sessions = self.related_sessions()
+        cur = ex.load_catalog(self.session) if os.path.isfile(os.path.join(self.session, "catalog.jsonl")) else []
+        dj = self.session_device() or {}
+        if not cur:
+            return {"verdict": "bad", "items": [["bad", "아직 디스크 검사 결과가 없어요."]] + [["info", "-"]] * 6, "sessions": 0}
+        got, dup, failed, dests, missing, n_extracted = set(), set(), set(), [], 0, 0
+        vsum = {"ok": 0, "fail": 0, "fixed": 0, "unchecked": 0}
+        no_verify = 0
+        sessions = [s for s in sessions if os.path.isfile(os.path.join(s, "catalog.jsonl"))]
+        for s in sessions:
+            recs = {r["id"]: r["offset"] for r in ex.load_catalog(s)}
+            done = ex.load_extracted(s)
+            got |= {recs[i] for i in done if i in recs}
+            dup |= {recs[i] for i in ex.load_dups(s) if i in recs}
+            failed |= {recs[i] for i in ex.load_failed(s) if i in recs}
+            dest = compat.read_json(os.path.join(s, "plan.json"), {}).get("dest")
+            if done and dest:
+                real = os.path.realpath(expand(dest))
+                if real not in dests:
+                    dests.append(real)
+                missing += sum(1 for r in done.values() if not os.path.isfile(os.path.join(real, r.get("path", ""))))
+            n_extracted += len(done)
+            vs = vf.load_summary(s)
+            if done and not vs:
+                no_verify += len(done)
+            for k in vsum:
+                vsum[k] += (vs or {}).get(k, 0)
+        # 1) 저장 위치가 원본 디스크와 다른가
+        if not dests:
+            items[1] = ["bad", "아직 꺼낸 파일이 없어요."]
+        elif dev is None or self.disk_mismatch(dev):
+            items[1] = ["warn", "검사했던 원본 디스크가 연결돼 있지 않아, 저장 위치가 다른 디스크인지 확인하지 못했어요."]
+        else:
+            forb = [f for f in self.forbidden_mounts(dev) if f]
+            same = [d for d in dests if any(guards._under(d, f) for f in forb)]
+            items[1] = ["bad", "꺼낸 파일이 원본 디스크 안에 있어요: " + ", ".join(same) + ". 포맷하면 같이 지워져요."] if same \
+                else ["ok", "꺼낸 파일은 원본과 다른 디스크에 있어요: " + ", ".join(dests)]
+        # 2) 꺼내기가 끝났는가 (각 세션의 계획 기준)
+        pending = 0
+        for s in sessions:
+            plan = compat.read_json(os.path.join(s, "plan.json"), None)
+            if plan and plan.get("kinds"):
+                pending += ex.overview(ex.load_catalog(s), plan, ex.load_extracted(s), ex.load_failed(s), ex.load_dups(s))["pending_files"]
+        items[2] = ["bad", "고른 종류 중 아직 안 꺼낸 파일이 %s개 있어요. 먼저 마저 꺼내세요." % format(pending, ",")] if pending \
+            else ["ok", "고른 종류는 모두 꺼냈어요 (꺼낸 파일 %s개, 같은 내용이라 하나만 둔 것 %s개)." % (format(n_extracted, ","), format(len(dup), ","))]
+        # 3) 꺼낸 파일이 저장 폴더에 그대로 있는가
+        items[3] = ["warn", "꺼낸 파일 중 %s개가 저장 폴더에 없어요. 옮기거나 지웠는지 확인하세요." % format(missing, ",")] if missing \
+            else ["ok", "꺼낸 파일이 저장 폴더에 모두 있어요."] if n_extracted else ["info", "-"]
+        # 4) 열림 확인
+        if no_verify:
+            items[4] = ["warn", "열림 확인을 안 한 파일이 %s개 있어요. [결과 탐색]에서 [열림 다시 확인]을 누르세요." % format(no_verify, ",")]
+        elif vsum["unchecked"] or vsum["fail"]:
+            items[4] = ["warn", "열림 확인: 정상 %s · 복원본 %s · 확인 필요 %s · 미확인 %s. 확인 필요 파일은 포맷하면 다시 꺼낼 수 없어요." % tuple(
+                format(vsum[k], ",") for k in ("ok", "fixed", "fail", "unchecked"))]
+        else:
+            items[4] = ["ok", "열림 확인: 모두 정상%s." % (" (ZIP 복원본 %s개 포함)" % vsum["fixed"] if vsum["fixed"] else "")] if n_extracted else ["info", "-"]
+        # 5) 검사에서 찾았지만 꺼내지 않은 파일(고르지 않은 종류)
+        left = {}
+        for r in cur:
+            if r["offset"] not in got and r["offset"] not in dup and r["offset"] not in failed:
+                left[r["kind"]] = left.get(r["kind"], 0) + 1
+        nleft = sum(left.values())
+        items[5] = ["warn", "찾았지만 꺼내지 않은 파일 %s개 (%s). 필요 없으면 괜찮아요." % (format(nleft, ","), ", ".join(
+            "%s %s" % (k, format(v, ",")) for k, v in sorted(left.items(), key=lambda x: -x[1])[:5]))] if nleft \
+            else ["ok", "검사에서 찾은 파일은 모두 꺼냈어요."]
+        # 6) 검사 범위
+        size, end = dj.get("size"), dj.get("scanned_bytes")
+        if not dj.get("finished") or not isinstance(size, int) or not isinstance(end, int):
+            items[6] = ["bad", "디스크 검사가 끝나지 않았어요."]
+        elif end >= size:
+            items[6] = ["ok", "디스크 전체를 검사했어요."]
+        else:
+            items[6] = ["info", "검사한 범위: 앞쪽 %.0f GB / 전체 %.0f GB. 뒤쪽은 샘플로 보고 비어 있다고 추정했어요." % (end / 1e9, size / 1e9)]
+        # 7) 끝부분 촘촘 검사
+        if items[6][0] == "ok":
+            items[7] = ["ok", "끝부분 검사는 필요 없어요(전체 검사함)."]
+        else:
+            v = tailcheck.verdict(tailcheck.load(self.session)) if tailcheck.load(self.session) else None
+            items[7] = {None: ["warn", "끝부분 촘촘 검사를 아직 안 했어요. 포맷 전에 한 번 해 보길 권해요."],
+                        "partial": ["warn", "끝부분 촘촘 검사를 끝까지 하지 않았어요."],
+                        "empty": ["ok", "끝부분 촘촘 검사: 뒤쪽은 비어 있어요(추정)."],
+                        "residue": ["warn", "끝부분 촘촘 검사: 뒤쪽에 내용이 조금 있어요. 지워진 찌꺼기일 수 있어요."],
+                        "files": ["bad", "끝부분 촘촘 검사: 뒤쪽에서 파일 시작 표시를 찾았어요. 포맷 전에 그 구간을 검사하세요."]}[v]
+        rows = [items[i] for i in range(1, 8)]
+        levels = {r[0] for r in rows}
+        return {"verdict": "bad" if "bad" in levels else "warn" if "warn" in levels else "ok", "items": rows,
+                "sessions": len(sessions)}
+
     def tail_info(self):
         """끝부분 촘촘 검사를 할 수 있는지와 지난 결과. 검사(기본)를 끝까지 마친 세션만 대상."""
         dj = self.session_device() or {}
@@ -633,6 +733,9 @@ def make_handler(app):
                 if u.path == "/api/verify/summary":
                     return self._send(200, {"summary": vf.load_summary(app.session),
                                             "failures": vf.load_failures(app.session), "fixed": vf.load_fixed(app.session)})
+                if u.path == "/api/format-check":
+                    dev = app.find_device((q.get("device_id") or [""])[0]) if q.get("device_id") else None
+                    return self._send(200, app.format_check(dev))
                 if u.path == "/api/tail":
                     return self._send(200, app.tail_info())
                 if u.path == "/api/report":

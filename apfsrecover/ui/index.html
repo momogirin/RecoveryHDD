@@ -287,6 +287,13 @@ footer.actions .hint { flex: 1; min-width: 0; height: 20px; display: block; text
 .tool .stat { min-width: 0; } .tool .stat .v { height: 26px; line-height: 26px; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .tool .stat .l { height: 18px; line-height: 18px; font-size: 12.5px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tool .tmsg { margin-top: 10px; color: var(--ink, inherit); font-weight: 500; }
+.tool.fmt { height: auto; }
+.fmt-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.fmt-list li { display: flex; align-items: center; gap: 10px; height: 26px; font-size: 14px; min-width: 0; }
+.fmt-list li .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.fmt-list li.ok .dot { background: var(--ok); } .fmt-list li.warn .dot { background: var(--warn); } .fmt-list li.bad .dot { background: var(--bad); }
+.fmt-list li .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fmt-list li.skel .t { height: 12px; border-radius: 6px; background: var(--line); }
 .stub.small { min-height: 0; height: 96px; box-sizing: border-box; }
 .stub.left { place-items: start; text-align: left; } .stub ul { margin: 0 0 0 18px; padding: 0; color: var(--sub); } .stub li { margin: 6px 0; }
 
@@ -499,6 +506,11 @@ details.d summary { white-space: nowrap; overflow: hidden; text-overflow: ellips
         </div>
         <p class="ell tmsg" id="tail-msg"></p>
       </div>
+      <div class="card tool fmt" id="fmt-card">
+        <div class="th2"><b class="ell">포맷 전 점검</b><span class="chip pause" id="fmt-chip">-</span></div>
+        <p class="ell" title="다 꺼낸 뒤 원본 디스크를 포맷해서 써도 되는지 기록과 저장 폴더를 보고 알려 줘요. 포맷은 이 프로그램이 하지 않아요.">다 꺼낸 뒤 원본 디스크를 포맷해서 써도 되는지 기록과 저장 폴더를 보고 알려 줘요. 포맷은 이 프로그램이 하지 않아요.</p>
+        <ul class="fmt-list" id="fmt-list"></ul>
+      </div>
       <div class="card stub small"><div><span class="tag2">준비 중</span><p class="ell">사라진 파티션 찾기, 폴더 구조 복원, 디스크 상태(SMART) 확인은 아직 만들지 않았습니다.</p></div></div>
     </section>
     <section class="screen" id="s-report">
@@ -689,11 +701,26 @@ function tailSet(o) {
   $('#tail-bar').style.width = Math.max(0, Math.min(100, o.pct || 0)).toFixed(1) + '%';
   T('#tail-s1', o.s1 || '-'); T('#tail-s2', o.s2 || '-'); T('#tail-s3', o.s3 || '-'); T('#tail-msg', o.msg || '');
 }
+const FMT_VERDICT = { ok: ['ok', '포맷 가능'], warn: ['alert', '확인 필요'], bad: ['bad', '아직 안 됨'] };
+function fmtRows(rows) {  // 항목은 늘 7줄, 자리 고정
+  clear($('#fmt-list')).append(...rows.map(r => h('li', { class: r ? r[0] : 'skel' }, h('span', { class: 'dot' }), h('span', { class: 't', title: r ? r[1] : '' }, r ? r[1] : ''))));
+}
+async function loadFormatCheck() {
+  const c = $('#fmt-chip'); c.className = 'chip pause'; c.textContent = '확인 중';
+  if (!$('#fmt-list').children.length) fmtRows(Array(7).fill(null));
+  try {
+    const r = await api('/api/format-check' + (S.sel ? '?device_id=' + encodeURIComponent(S.sel) : ''));
+    const v = FMT_VERDICT[r.verdict] || FMT_VERDICT.warn; c.className = 'chip ' + v[0]; c.textContent = v[1];
+    fmtRows(r.items);
+  } catch (e) { c.className = 'chip pause'; c.textContent = '-'; fmtRows([['bad', '점검하지 못했어요: ' + e.message]].concat(Array(6).fill(['info', '-']))); }
+}
 async function loadTools() {
   const j = S.job;
+  if (!$('#fmt-list').children.length) fmtRows(Array(7).fill(null));
+  if (!S.sel) { try { const d = await api('/api/devices'); const m = d.devices.find(x => x.matches_session); if (m) { S.sel = m.id; S.devices = d.devices; updateTop(); } } catch (e) { } }
+  loadFormatCheck();
   if (j && j.state === 'running' && j.kind === 'tail') { tailActions(true); return tailPoll(); }
   let t;
-  if (!S.sel) { try { const d = await api('/api/devices'); const m = d.devices.find(x => x.matches_session); if (m) { S.sel = m.id; S.devices = d.devices; updateTop(); } } catch (e) { } }
   try { t = await api('/api/tail'); } catch (e) { tailSet({ msg: '불러오지 못했어요: ' + e.message }); tailActions(false, null); return; }
   S.tail = t; const st = t.state;
   const range = t.size && t.scanned_bytes != null ? fmtSize(t.scanned_bytes) + ' ~ ' + fmtSize(t.size) : '-';
