@@ -28,7 +28,7 @@ from .blockdev import ReadOnlyDevice, device_gone, split_device_path
 from .identity import fingerprint
 from .privilege import is_admin
 from .power import on_battery
-from .catalog import BS, catalog, summarize
+from .catalog import BS, catalog, summarize, thumb_path
 from .ownership import chown_tree, expand, real_home
 from .survey import estimate_extent
 
@@ -504,7 +504,7 @@ class App:
                 os.remove(kf)
         rc = catalog(dev["path"], self.session, 0, end_bytes // BS,
                      on_progress=lambda p: job.update(done_bytes=p["pos"], total_bytes=p["total"], found=p["found"]),
-                     should_cancel=job.cancel.is_set, fresh=not resume, known=known)
+                     should_cancel=job.cancel.is_set, fresh=not resume, known=known, known_dir=src if known else None)
         with open(os.path.join(self.session, "device.json"), "w", encoding="utf-8") as f:
             json.dump({"device": dev["id"], "label": dev.get("label"), "size": size, "scanned_bytes": end_bytes, "fingerprint": fp,
                        "full": bool(full) and prev is None, "finished": rc == 0}, f)
@@ -1138,6 +1138,16 @@ def make_handler(app):
                     recs = _tail_jsonl(os.path.join(app.session, "extracted.jsonl"), n)
                     return self._send(200, {"items": [{"path": r["path"], "kind": r.get("kind")}
                                                       for r in recs if not r.get("invalid") and r.get("path")]})
+                if u.path == "/api/catalog/thumb":  # 검사 때 저장한 내장 미리보기(세션 폴더의 thumbs/<번호>.jpg 만)
+                    try:
+                        rid = int((q.get("id") or [""])[0])
+                    except ValueError:
+                        return self._err(404, "없는 미리보기")
+                    p = thumb_path(app.session, rid) if rid >= 0 and app.session else None
+                    if not p or not os.path.isfile(p):
+                        return self._err(404, "없는 미리보기")
+                    with open(p, "rb") as f:
+                        return self._send(200, f.read(), "image/jpeg")
                 if u.path == "/api/thumb":
                     dest = app.saved_dest()
                     rel = (q.get("p") or [""])[0]

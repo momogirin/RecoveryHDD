@@ -31,6 +31,7 @@ python3 -m apfsrecover gui [--session 폴더] [--image 이름=경로]  # P2~P5 �
 - `kind`: `jpeg | raw-cr3 | raw-other | video-mp4 | video-mov | heic | unknown-bmff`
 - `structure`: `ok`(구조가 끝까지 맞음) / `suspect`(구조가 어긋나거나 길이가 비정상) / `unknown`
 - `taken`, `model`은 EXIF/박스에서 읽을 수 있을 때만 채운다. 못 읽으면 `null`
+- `thumb`: `true` 면 세션 폴더 `thumbs/<id>.jpg` 에 내장 미리보기가 있다(JPEG 의 EXIF 미리보기, CR3 의 THMB). 없으면 미리보기 없음. `GET /api/catalog/thumb?id=` 로 받는다
 - 이 값들은 **서명과 구조로 추정한 것**이며 파일이 실제로 열린다는 보증은 아니다. 열림은 verify가 판정한다
 
 ### plan.json

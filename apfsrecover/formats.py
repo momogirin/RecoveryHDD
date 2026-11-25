@@ -8,7 +8,7 @@ import struct
 import zlib
 from datetime import datetime, timedelta
 
-from .exif import parse_tiff, to_iso
+from .exif import parse_tiff, tiff_thumbnail, to_iso
 
 ENTROPY_END = re.compile(rb"\xff[\x01-\xcf\xd8-\xfe]")
 SOF = {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
@@ -171,6 +171,31 @@ def bmff_meta(kind, moov):
         except (struct.error, OverflowError):
             pass
     return meta
+
+
+THUMB_MAX = 256 << 10  # 내장 미리보기가 이보다 크면 미리보기가 아닌 것으로 본다
+
+
+def clean_thumb(data):
+    """내장 미리보기 후보가 끝까지 온전한 JPEG 이면 그 길이만큼 잘라 돌려준다. 아니면 None."""
+    if not data or len(data) < 100:
+        return None
+    status, length, _ = jpeg_parse(bytes(data[:THUMB_MAX]))
+    return bytes(data[:length]) if status == "ok" else None
+
+
+def embedded_thumb(kind, info=None, moov=None):
+    """검사 중 이미 메모리에 있는 바이트에서 내장 미리보기를 꺼낸다(디스크를 더 읽지 않는다).
+    JPEG: EXIF 의 IFD1 미리보기. CR3: moov 안 uuid 상자의 THMB(160x120 JPEG). 없으면 None."""
+    if kind == "jpeg" and info and info.get("exif"):
+        return clean_thumb(tiff_thumbnail(info["exif"]))
+    if kind == "raw-cr3" and moov:
+        body = _box_after(moov, b"THMB")
+        if body:
+            j = body.find(b"\xff\xd8\xff", 0, 64)  # 머리(버전·크기·길이) 뒤에 JPEG 가 온다. 버전마다 머리 길이가 달라 찾아서 쓴다
+            if j != -1:
+                return clean_thumb(body[j:])
+    return None
 
 
 def jpeg_meta(info):

@@ -146,6 +146,19 @@ class UiApiTest(unittest.TestCase):
             op.assert_called_once()
             self.assertTrue(os.path.samefile(op.call_args[0][0], self.dest))
 
+    def test_catalog_thumb_serves_only_numbered_thumbs(self):
+        from apfsrecover.catalog import thumb_path
+        p = thumb_path(self.app.session, 54321)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "wb") as f:
+            f.write(b"\xff\xd8thumb")
+        self.addCleanup(os.remove, p)
+        st, data, ctype = self.call("GET", "/api/catalog/thumb?id=54321")
+        self.assertEqual((st, data, ctype), (200, b"\xff\xd8thumb", "image/jpeg"))
+        for bad in ("54322", "-1", "abc", "", "..%2Fcatalog", "1.jpg", "%2E%2E"):
+            self.assertEqual(self.call("GET", "/api/catalog/thumb?id=" + bad)[0], 404, bad)
+        self.assertEqual(self.call("GET", "/api/catalog/thumb?id=54321", token=False)[0], 401)
+
     def test_thumbnail_function_handles_non_images(self):
         p = os.path.join(self.tmp.name, "notimage.jpg")
         with open(p, "wb") as f:

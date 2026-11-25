@@ -14,7 +14,8 @@ from collections import Counter
 
 from . import atomic
 from .blockdev import ReadOnlyDevice, device_gone
-from .formats import (bmff_meta, bmff_probe, classify_bmff, jpeg_meta, jpeg_probe, zip_kind, zip_probe)
+from .formats import (bmff_meta, bmff_probe, classify_bmff, embedded_thumb, jpeg_meta, jpeg_probe, zip_kind,
+                      zip_probe)
 from . import formats_more as fm
 from . import compat
 from .jsonl import read_jsonl
@@ -43,8 +44,45 @@ def _check_session(session):
     return session
 
 
+THUMBS = "thumbs"  # 세션 폴더 안의 내장 미리보기 폴더: thumbs/<항목 번호>.jpg
 SESSION_FILES = ("catalog.jsonl", "progress.json", "extracted.jsonl", "failed.jsonl", "run_state.json",
-                 "plan.json", "verify.jsonl", "verify_summary.json", "duplicates.jsonl", "tail_check.json", "ack.json")
+                 "plan.json", "verify.jsonl", "verify_summary.json", "duplicates.jsonl", "tail_check.json", "ack.json",
+                 THUMBS)  # 미리보기도 함께 보관한다(새 검사의 번호와 섞이지 않게)
+
+
+def thumb_path(session, rid):
+    return os.path.join(session, THUMBS, "%d.jpg" % int(rid))
+
+
+def _save_thumb(session, rid, data):
+    """미리보기 한 장을 저장한다. 실패해도 검사는 계속한다(미리보기는 있으면 좋은 것)."""
+    path = thumb_path(session, rid)
+    tmp = path + ".tmp"
+    try:
+        with open(tmp, "wb") as f:
+            f.write(data)
+        os.replace(tmp, path)
+        return True
+    except OSError:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        return False
+
+
+def _drop_thumbs_from(session, first_id):
+    """이어하기: 버린 항목(번호 first_id 이상)의 미리보기를 지운다. 같은 번호가 다른 파일에 다시 붙기 때문이다."""
+    d = os.path.join(session, THUMBS)
+    if not os.path.isdir(d):
+        return
+    for name in os.listdir(d):
+        stem = name.split(".", 1)[0]
+        if stem.isdigit() and int(stem) >= first_id:
+            try:
+                os.remove(os.path.join(d, name))
+            except OSError:
+                pass
 
 
 def archive_session(session):
@@ -75,11 +113,14 @@ def _repair_catalog(cat_path, pos):
     return len(recs), (max(r["id"] for r in recs) + 1 if recs else 1)
 
 
-def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None, fresh=False, known=None):
+def catalog(path, session, start_block, end_block, on_progress=None, should_cancel=None, fresh=False, known=None,
+            known_dir=None):
     """반환 코드: 0 완료, 3 취소, 4 장치 끊김.
     같은 범위의 진행 기록이 있으면 이어서 한다. 범위가 다르거나 fresh=True 면 옛 세션을 보관(archive)하고 새로 시작한다.
     known: 같은 디스크의 이전 검사에서 이미 찾은 항목(검사 기록 형식). 그 구간은 디스크에서 다시 읽지 않고 건너뛰며,
-    지나갈 때 항목을 새 검사 기록에 옮겨 적는다(이어하기와 겹치지 않게 지나간 만큼만 적는다)."""
+    지나갈 때 항목을 새 검사 기록에 옮겨 적는다(이어하기와 겹치지 않게 지나간 만큼만 적는다).
+    known_dir: known 을 읽은 세션 폴더. 그곳에 미리보기가 있으면 새 번호로 복사한다.
+    찾은 사진의 내장 미리보기는 session/thumbs/<번호>.jpg 에 저장하고 기록에 "thumb": true 를 적는다."""
     session = _check_session(session)
     cat_path = os.path.join(session, "catalog.jsonl")
     prog_path = os.path.join(session, "progress.json")
@@ -90,12 +131,17 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
         if st.get("start_block") == start_block and st.get("end_block") == end_block and isinstance(st.get("next_pos"), int):
             pos = st["next_pos"]
             found, next_id = _repair_catalog(cat_path, pos)
+            _drop_thumbs_from(session, next_id)
             resumed = True
             print("이어하기: 오프셋 %d (%.1f GB)부터" % (pos, pos / 1e9))
+    known_thumbs = os.path.join(known_dir, THUMBS) if known_dir else None
     if not resumed:
         old = archive_session(session)
         if old:
             print("이전 세션 파일을 보관했습니다: %s" % old)
+            if known_dir and os.path.realpath(known_dir) == session:
+                known_thumbs = os.path.join(old, THUMBS)  # 이전 기록이 이 폴더였다면 미리보기는 방금 보관 폴더로 옮겨졌다
+    os.makedirs(os.path.join(session, THUMBS), exist_ok=True)
     end = end_block * BS
     skip_until = pos
     t0, read_bytes, consecutive = time.time(), 0, 0
@@ -124,8 +170,14 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
                 kend = k["offset"] + k["length"]
                 if kend <= pos or k["offset"] < skip_until or kend > end:  # 이미 지나갔거나 새로 찾은 것과 겹침
                     continue
-                rec = {f: v for f, v in k.items() if f not in ("id", "offset")}
+                rec = {f: v for f, v in k.items() if f not in ("id", "offset", "thumb")}
                 rec["id"], rec["offset"], rec["reused"] = next_id, k["offset"], True
+                if k.get("thumb") and known_thumbs:
+                    try:
+                        shutil.copyfile(os.path.join(known_thumbs, "%d.jpg" % k["id"]), thumb_path(session, next_id))
+                        rec["thumb"] = True
+                    except OSError:
+                        pass  # 이전 미리보기가 없으면 미리보기 없이 옮긴다
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 next_id += 1
                 found += 1
@@ -165,6 +217,9 @@ def catalog(path, session, start_block, end_block, on_progress=None, should_canc
                 if not rec:
                     continue
                 rec["id"], rec["offset"] = next_id, off
+                th = rec.pop("_thumb", None)
+                if th and _save_thumb(session, next_id, th):  # 기록 줄보다 먼저 쓴다(줄에 thumb 가 있으면 파일도 있다)
+                    rec["thumb"] = True
                 out.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 next_id += 1
                 found += 1
@@ -217,6 +272,7 @@ def _probe(dev, off, kind, room):
         length, info = r
         rec = {"kind": "jpeg", "length": length, "structure": "ok"}
         rec.update(jpeg_meta(info))
+        rec["_thumb"] = embedded_thumb("jpeg", info=info)
         return _final(rec)
     res = bmff_probe(dev, off, min(MAX_BMFF, room))
     if not res or res["length"] < MIN_BMFF:
@@ -227,6 +283,7 @@ def _probe(dev, off, kind, room):
     k, structure = c
     rec = {"kind": k, "length": res["length"], "structure": structure}
     rec.update(bmff_meta(k, res["moov"]))
+    rec["_thumb"] = embedded_thumb(k, moov=res["moov"])
     return _final(rec)
 
 
