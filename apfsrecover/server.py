@@ -21,9 +21,10 @@ from urllib.parse import parse_qs, urlparse
 from . import compat
 from . import devices as devmod
 from . import extract as ex
-from . import fsbrowse, guards, tailcheck
+from . import fsbrowse, guards, tailcheck, imaging, partfind, apfsmeta
+from . import health as healthmod
 from . import verify as vf
-from .blockdev import ReadOnlyDevice, device_gone
+from .blockdev import ReadOnlyDevice, device_gone, split_device_path
 from .identity import fingerprint
 from .privilege import is_admin
 from .power import on_battery
@@ -300,7 +301,7 @@ class App:
         return devmod.list_devices(self.images, all_disks=self.all_disks)
 
     def find_device(self, device_id):
-        for d in self.devices():
+        for d in self._devices_cached():
             if d["id"] == device_id:
                 return d
         return None
@@ -312,7 +313,7 @@ class App:
         out = list(dev["mounts"])
         whole = dev.get("whole_disk")
         if whole:
-            for d in self.devices():
+            for d in self._devices_cached():
                 if d.get("whole_disk") == whole:
                     out += d["mounts"]
         return out
@@ -694,6 +695,163 @@ class App:
             job.finish("cancelled" if s["cancelled"] else "done", summary=s)
         return target
 
+    # ---- 도구: 건강 상태 · 백업 · 파티션 찾기 · 원래 이름 ----
+    def health_of(self, dev):
+        key = ("health", dev["id"])
+        hit = self._shared.get(key)
+        if hit and time.time() - hit[0] < 60:
+            return hit[1]
+        r = healthmod.health(dev)
+        self._shared[key] = (time.time(), r)
+        return r
+
+    def whole_disk_path(self, dev):
+        """파티션이 아니라 디스크 전체를 읽는 경로와, 그 안에서 이 장치가 시작하는 위치."""
+        base, off = split_device_path(dev["path"])
+        if off:
+            return base, off
+        w = dev.get("whole_disk")
+        if w and sys.platform == "darwin" and dev["path"].startswith("/dev/r") and w != dev["id"]:
+            return "/dev/r" + w, None  # 맥: 파티션 시작 위치는 diskutil 이 알려 주지 않으면 모른다
+        return dev["path"], 0
+
+    def backup_info(self):
+        plan = compat.read_json(os.path.join(self.session, "backup.json"), None)
+        st = imaging.load_state(plan["image"]) if plan and plan.get("image") else None
+        dj = self.session_device() or {}
+        return {"plan": plan, "state": st, "scanned_bytes": dj.get("scanned_bytes") if dj.get("finished") else None}
+
+    def backup_target(self, dev, dest_dir, whole, resume):
+        def target(job):
+            fp = self.fingerprint(dev)
+            info = self.backup_info()
+            plan = info["plan"] if resume and info["plan"] else None
+            if plan is None:
+                scanned = info["scanned_bytes"]
+                end = dev["size"] if whole or not scanned else min(dev["size"], scanned)
+                safe = re.sub(r"[^0-9A-Za-z가-힣]+", "_", dev.get("label") or dev["id"]).strip("_")[:40] or "disk"
+                image = os.path.join(os.path.realpath(expand(dest_dir)), "%s_%s.img" % (safe, time.strftime("%Y%m%d_%H%M")))
+                plan = {"image": image, "start": 0, "end": end, "whole": bool(whole or not scanned), "device": dev["id"]}
+            st = imaging.load_state(plan["image"]) if resume else None
+            have = (st["pos"] - plan["start"]) if st else 0
+            chk = guards.check_dest(os.path.dirname(plan["image"]), self.forbidden_mounts(dev), plan["end"] - plan["start"] - have)
+            if not chk["ok"]:
+                return job.finish("refused", " / ".join(chk["reasons"]))
+            os.makedirs(self.session, exist_ok=True)
+            with open(os.path.join(self.session, "backup.json"), "w", encoding="utf-8") as f:
+                json.dump(plan, f, ensure_ascii=False)
+            job.set_phase("backup")
+            st = imaging.backup(dev["path"], plan["image"], plan["start"], plan["end"], fingerprint=fp, resume=resume,
+                                on_progress=lambda p: job.update(done_bytes=p["pos"], total_bytes=p["total"], bad_bytes=p["bad_bytes"]),
+                                should_cancel=job.cancel.is_set)
+            job.finish("done" if st["finished"] else "cancelled", image=plan["image"], bad_bytes=st["bad_bytes"], bad=len(st["bad"]), dest=os.path.dirname(plan["image"]))
+        return target
+
+    def partfind_target(self, dev):
+        def target(job):
+            path, dev_off = self.whole_disk_path(dev)
+            job.set_phase("partfind")
+            with ReadOnlyDevice(path) as d:
+                r = partfind.find(d.read_at, None if path != dev["path"] else dev["size"],
+                                  on_progress=lambda p: job.update(done=p["done"], total=p["total"], found=p["found"]),
+                                  should_cancel=job.cancel.is_set)
+            r["device_offset"] = dev_off
+            r["whole"] = path != dev["path"]
+            os.makedirs(self.session, exist_ok=True)
+            with open(os.path.join(self.session, "partitions.json"), "w", encoding="utf-8") as f:
+                json.dump(r, f, ensure_ascii=False)
+            job.finish("done" if r["finished"] else "cancelled", found=len(r["parts"]), table=r["table"])
+        return target
+
+    NAMES_DIR = "_원래이름"
+
+    def names_target(self, dev):
+        """APFS 파일 목록에서 원래 이름·폴더를 찾아, 꺼낸 파일과 같은 위치에서 시작하는 것에 이름을 붙인다.
+        저장 폴더 안의 _원래이름 폴더에 원래 이름으로 '하드 링크'(용량을 더 쓰지 않는 같은 파일)를 만든다.
+        하드 링크를 만들 수 없으면 목록 파일(목록.csv)만 남긴다. 꺼낸 파일과 원본 장치는 바꾸지 않는다."""
+        def target(job):
+            job.set_phase("names")
+            dest = self.saved_dest()
+            if not dest:
+                return job.finish("refused", "먼저 파일을 꺼내야 해요.")
+            dest = os.path.realpath(expand(dest))
+            bases = [0]
+            pj = compat.read_json(os.path.join(self.session, "partitions.json"), {})
+            if pj.get("device_offset") is not None:
+                for p in pj.get("parts", []):
+                    if p.get("fs") == "APFS":
+                        b = p["offset"] - pj["device_offset"]
+                        if b >= 0 and b not in bases:
+                            bases.append(b)
+            res, base = None, 0
+            with ReadOnlyDevice(dev["path"]) as d:
+                for base in bases:
+                    if job.cancel.is_set():
+                        return job.finish("cancelled")
+                    res = apfsmeta.read_names(d.read_at, base)
+                    if res["ok"]:
+                        break
+            out = {"ok": bool(res and res["ok"]), "error": res and res.get("error"), "volumes": (res or {}).get("volumes", []),
+                   "found": len((res or {}).get("by_block", {})), "matched": 0, "linked": 0, "total": 0, "dir": None, "base": base}
+            if out["ok"]:
+                bs, by_block = res["block_size"], res["by_block"]
+                root = os.path.join(dest, self.NAMES_DIR)
+                rows, items = [], []
+                for s in self.related_sessions():
+                    offs = {r["id"]: r["offset"] for r in ex.load_catalog(s)} if os.path.isfile(os.path.join(s, "catalog.jsonl")) else {}
+                    for i, r in ex.load_extracted(s).items():
+                        items.append((offs.get(i), r.get("path", "")))
+                out["total"] = len(items)
+                for n, (off, rel) in enumerate(items):
+                    if job.cancel.is_set():
+                        break
+                    name = None
+                    if off is not None and off >= base and (off - base) % bs == 0:
+                        name = by_block.get((off - base) // bs)
+                    result = "이름 못 찾음"
+                    if name:
+                        out["matched"] += 1
+                        tgt = os.path.join(root, *[p for p in name.replace("\\", "/").split("/") if p not in ("", ".", "..")])
+                        stem, ext = os.path.splitext(tgt)
+                        k = 2
+                        while os.path.exists(tgt):
+                            tgt, k = "%s (%d)%s" % (stem, k, ext), k + 1
+                        try:
+                            os.makedirs(os.path.dirname(tgt), exist_ok=True)
+                            os.link(os.path.join(dest, rel), tgt)
+                            out["linked"] += 1
+                            result = "연결함"
+                        except OSError:
+                            result = "목록에만 적음(연결 실패)"
+                    rows.append((rel, name or "", result))
+                    if n % 200 == 0:
+                        job.update(done=n, total=len(items), matched=out["matched"])
+                os.makedirs(root, exist_ok=True)
+                import csv
+                with open(os.path.join(root, "목록.csv"), "w", encoding="utf-8-sig", newline="") as f:
+                    w = csv.writer(f)
+                    w.writerow(["꺼낸 파일", "원래 이름(볼륨/폴더/파일)", "결과"])
+                    w.writerows(rows)
+                out["dir"] = root
+            os.makedirs(self.session, exist_ok=True)
+            with open(os.path.join(self.session, "names.json"), "w", encoding="utf-8") as f:
+                json.dump(out, f, ensure_ascii=False)
+            if not out["ok"]:
+                return job.finish("done", error=None, **{k: out[k] for k in ("matched", "total")}, names_error=out["error"])
+            job.finish("cancelled" if job.cancel.is_set() else "done", matched=out["matched"], linked=out["linked"], total=out["total"], dest=dest)
+        return target
+
+    def add_image(self, path):
+        p = os.path.realpath(expand(path))
+        if not os.path.isfile(p):
+            raise FileNotFoundError("이미지 파일이 없어요: %s" % path)
+        if os.path.splitext(p)[1].lower() not in (".img", ".dmg", ".bin", ".raw", ".dd", ".iso"):
+            raise ValueError("디스크 이미지 파일(.img 등)만 열 수 있어요.")
+        name = "이미지 " + os.path.splitext(os.path.basename(p))[0]
+        self.images[name] = p
+        self._shared.pop("devs", None)
+        return name
+
     def saved_dest(self):
         return compat.read_json(os.path.join(self.session, "plan.json"), {}).get("dest")
 
@@ -899,6 +1057,15 @@ def make_handler(app):
                 if u.path == "/api/format-check":
                     dev = app.find_device((q.get("device_id") or [""])[0]) if q.get("device_id") else None
                     return self._send(200, app.format_check(dev))
+                if u.path == "/api/health":
+                    dev = app.find_device((q.get("device_id") or [""])[0])
+                    return self._send(200, app.health_of(dev) if dev else healthmod.health(None))
+                if u.path == "/api/backup":
+                    return self._send(200, app.backup_info())
+                if u.path == "/api/partitions":
+                    return self._send(200, {"result": compat.read_json(os.path.join(app.session, "partitions.json"), None)})
+                if u.path == "/api/names":
+                    return self._send(200, {"result": compat.read_json(os.path.join(app.session, "names.json"), None)})
                 if u.path == "/api/tail":
                     return self._send(200, app.tail_info())
                 if u.path == "/api/report":
@@ -1040,6 +1207,35 @@ def make_handler(app):
                 if "all_disks" in body:
                     app.all_disks = bool(body["all_disks"])
                 return self._send(200, {"all_disks": app.all_disks})
+            if path in ("/api/backup/start", "/api/partitions/start", "/api/names/start"):
+                dev = self._device(body)
+                if not dev:
+                    return
+                if not dev["readable"]:
+                    return self._err(403, "이 장치를 읽을 권한이 없습니다. 관리자 권한으로 다시 실행하세요.")
+                v = app.view()
+                if path == "/api/backup/start":
+                    if not body.get("resume") and not body.get("dest"):
+                        return self._err(400, "이미지를 저장할 폴더를 고르세요.")
+                    if body.get("dest"):
+                        early = guards.check_dest(body["dest"], app.forbidden_mounts(dev), 0)
+                        if not early["ok"]:
+                            return self._err(400, " / ".join(early["reasons"]))
+                    job = app.start_job("backup", v.backup_target(dev, body.get("dest") or "", bool(body.get("whole")), bool(body.get("resume"))))
+                elif path == "/api/partitions/start":
+                    job = app.start_job("partfind", v.partfind_target(dev))
+                else:
+                    bad = app.disk_mismatch(dev)
+                    if bad:
+                        return self._err(400, bad)
+                    job = app.start_job("names", v.names_target(dev))
+                return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
+            if path == "/api/images/open":
+                try:
+                    name = app.add_image(body.get("path") or "")
+                except (OSError, ValueError) as e:
+                    return self._err(400, str(e))
+                return self._send(200, {"name": name, "key": "dev:image:" + name})
             if path == "/api/tail/start":
                 dev = self._device(body)
                 if not dev:
