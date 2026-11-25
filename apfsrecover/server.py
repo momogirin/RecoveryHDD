@@ -24,6 +24,7 @@ from . import extract as ex
 from . import fsbrowse, guards, tailcheck, imaging, partfind, apfsmeta
 from . import organize as orgmod
 from . import health as healthmod
+from . import reporthtml
 from . import verify as vf
 from .blockdev import ReadOnlyDevice, device_gone, split_device_path
 from .identity import fingerprint
@@ -1413,10 +1414,15 @@ def make_handler(app):
                 if not dest or not os.path.isdir(os.path.realpath(expand(dest))):
                     return self._err(404, "저장 폴더를 찾을 수 없습니다.")
                 out = os.path.join(os.path.realpath(expand(dest)), "복구 보고서.txt")
+                text = app.report()
                 with open(out, "w", encoding="utf-8") as f:
-                    f.write(app.report())
+                    f.write(text)
                 chown_tree(out)
-                return self._send(200, {"path": out})
+                out_html = os.path.splitext(out)[0] + ".html"  # 공유용(같은 내용, 한 파일로 열림)
+                with open(out_html, "w", encoding="utf-8") as f:
+                    f.write(reporthtml.to_html(text))
+                chown_tree(out_html)
+                return self._send(200, {"path": out, "html": out_html})
             if path == "/api/shutdown":
                 if app.job and app.job.state == "running":
                     return self._err(409, "작업이 실행 중입니다. 끝나거나 중단한 뒤 종료하세요.")
