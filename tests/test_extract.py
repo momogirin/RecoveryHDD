@@ -148,6 +148,71 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class NamingTest(ExtractBase):
+    """파일 이름을 촬영 시각으로 짓는 규칙(07-roadmap D)."""
+
+    def _names(self):
+        return {r["id"]: r["path"] for r in ex.load_extracted(self.session).values()}
+
+    def _by_offset(self):
+        return {r["offset"] // BS: r for r in ex.load_catalog(self.session)}
+
+    def test_name_rules(self):
+        rec = {"id": 123, "kind": "jpeg", "offset": 25792 * BS, "taken": "2024-03-06T14:30:12",
+               "model": "Canon EOS R8"}
+        self.assertEqual(ex.file_name(rec), "20240306_143012_CanonEOSR8_000123.jpg")
+        self.assertEqual(ex.file_name(dict(rec, model=None)), "20240306_143012_000123.jpg")
+        self.assertEqual(ex.file_name(dict(rec, model="  /:*?  ")), "20240306_143012_000123.jpg")  # 쓸 수 없는 글자뿐
+        self.assertEqual(ex.file_name(dict(rec, model="NIKON CORPORATION NIKON Z 6_2")),
+                         "20240306_143012_NIKONCORPORATION_000123.jpg")  # 16자까지
+        self.assertEqual(ex.file_name(dict(rec, taken=None)), "jpg_000123_blk25792.jpg")  # 시각 없음: 이전 이름
+        self.assertEqual(ex.file_name(dict(rec, taken="깨진 값")), "jpg_000123_blk25792.jpg")
+        self.assertEqual(ex.file_name(rec, ex.LAYOUT_V1), "jpg_000123_blk25792.jpg")
+
+    def test_video_name_uses_local_time(self):
+        rec = {"id": 7, "kind": "video-mp4", "offset": 0, "taken": "2024-03-06T16:30:00", "taken_utc": True,
+               "structure": "ok"}
+        local = ex.to_local(rec["taken"], True).strftime("%Y%m%d_%H%M%S")
+        self.assertEqual(ex.file_name(rec), "%s_000007.mp4" % local)
+        # 폴더 날짜와 이름의 날짜가 같다
+        self.assertEqual(ex.dest_relpath(rec).split(os.sep)[1].replace("-", ""), local[:8])
+
+    def test_new_session_uses_taken_names_and_mtime(self):
+        self.run_batch(dict(self.plan, batch={"unit": "n", "size": 10}))
+        recs = self._by_offset()
+        names = self._names()
+        first = recs[1]
+        self.assertEqual(os.path.basename(names[first["id"]]), "20240306_093835_CanonEOSR8_%06d.jpg" % first["id"])
+        undated = recs[300]
+        self.assertTrue(os.path.basename(names[undated["id"]]).startswith("jpg_"))
+        self.assertEqual(ex.compat.read_json(os.path.join(self.session, "plan.json"), {})["layout"], ex.LAYOUT_TAKEN)
+        # 수정 시각 = 촬영 시각
+        st = os.stat(os.path.join(self.dest, names[first["id"]]))
+        self.assertAlmostEqual(st.st_mtime, datetime(2024, 3, 6, 9, 38, 35).timestamp(), delta=2)
+
+    def test_resume_keeps_layout_of_first_batch(self):
+        self.run_batch()  # 2개, 촬영 시각 방식
+        self.run_batch(dict(self.plan, batch={"unit": "n", "size": 10}))  # 화면은 layout 을 보내지 않는다
+        names = self._names()
+        dated = [p for i, p in names.items() if ex.UNDATED not in p]
+        self.assertEqual(len(dated), 3)
+        self.assertTrue(all(os.path.basename(p).startswith("2024") for p in dated))  # 두 번째 묶음도 촬영 시각 이름
+
+    def test_old_session_without_layout_keeps_old_names(self):
+        self.run_batch(dict(self.plan, layout=ex.LAYOUT_V1))
+        # 이전 버전이 만든 plan.json 처럼 layout 을 지운다
+        p = os.path.join(self.session, "plan.json")
+        old = ex.compat.read_json(p, {})
+        old.pop("layout")
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(old, f)
+        self.run_batch(dict(self.plan, batch={"unit": "n", "size": 10}))
+        names = self._names()
+        self.assertEqual(len(names), 4)
+        self.assertTrue(all("_blk" in os.path.basename(p) for p in names.values()))
+        self.assertEqual(ex.compat.read_json(p, {})["layout"], ex.LAYOUT_V1)
+
+
 class RobustnessTest(ExtractBase):
     def setUp(self):
         super().setUp()

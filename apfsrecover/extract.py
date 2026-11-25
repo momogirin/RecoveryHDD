@@ -18,7 +18,7 @@ from . import compat
 from . import formats_more as fm
 from .jsonl import read_jsonl
 from .scan import BS
-from .timeutil import local_date
+from .timeutil import local_date, to_local
 
 KIND_EXT = {"jpeg": "jpg", "raw-cr3": "cr3", "video-mp4": "mp4", "video-mov": "mov",
             "heic": "heic", "unknown-bmff": "bin", "zip": "zip", "docx": "docx", "xlsx": "xlsx", "pptx": "pptx",
@@ -31,6 +31,10 @@ RECHECK_LAST = 20       # 비정상 종료 뒤 이어할 때 마지막으로 기
 UNCLEAN = ("running", "disconnected", "error", "nospace", "unstable")
 UNDATED = "날짜불명"
 SUSPECT_DIR = "_의심"
+# 파일 이름 방식(plan.json 의 layout). taken: 촬영 시각으로 짓는다. 옛 기록은 layout 이 없고 이전 방식이다.
+LAYOUT_TAKEN = "kind/date/taken"
+LAYOUT_V1 = "kind/date/kind_seq_blk"
+LAYOUTS = (LAYOUT_TAKEN, LAYOUT_V1)
 # 결정(01-plan.md 7절): 종류별 폴더 아래에 날짜별. 구조 점검이 '의심'인 파일은 종류 폴더 안의 _의심 에 따로 둔다.
 KIND_DIR = {"jpeg": "사진", "heic": "사진", "raw-cr3": "RAW", "video-mp4": "영상", "video-mov": "영상",
             "unknown-bmff": "기타", "zip": "압축", "docx": "문서", "xlsx": "문서", "pptx": "문서", **fm.KIND_DIR}
@@ -80,15 +84,57 @@ def select(records, plan):
     return out
 
 
-def dest_relpath(rec):
+def _model_tag(model):
+    """파일 이름에 넣을 카메라 이름: 영문·숫자만, 16자까지. 없으면 빈 문자열."""
+    tag = "".join(c for c in (model or "") if c.isascii() and c.isalnum())
+    return tag[:16]
+
+
+def file_name(rec, layout=LAYOUT_TAKEN):
+    """파일 이름. LAYOUT_TAKEN 이면 촬영 시각(현지 시각)으로 짓는다: 20240306_143012_CanonEOSR8_000123.jpg
+    시각이 없거나 이전 방식(LAYOUT_V1)이면 jpg_000123_blk25792.jpg. 끝의 번호가 있어 같은 초에 찍은 사진도 겹치지 않는다."""
     ext = KIND_EXT.get(rec["kind"], "bin")
+    dt = to_local(rec.get("taken"), rec.get("taken_utc", False)) if layout == LAYOUT_TAKEN else None
+    if dt is None:
+        return "%s_%06d_blk%d.%s" % (ext, rec["id"], rec["offset"] // BS, ext)
+    parts = [dt.strftime("%Y%m%d_%H%M%S")]
+    tag = _model_tag(rec.get("model"))
+    if tag:
+        parts.append(tag)
+    parts.append("%06d" % rec["id"])
+    return "_".join(parts) + "." + ext
+
+
+def dest_relpath(rec, layout=LAYOUT_TAKEN):
     day = local_date(rec) or UNDATED
     parts = [KIND_DIR.get(rec["kind"], "기타")]
     if rec.get("structure") != "ok":
         parts.append(SUSPECT_DIR)
     parts.append(day)
-    parts.append("%s_%06d_blk%d.%s" % (ext, rec["id"], rec["offset"] // BS, ext))
+    parts.append(file_name(rec, layout))
     return os.path.join(*parts)
+
+
+def taken_timestamp(rec):
+    """꺼낸 파일의 수정 시각으로 쓸 촬영 시각(초). 없으면 None."""
+    dt = to_local(rec.get("taken"), rec.get("taken_utc", False))
+    if dt is None:
+        return None
+    try:
+        return dt.timestamp()
+    except (OverflowError, OSError, ValueError):  # 윈도우는 1970년 이전 시각을 다루지 못한다
+        return None
+
+
+def resolve_layout(session, plan, has_done):
+    """이번 꺼내기에 쓸 이름 방식. 계획에 적혀 있으면 그것. 이미 꺼낸 파일이 있으면 그때 방식을 유지한다
+    (이어하는 중에 이름 규칙이 바뀌지 않게. layout 이 없는 옛 plan.json 은 이전 방식). 처음이면 촬영 시각 방식."""
+    if plan.get("layout") in LAYOUTS:
+        return plan["layout"]
+    if has_done:
+        prev = compat.read_json(os.path.join(session, "plan.json"), {}).get("layout")
+        return prev if prev in LAYOUTS else LAYOUT_V1
+    return LAYOUT_TAKEN
 
 
 def next_batch(selected, done_ids, batch):
@@ -290,7 +336,8 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
     by_hash = {r["sha256"]: r["path"] for r in done.values() if r.get("sha256")}  # 내용 해시 -> 이미 꺼낸 파일
     got_files = got_bytes = n_failed = n_dups = consecutive = 0
     state, error = "done", None
-    _write_json(os.path.join(session, "plan.json"), dict(plan, dest=dest))
+    layout = resolve_layout(session, plan, bool(done or dup_ids or failed_ids))
+    _write_json(os.path.join(session, "plan.json"), dict(plan, dest=dest, layout=layout))
     _write_json(state_path, {"state": "running", "started": time.time()})
     with ReadOnlyDevice(device_path) as dev, \
             open(os.path.join(session, "extracted.jsonl"), "a", encoding="utf-8") as log, \
@@ -314,7 +361,7 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
             if should_cancel and should_cancel():
                 state = "cancelled"
                 break
-            rel = dest_relpath(rec)
+            rel = dest_relpath(rec, layout)
             final = os.path.join(dest, rel)
             part = final + ".part"
             try:
@@ -346,6 +393,12 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
                     _emit(rel, got_bytes)
                     continue
                 os.replace(part, final)
+                ts = taken_timestamp(rec)
+                if ts is not None:  # 탐색기·사진 앱에서 날짜순 정렬이 촬영 순서와 맞도록
+                    try:
+                        os.utime(final, (ts, ts))
+                    except OSError:
+                        pass  # 시각을 못 바꿔도 파일은 온전하다
             except SourceGone:
                 _rm(part)
                 state, error = "disconnected", "장치 연결이 끊겼습니다. 케이블을 다시 꽂고 이어서 하세요."

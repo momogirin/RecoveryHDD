@@ -7,6 +7,7 @@
 | [03-engine-api.md](03-engine-api.md) | 엔진/서버 인터페이스, 데이터 형식(catalog, plan, progress) |
 | [04-distribution.md](04-distribution.md) | 맥용·윈도우용 배포 방식과 미구현·미검증 항목 |
 | [05-resilience.md](05-resilience.md) | 돌발상황(연결 끊김·전원 차단·다른 디스크 등)별 대응과 검증 상태 |
+| [07-roadmap.md](07-roadmap.md) | 공개 준비 로드맵: 경쟁 제품 비교에서 나온 기능·UI 작업과 순서 |
 | [mockup/index.html](mockup/index.html) | v1 시안 (6단계 탭) |
 | [mockup/ui-v2.html](mockup/ui-v2.html) | **v2 시안 (현재 화면의 기준)** — 3단계, 눌러 볼 수 있음, 서버 불필요 |
 

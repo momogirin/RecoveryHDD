@@ -40,8 +40,9 @@ python3 -m apfsrecover gui [--session 폴더] [--image 이름=경로]  # P2~P5 �
  "date_from": null, "date_to": null,
  "include_suspect": false,
  "batch": {"unit": "gb", "size": 100},
- "layout": "date/kind_seq_blk"}
+ "layout": "kind/date/taken"}
 ```
+- `layout`: `kind/date/taken`(촬영 시각 이름, 2026-11-25부터 기본) 또는 `kind/date/kind_seq_blk`(이전 이름). 없으면 이미 꺼낸 파일이 있을 때 이전 방식으로 본다(`07-roadmap.md` D).
 
 ### progress.json
 ```json
