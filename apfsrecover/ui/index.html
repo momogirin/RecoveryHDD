@@ -896,21 +896,38 @@ main h1 { font-size: 18px; line-height: 28px; }
   <div class="acts"><button class="btn" id="ask-no">아니요</button><button class="btn primary" id="ask-yes">예</button></div>
 </dialog>
 
+<script type="application/json" id="i18n-en">{" (온전한 항목 ": " (intact entries: ", " (이미 꺼낸 ": " (", " (표에 없는 것 ": " (", " ffmpeg 가 있으면 영상도 재생까지 확인해요.": " With ffmpeg, videos are also play-checked.", " · 꺼냄 ": " · extracted ", " · 날짜 없는 파일은 빠져요": " · undated files are left out", " · 날짜 없음 ": " · undated ", " · 남은 시간 ": " · time left ", " · 다르게 복사된 것 ": " · copied differently ", " · 모두 같음": " · all identical", " · 못 읽은 곳 ": " · unreadable ", " · 문제없음 표시 ": " · marked OK ", " · 미확인 ": " · unchecked ", " · 복원본 ": " · repaired ", " · 볼륨: ": " · volumes: ", " · 시작한 지 ": " · running for ", " · 쓸 수 없는 폴더": " · not writable", " · 여유 공간 ": " · free ", " · 원본에서 읽은 그림(읽기만 해요)": " · image read from the source (read-only)", " · 원본은 읽기만 해요": " · the source is only read", " · 의심 ": " · suspect ", " · 작업 1개 진행 중": " · 1 job running", " · 중간에 멈춤": " · paused", " · 찾은 시작 표시 ": " · start markers found ", " · 찾은 파티션 ": " · partitions found ", " · 촬영 정보가 없는 파일": " · files without capture info", " · 촬영일 ": " · taken ", " · 표에 없음": " · not in table", " · 확인 ": " · review ", " · 확인 필요 ": " · needs review ", " — 검사 ": " — scan ", " — 남은 것만 복사해요": " — only the rest will be copied", " — 모두 ": " — total ", " — 모자라요": " — not enough", " — 장치마다 검사·추출 기록을 이 안의 session 폴더에 따로 둬요": " — scan and extract records for each device go in their own session folder here", " — 총 ": " — total ", " → 복원본 ": " → repaired copy ", " 걸림": " taken", " 구간을 ": " range, sampling every ", " 꺼낼 예정 — 조건에 맞는 ": " to extract — ", " 꺼냅니다.": ".", " 끝나요 · 시작한 지 ": " expected finish · running for ", " 남았어요": " left", " 모두 ": " all ", " 선택 안 됨": " not selected", " 선택됨": " selected", " 에 복사하고, 다 되면 하나씩 다시 읽어 제대로 복사됐는지 확인해요. 꺼낸 폴더는 바꾸지 않아요.": " — afterwards each file is read back to verify the copy. The extracted folder is not changed.", " 에 이미지 파일로 복사해요. 하드 크기에 따라 몇 시간 걸릴 수 있어요(5TB 전체는 10시간 안팎, 추정).": " as an image file. Depending on the drive size this can take hours (about 10 hours for a full 5 TB, estimate).", " 여유)": " free)", " 예상 소요 시간 ": " Estimated time ", " 외 ": " and ", " 위치 · ": " offset · ", " 위치: ": " at: ", " 의심": " suspect", " 이미 찾았어요. 그 부분은 디스크에서 다시 읽지 않고 건너뛰어서 검사가 훨씬 빨라져요. 새로 지원하는 종류(문서 등)는 나머지 구간에서 찾아요. 처음부터 모두 다시 읽으려면 [아니요]를 누르세요.": " files. Those areas are skipped instead of being read again, so the scan is much faster. Newly supported types (documents, etc.) are searched in the rest. To read everything again, press [No].", " 장치를 연결해야 해요.": " Connect the device first.", " 저장 공간에 맞춰 ": " Split into ", " 전": " ago", " 중 · ": " in progress · ", " 중 · 원본은 읽기만 해요": " in progress · the source is only read", " 확인 · 이름 찾음 ": " checked · names found ", "(암호화돼 못 읽음)": "(encrypted, can't read)", "(하위 폴더 없음)": "(no subfolders)", ")를 ": ") → ", ", 마지막 항목 하나는 잘려서 뺐어요": ", the last entry was cut off and left out", ", 확인 필요 ": ", needs review ", ". 영상은 끝부분을 실제로 재생해 봤습니다(처음부터 끝까지 본 것은 아닙니다). RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.": ". Videos had their end actually played (not watched start to finish). Opening in RAW processing software was not checked.", ". 재생 프로그램이나 RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.": ". Opening in players or RAW processing software was not checked.", "1/2 복사 ": "1/2 copying ", "2/2 제대로 복사됐는지 확인 ": "2/2 verifying copies ", "= 구조가 일부 맞지 않아 열리지 않을 수 있는 파일 ·": "= a file whose structure partly doesn't match and may not open ·", "= 기본 검사로 못 찾은 것을 더 찾는 방법들.": "= extra ways to find what the basic scan missed.", "= 디스크를 훑어 파일 찾기(딥 스캔) ·": "= going through the disk to find files (deep scan) ·", "= 복구 ·": "= recover ·", "= 복구한 파일이 열리는지 검증 ·": "= verifying that recovered files open ·", "APFS 파일 목록을 읽고 있어요(원본은 읽기만 해요)": "Reading the APFS file list (the source is only read)", "APFS 파일 목록이 남아 있으면 꺼낸 파일에 원래 이름과 폴더를 붙여요(저장 폴더의 _원래이름 폴더, 용량을 더 쓰지 않아요).": "If the APFS file list survives, original names and folders are attached to the extracted files (in the _원래이름 folder in the save folder; no extra space used).", "APFS 형식": "APFS", "Mac OS 확장 형식": "Mac OS Extended", "PDF · 한글 · 오피스 · RTF": "PDF · Hangul · Office · RTF", "RAW 사진": "RAW photos", "RecoveryHDD · 원본 장치는 읽기만 합니다": "RecoveryHDD · only reads the source device", "SMART 상태": "SMART status", "USB 연결": "USB", "Windows 형식": "Windows format", "[열림 다시 확인]을 누르면 온전한 항목만 모아 복원본을 만들어요.": "Press [Check again] to build a repaired copy from the intact entries.", "[추출] 탭": "[Extract] tab", "_확인용": "_확인용", "· 내용 있는 곳": "· with content", "· 파일 시작 표시": "· file start markers", "”에서 ": "” already found ", "같은 하드디스크를 확인했어요": "Confirmed it's the same drive", "개": "", "개 · ": " · ", "개 · 기록이 있는 장치 ": " · devices with records: ", "개 · 확인 ": " · verified ", "개 꺼냄": " extracted", "개 뺌": " left out", "개 있어요. 꺼내지 않고 그대로 둡니다.": ". They won't be extracted.", "개 중 ": " total, ", "개 중에서 필요한 종류만 골라 꺼낼 수 있어요.": " files found. You can pick only what you need.", "개 찾았어요": " found", "개 찾음": " found", "개 포함": " included", "개(": " files (", "개)": " not in table)", "개가 남았습니다": " remaining", "개는 ‘_의심’ 폴더에 따로 둬요. 열리지 않을 수 있어요.": " — kept separately in the ‘_의심’ folder. They may not open.", "개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.": " were put in the _의심 folder inside each type folder.", "개는 건너뛰고 남은 ": "; skipping them and extracting the remaining ", "개는 건너뜁니다)": " already extracted are skipped)", "개는 목차를 다시 만든 복원본으로 열 수 있어요": " can be opened from copies with a rebuilt directory", "개는 복원본으로 열 수 있어요": " can be opened from repaired copies", "개는 복원본을 만들었어요": " got repaired copies", "개는 열리지 않거나 일부만 열렸습니다": " didn't open or opened only partly", "개는 저장 폴더에 그대로 있어요.": " extracted files stay in the save folder.", "개는 저장 폴더에 그대로 있어요. 이어서 하면 남은 ": " — they stay in the save folder. Resuming extracts the remaining ", "개는 하나만 저장했습니다.": " — only one copy was saved.", "개는 확인이 필요합니다": " need review", "개도 그대로 있어요.": " extracted files are also safe.", "개를": "", "개를 꺼내요": "", "개를 꺼냈고, ": " extracted, ", "개를 꺼냈고, ZIP ": " extracted; ZIP: ", "개를 꺼냈고, 모두 정상으로 확인했습니다": " extracted, all confirmed OK", "개를 꺼냈습니다": " extracted", "개를 꺼냈습니다. 아직 ": " extracted. Still ", "개만 꺼냅니다.": ".", "개만 연결, 나머지는 목록.csv 에)": " linked, the rest are in 목록.csv)", "개요": "Overview", "개요로": "Overview", "개의 원래 이름을 찾았어요": " original names found", "걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.": "Don't worry. Follow the steps below to resume from where it stopped.", "건강 정보를 알 수 없어요": "Health information isn't available", "검사": "Scan", "검사 결과가 없습니다. 장치를 먼저 검사하세요.": "No scan results. Scan the device first.", "검사 기록 ": "Scan record: ", "검사 멈춤": "Scan paused", "검사 범위 앞쪽 ": "Scanned first ", "검사 보기": "View scan", "검사 시작": "Start scan", "검사 안 함": "Not scanned", "검사 전": "Not scanned", "검사 종류로": "Scan options", "검사 중 · 원본은 읽기만 해요": "Scanning · the source is only read", "검사 중이에요. 찾는 대로 여기에 더해져요. 꺼내기는 검사가 끝난 뒤에 할 수 있어요.": "Scanning. Files are added here as they're found. You can extract after the scan finishes.", "검사 탭으로": "Go to Scan tab", "검사가 끝난 뒤에 꺼낼 수 있어요": "You can extract after the scan finishes", "검사가 멈췄어요": "The scan stopped", "검사가 중간에 멈춰 있어요": "The scan is paused partway", "검사는 장치를 읽기만 하고 사진·영상·문서·압축 파일을 찾아요.": "A scan only reads the device and looks for photos, videos, documents and archives.", "검사를 마쳤어요. [추출] 탭에서 찾은 파일을 보고 꺼낼 것을 고르세요.": "Scan finished. In the [Extract] tab, look through the found files and choose what to extract.", "검사를 마쳤어요. 꺼낼 종류를 고르세요": "Scan finished. Choose what to extract", "검사를 멈췄어요": "Scan stopped", "검사하러 가기": "Go to scan", "검사하지 않은 뒤쪽 ": "Sample the unscanned last ", "검사한 앞쪽": "Scanned part", "검증 방법과 참고 사항": "How it was checked, and notes", "검증 수준: ": "Check level: ", "결과": "Results", "결과 보기": "View results", "결과 탭으로": "Go to Results tab", "결과를 불러오지 못했습니다: ": "Couldn't load results: ", "계산 중": "calculating", "계산 중이에요": "Calculating", "고급 검사": "Advanced scans", "고치지 못한 읽기 오류": "Uncorrectable read errors", "곧 파일 찾기를 시작해요": "File search starts shortly", "곳": " more", "곳을 찍어 봐요. 하드디스크에서는 20분 안팎 걸릴 수 있어요(추정).": " points to sample. On a hard disk this can take about 20 minutes (estimate).", "관리자 권한 필요": "Needs admin rights", "관리자 권한으로 실행해야 이 장치를 읽을 수 있어요.": "Run as administrator to read this device.", "관리자 권한으로 실행해야 읽을 수 있어요": "Run as administrator to read it", "관리자 권한이 아니라서 장치를 읽을 수 없습니다. 프로그램을 닫고 다시 실행하세요(관리자 확인 창에서 [예]).": "Not running as administrator, so devices can't be read. Close the program and run it again (choose [Yes] in the admin prompt).", "관리자 권한이 필요해요": "Needs admin rights", "구조 확인": "structure checked", "그래도 중요한 파일은 먼저 꺼내 두세요.": "Still, copy important files off first.", "그림을 보여 주지 못했어요.": "Couldn't show the image.", "기간 해제": "Clear dates", "기록 폴더": "Record folder", "기록 폴더, 장치 목록에 보일 장치, 화면 테마": "Record folder, devices shown in the list, theme, language", "기록과 저장 폴더만 보고 판단해요. 원본 장치는 읽지 않아요. 포맷은 이 프로그램이 하지 않으니 윈도우 디스크 관리에서 직접 하세요.": "Decided from the records and save folder only; the source device isn't read. This program doesn't format; do it yourself in Windows Disk Management.", "기록과 저장 폴더만 보고 판단해요. 포맷은 이 프로그램이 하지 않으니 윈도우 디스크 관리에서 직접 하세요.": "Decided from the records and save folder only. This program doesn't format; do it yourself in Windows Disk Management.", "기본 검사": "Basic scan", "기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.": "Samples the area the basic scan didn't read, more densely, to look for traces of missed files.", "기본 검사로 부족할 때 · 끝부분 촘촘 검사 · 파티션 찾기 · 전체 검사": "When the basic scan isn't enough · Tail check · Partition finder · Full scan", "깨졌을 수 있는 파일 ": "Possibly broken files: ", "깨졌을 수 있음 ": "Possibly broken ", "꺼내기": "Extract", "꺼내기 시작": "Start extracting", "꺼내기…": "Extract…", "꺼내기가 중간에 멈춰 있어요": "Extraction is paused partway", "꺼내기는 모두 끝났어요": "Extraction is all done", "꺼내는 중 · 원본에는 쓰지 않아요": "Extracting · nothing is written to the source", "꺼낸 ": "", "꺼낸 파일": "Extracted files", "꺼낸 파일 ": "Extracted files ", "꺼낸 파일 없음": "No files extracted", "꺼낸 파일과 확인 결과를 한눈에 봅니다.": "Extracted files and check results at a glance.", "꺼낸 파일은 그대로 남고, 나중에 이어서 할 수 있습니다.": "Extracted files stay, and you can resume later.", "꺼낸 파일은 저장 폴더에 그대로 있어요": "Extracted files stay in the save folder", "꺼낸 파일은 항상 원본 장치가 아닌 다른 곳에만 저장해요. 원본 장치 안의 폴더는 고를 수 없어요.": "Extracted files are always saved somewhere other than the source device. Folders on the source device can't be chosen.", "꺼낸 파일을 날짜별로 정리해 다른 곳에 복사해요. 꺼낸 폴더와 원본 하드는 바꾸지 않아요.": "Copies the extracted files, organized by date, to another place. The extracted folder and source drive are not changed.", "꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.": "Opening the extracted files one by one. Only the save folder is read; the source disk is no longer read.", "꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 장치는 더 이상 읽지 않아요.": "Opening the extracted files one by one. Only the save folder is read; the source device is no longer read.", "꺼낼 이름": "Saved as", "꺼낼 종류를 하나 이상 고르세요.": "Choose at least one type to extract.", "꺼낼 파일 없음": "Nothing to extract", "끝부분 검사": "Tail check", "끝부분 촘촘 검사": "Tail check", "끝부분 촘촘 검사를 아직 안 했어요": "The tail check hasn't been run", "날짜 없음": "No date", "날짜 폴더에 합치기": "Merge into date folders", "날짜를 모르는 것 · 작은 사진 · 깨졌을 수 있는 것은": "Undated files, small photos and possibly broken files go to the", "날짜만": "Day only", "날짜불명 ": "Undated ", "남은 시간 ": "Time left ", "남은 시간 확인 중": "Checking time left", "남은 시간을 계산하고 있어요": "Calculating time left", "내용은 있지만 파일 시작은 못 찾았어요(지워진 찌꺼기일 수 있음).": "There is content but no file starts (possibly leftovers from deleted files).", "내용이 같은 파일 ": "Identical files: ", "내일 ": "tomorrow ", "내장 디스크도 보이기": "Show internal disks", "내장 디스크도 장치 목록에 보이기": "Show internal disks in the device list", "년 ": "-", "느림": "Slow", "다 꺼낸 뒤 장치를 다시 쓰려면, 장치 화면의 [포맷 점검]을 먼저 확인하고 포맷은 윈도우 디스크 관리에서 하세요.": "To reuse the device after extracting everything, check [Format check] on the device screen first, then format in Windows Disk Management.", "다 꺼냈다면 [포맷 점검]에서 7가지를 확인할 수 있어요.": "Once everything is extracted, [Format check] goes through 7 points.", "다른 작업이 실행 중이에요": "Another job is running", "다시 검사": "Scan again", "다시 검사할까요?": "Scan again?", "다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.": "Plug it back in. We'll check automatically that it's the same disk.", "다시 누르거나 Space 로 선택을 바꿔요. Shift 로 범위를 골라요.": "Click again or press Space to change selection. Shift selects a range.", "다시 연결됐어요": "Reconnected", "다시 연결되면 버튼이 켜져요": "The button turns on when reconnected", "다시 점검": "Check again", "다시 찾기": "Search again", "다시 확인": "Check again", "다음 단계": "Next", "다음 묶음 꺼내기": "Extract next batch", "다음에 할 일": "Next step", "단계별 상태": "Status by step", "닫기": "Close", "닳은 정도": "Wear", "대기 중": "Idle", "대상": "Include", "데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 ‘고급 검사’로 더 찾아볼 수 있어요.": "The data may have been overwritten or be in an unsupported format. Try ‘Advanced scans’ in the [Scan] tab.", "데이터가 있는 구간까지 읽어서 사진·영상·문서·압축 파일을 찾아요. 이전 검사 결과가 있으면 그 구간은 건너뛸 수 있어요.": "Reads up to where data was found and looks for photos, videos, documents and archives. With earlier results, those areas can be skipped.", "도구와 통신하지 못했습니다": "Couldn't reach the tool", "도구와 통신하지 못했습니다: ": "Couldn't reach the tool: ", "도구와 통신하지 못했어요.": "Couldn't reach the tool.", "도움말": "Help", "되돌리기": "Undo", "되돌리려면 [되돌리기]를 누르세요.": "To undo, press [Undo].", "되살리기": "Restore", "뒤쪽에서 내용을 찾지 못했어요. 이미 꺼낸 파일이 전부일 가능성이 높아요(추정).": "No content found at the end. The extracted files are likely all there is (estimate).", "디스크": "Disk", "디스크 백업": "Disk backup", "디스크 백업 (이미지 파일)": "Disk backup (image file)", "디스크 위치를 확인하는 중이에요": "Checking where the data is on the disk", "디스크 이미지": "Disk image", "디스크 읽기가 불안정해서 멈췄어요": "Stopped because disk reads were unstable", "디스크 정보를 운영체제에 물어보고 있어요. 몇 초 걸릴 수 있어요. 원본은 읽기만 해요.": "Asking the operating system about disks. This can take a few seconds. The source is only read.", "디스크가 불안정해 중단했습니다.": "Stopped because the disk was unstable.", "디스크를 처음부터 읽으며 찾습니다. 창을 열어 두기만 하면 됩니다.": "Reading the disk from the start. Just keep the window open.", "디스크에는 영향이 없어요": "The disk is not affected", "를 ": " → ", "마다 찍어 봐요. 놓친 파일의 흔적이 있는지 확인해요.": ", to look for traces of missed files.", "마지막 단계: 잘 열리는지 확인하고 있어요": "Last step: checking that files open", "마지막 업데이트 ": "Last update ", "마지막 작업 ": "Last job ", "만들기": "Create", "멈추기": "Stop", "멈춘 곳부터 계속해요": "Continues from where it stopped", "멈춤": "Paused", "멈춤 · ": "Paused · ", "멈춰도 다시 시작하면 남은 것만 복사해요": "If stopped, restarting copies only the rest", "멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요": "Stopping keeps the files already extracted, and you can resume", "메뉴": "Menu", "몇 초 걸릴 수 있어요.": "This can take a few seconds.", "모두": "none left out", "모두 문제없음": "All OK", "모두 선택": "Select all", "모두 해제": "Clear all", "못 맞춤": "No match", "못 찾음": "None found", "문서": "Documents", "문서·압축": "Documents · archives", "문서·압축 ": "Documents · archives ", "문제가 생겨 멈췄어요": "Stopped because of a problem", "문제없음": "OK", "문제없음으로 표시함 · ": "Marked OK · ", "문제없음으로 표시했어요": "Marked OK", "미리보기": "Preview", "바꾸면 화면을 다시 불러와요": "The screen reloads when you change it", "밝게": "Light", "방금 꺼낸 사진": "Just extracted", "방금 꺼낸 파일": "Just extracted", "방금 찾은 사진": "Just found", "배터리로 실행 중입니다. 전원을 연결하세요. 덮개를 닫거나 배터리가 떨어지면 장치 연결이 끊겨 작업이 멈춥니다.": "Running on battery. Connect power. Closing the lid or a drained battery disconnects the device and stops the job.", "백업": "Backup", "백업 시작": "Start backup", "백업을 시작할까요?": "Start the backup?", "번에 나눠 꺼냅니다.": " batches to fit the free space.", "보고서 저장": "Save report", "보러 가기": "View", "복구": "Recovery", "복구 결과": "Recovery results", "복구 설정": "Recovery settings", "복구를 마쳤습니다": "Recovery finished", "복사 중": "Copying", "복사할 범위": "Range to copy", "복사할 파일이 없어요.": "Nothing to copy.", "복사함 ": "Copied ", "분": " min", "불러오지 못했어요: ": "Couldn't load: ", "불일치 ": "Mismatched ", "비어 있음": "Empty", "비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼내요.": "Leave empty for all at once. Splits the extraction when space is short.", "빠른 위치": "Quick locations", "사라진 것 있음": "Some missing", "사용 시간": "Power-on hours", "사진": "Photos", "사진 끝까지 열기": "photo fully decoded", "사진·RAW·영상 따로": "Photos · RAW · videos separately", "사진·문서 등 모든 종류를 한 번에 찾습니다. 창을 열어 두기만 하면 됩니다.": "Finds photos, documents and all other types in one pass. Just keep the window open.", "사진을 꺼내고 있어요": "Extracting photos", "사진을 찾으면 여기에 보여요": "Photos appear here as they're found", "사진이나 영상을 찾지 못했어요": "No photos or videos found", "살펴본 위치 ": "Positions checked ", "상위 폴더": "Parent folder", "상태": "Status", "새 폴더": "New folder", "새 폴더 이름": "New folder name", "새로 만들기": "Create new", "선택": "Select", "설정": "Settings", "설정 바꾸기": "Change settings", "속도": "Speed", "시간 ": " h ", "시스템": "System", "시작": "Start", "시작할 수 없습니다.": "Can't start.", "시작할 수 없었어요": "Couldn't start", "쓸 수 없는 폴더입니다.": "The folder isn't writable.", "아니요": "No", "아직 검사하지 않았어요": "Not scanned yet", "아직 검사하지 않은 장치예요": "This device hasn't been scanned yet", "아직 고르지 않았어요": "not chosen yet", "아직 기록이 없어요.": "No records yet.", "아직 꺼내지 않았어요": "Nothing extracted yet", "아직 만든 이미지가 없어요.": "No image made yet.", "아직 안 됨": "Not yet", "아직 안 읽은 구간 ": "Not yet read: ", "아직 안 함": "Not yet", "아직 열림 확인을 하지 않았습니다.": "No open check yet.", "아직 찾은 파일이 없어요": "Nothing found yet", "안 함": "Not run", "안 해 봄": "Not run", "알 수 없는 이유": "unknown reason", "알 수 없음": "Unknown", "압축": "Archives", "약": "about", "약 ": "about ", "어둡게": "Dark", "언어": "Language", "에 놓친 파일이 있는지 찍어 봐요.": " for missed files.", "여유 공간 ": "Free space ", "연결 기다리는 중": "Waiting for connection", "연결 안 됨": "Not connected", "연결 안 됨 · ": "Not connected · ", "연결된 장치 ": "Connected devices: ", "연결된 장치가 없어요. 케이블을 연결하면 자동으로 나타나요.": "No devices connected. Connect a cable and it will appear automatically.", "연결된 장치를 찾는 중이에요": "Looking for connected devices", "연결을 기다리는 중…": "Waiting for the connection…", "연도 › 월 › 날짜": "Year › month › day", "열기": "Open", "열리지 않는 ZIP 이 있어요": "Some ZIP files don't open", "열림 다시 확인": "Check again", "열림 확인": "Open check", "열림 확인 중 · 저장 폴더만 읽어요": "Open check · only the save folder is read", "열림 확인 필요": "Need open check", "열어 보기": "Open", "영상": "Videos", "영상 끝부분 재생": "video end played", "영상 정보 읽기": "video info read", "영상은 미리보기가 없어요": "Videos have no preview", "예": "Yes", "오래 읽는 작업(전체 검사·백업)은 줄이고, 필요한 파일부터 꺼내세요.": "Avoid long reads (full scan, backup) and extract the files you need first.", "오류가 발생했습니다.": "An error occurred.", "온도": "Temperature", "완료": "Done", "외장 디스크": "External disk", "왼쪽 장치 목록에서 장치를 골라 검사·추출을 시작하세요.": "Pick a device in the list on the left to start scanning and extracting.", "용어:": "Terms:", "운영체제에 물어보는 중이에요…": "Asking the operating system…", "원래 이름": "Original name", "원래 이름 찾기": "Find original names", "원래 이름·폴더 되살리기 ": "Restore original names and folders ", "원래 이름을 찾지 못했어요: ": "Couldn't find original names: ", "원래 파일명과 폴더 구조는 복구할 수 없습니다. 지워진 옛 파일이 섞여 있을 수 있습니다.": "Original file names and folder structure can't be recovered. Old deleted files may be mixed in.", "원본 디스크는 읽기만 해요": "The source disk is only read", "원본 디스크는 읽기만 했으므로 그대로예요.": "The source disk was only read, so it's unchanged.", "원본 디스크는 읽기만 했으므로 안전해요. 꺼낸 파일은 그대로 있어요.": "The source disk was only read, so it's safe. Extracted files stay.", "원본 장치에는 아무것도 쓰지 않아요": "Nothing is written to the source device", "원본에서 이 파일만 읽어요(쓰지 않아요)": "Reads only this file from the source (no writes)", "원본에서 읽는 중…": "Reading from the source…", "원본으로 크게 보기": "View full size from source", "원본은 안전해요. 꺼낸 ": "The source is safe. ", "원본은 안전해요. 지금까지 찾은 기록도 남아 있어요.": "The source is safe. The record of what was found so far is kept.", "원본은 읽기만 해요": "The source is only read", "원본은 읽기만 해요. 멈춰도 나중에 이어서 할 수 있어요.": "The source is only read. You can stop and resume later.", "월": "", "월 · ": " · ", "위치 확인": "Locating", "위험": "Danger", "윈도우 설정을 따르거나 직접 고를 수 있어요": "Follow Windows or choose one", "윈도우 판정": "Windows assessment", "윈도우가 “디스크를 초기화/포맷해야 합니다”라고 물어도, 복구를 마치기 전에는 누르지 마세요. 누르면 복구할 데이터가 지워집니다.": "Even if Windows asks “You need to format the disk”, don't click it until recovery is finished. Doing so erases the data to recover.", "음성·데이터": "Audio · data", "의심": "Suspect", "의심 ": "Suspect: ", "의심 (구조 일부가 맞지 않음, 열리지 않을 수 있음)": "Suspect (part of the structure doesn't match; may not open)", "의심만": "Suspect only", "이 검사 기록에는 이 화면이 모르는 종류의 파일이 ": "This scan record has files of a type this screen doesn't know: ", "이 디스크에서는 찾지 못했어요": "Nothing was found on this disk", "이 설정의 파일은 이미 모두 꺼냈습니다.": "All files for these settings are already extracted.", "이 장치를 포맷해도 될까요?": "Is it OK to format this device?", "이 장치의 기록은 더 새 버전 도구가 만든 것이에요. 보기만 하고 이어서 하기는 하지 마세요.": "This device's records were made by a newer version of the tool. View only; don't resume.", "이 종류는 꺼낸 뒤 열어 보세요": "Open this type after extracting", "이 파일 넣기": "Include this file", "이 파일 빼기": "Leave this file out", "이 폴더 선택": "Use this folder", "이 폴더는 쓸 수 없어요: ": "Can't use this folder: ", "이 프로그램은 원본 장치에 아무것도 쓰지 않고 읽기만 해요. 검사·추출 중에도 원본은 그대로예요.": "This program never writes to the source device; it only reads. The source stays unchanged during scan and extraction.", "이(가) 끝났어요": " finished", "이(가) 진행 중이에요": " is in progress", "이미 꺼낸 ": "Already extracted: ", "이미 복사돼 있는 것 ": "Already copied ", "이미 읽은 부분은 건너뛰고 남은 부분만 읽습니다.": "Parts already read are skipped; only the rest is read.", "이미 전체를 검사했어요": "Already scanned entirely", "이미지 열기": "Open image", "이미지: ": "Image: ", "이미지를 장치처럼 열어 검사·추출할 수 있어요. 원본 하드를 포맷하기 전에 보관해 두세요.": "You can open the image like a device to scan and extract. Keep it before formatting the source drive.", "이번에 걸린 시간": "Time taken", "이어서 복사": "Resume copy", "이어서 하기": "Resume", "이어서 하면 남은 ": "Resuming extracts the remaining ", "이어서 하면 멈춘 곳부터 계속해요. 이미 찾은 파일은 그대로예요.": "Resuming continues from where it stopped. Files already found stay as they are.", "이어서 하면 이미 꺼낸 파일은 건너뛰고 남은 것만 꺼내요.": "Resuming skips files already extracted and extracts only the rest.", "이어서 할 수 있어요": "You can resume", "이전 검사 결과를 활용하고 있어요. 이미 찾은 파일 구간은 읽지 않고 건너뜁니다.": "Reusing earlier scan results. Areas with files already found are skipped.", "이전 검사 결과를 활용할까요?": "Reuse earlier scan results?", "이전 결과 활용": "Reuse results", "이전 버전으로 검사한 기록이라 사진 미리보기가 없어요. 다시 검사하면 생겨요(이전 결과를 활용하면 빨라요).": "This record was scanned by an older version, so there are no photo previews. Scan again to get them (reusing earlier results is faster).", "일부 못 읽음": "Partly unreadable", "일부를 꺼냈습니다": "Partly extracted", "일시 중지": "Pause", "읽기 오류(전체)": "Read errors (total)", "읽기 오류가 있었어요": "There were read errors", "읽는 속도": "Read speed", "읽은 곳까지 기억해 두었어요. 이어서 하면 남은 부분만 찾습니다.": "Where reading stopped is remembered. Resuming searches only the rest.", "읽은 양": "Read", "자세히": "Details", "작업": "Job", "작업 중": "Working", "작업 중에는 원본을 읽지 않아요(작업이 느려져요)": "The source isn't read while a job runs (it would slow it down)", "작은 사진 ": "Small photos ", "잘 열림": "Open fine", "잠시 멈췄어요": "Paused", "잠자기 방지 켜짐": "Sleep prevention on", "잠자기 방지 확인 중": "Checking sleep prevention", "장": "", "장치": "Devices", "장치 기록을 불러오는 중…": "Loading device records…", "장치 목록": "Devices", "장치 목록 새로 고침": "Refresh device list", "장치 목록을 불러오지 못했어요": "Couldn't load the device list", "장치 연결이 끊겼습니다.": "The device was disconnected.", "장치 전체를 검사할까요?": "Scan the whole device?", "장치 전체를 읽어서 시간이 오래 걸립니다(수 시간). 기본 검사는 데이터가 있는 구간까지만 읽습니다.": "Reads the whole device, which takes a long time (hours). The basic scan reads only up to where data was found.", "장치가 목록에 안 보이면 케이블과 전원을 확인하고 다시 연결해 보세요. 연결하면 몇 초 안에 목록에 나타나요.": "If a device doesn't show up, check its cable and power and reconnect it. It appears in the list within a few seconds.", "장치가 연결돼 있어야 해요": "The device must be connected", "장치가 연결돼 있지 않거나 읽을 수 없어요. 장치를 연결한 뒤 다시 하세요.": "The device isn't connected or can't be read. Connect it and try again.", "장치가 연결돼 있지 않아요": "The device isn't connected", "장치를 이미지 파일로 통째로 복사해요. 읽기 오류가 나는 곳은 0 으로 채우고 기록해요.": "Copies the whole device into an image file. Unreadable areas are filled with zeros and recorded.", "장치를 찾는 중…": "Looking for devices…", "장치를 처음부터 끝까지 모두 읽어요. 가장 확실하지만 오래 걸려요(5TB 하드는 10시간 안팎, 추정).": "Reads the device from start to end. Most thorough, but slow (about 10 hours for a 5 TB drive, estimate).", "저장 공간이 모자라요": "Not enough space", "저장 공간이 부족해 중단했습니다.": "Stopped because the save location ran out of space.", "저장 공간이 부족해서 멈췄어요": "Stopped because the save location is full", "저장 위치: ": "Save to: ", "저장 폴더 바꾸기": "Change save folder", "저장 폴더에 이 파일이 없어요": "This file isn't in the save folder", "저장된 용량": "Saved", "저장할 곳": "Save to", "저장할 폴더": "Save folder", "저장할 폴더 선택": "Choose save folder", "저장할 폴더를 고르세요": "Choose a save folder", "저장할 폴더를 먼저 고르세요.": "Choose a save folder first.", "저장했습니다: ": "Saved: ", "전부": "All", "전체": "All", "전체 검사": "Full scan", "전체 기간": "All dates", "전체 보기": "Show all", "전체 진행 단계": "Overall steps", "점검하지 못했어요: ": "Couldn't check: ", "정리": "Organize", "정리해서 복사": "Organize & copy", "정리해서 복사 시작": "Start organize & copy", "정리해서 복사할까요?": "Organize and copy?", "정상": "OK", "정상 ": "OK ", "조건 모두 해제": "Clear all filters", "조건에 맞는 파일이 없어요": "No files match", "조금 지나면 알려 드려요": "We'll know shortly", "종류": "Type", "종류·기간·카메라·판정 조건을 바꿔 보세요. ": "Try changing the type, date, camera or verdict filters. ", "주의": "Caution", "줄을 읽지 못해 건너뛰었어요.": " lines couldn't be read and were skipped.", "중간에 멈춤 · 지금까지 ": "Paused · so far ", "중간에 멈췄어요. 이어서 하면 멈춘 곳부터 계속해요.": "Paused partway. Resuming continues from where it stopped.", "중단": "Stop", "중단할까요?": "Stop?", "중단했습니다.": "Stopped.", "중단했어요": "Stopped", "지금 ": "", "지금 검사 기록은 보관 폴더로 옮기고 새로 찾아요. 꺼낸 파일은 그대로 있어요. 이전 결과를 활용하면 이미 찾은 구간은 건너뛰어서 빨라요.": "The current scan record moves to an archive folder and a new scan starts. Extracted files stay. Reusing earlier results skips areas already found and is faster.", "지금까지 ": "So far ", "지금까지 찾은 파일": "Files found so far", "지금은 고장 징후가 없어요": "No signs of failure right now", "지금은 시작할 수 없습니다.": "Can't start right now.", "지난번 ": "Last time ", "직접 넣은 파일(압축 푼 사진 등) ": "Files you added yourself (unzipped photos, etc.) ", "직접 열어 보고 괜찮으면 [문제없음]을 누르세요. 파일은 바뀌지 않아요.": "Open it yourself and press [OK] if it's fine. The file isn't changed.", "진행": "Progress", "진행 · 결과": "Progress · results", "진행 보기": "View progress", "진행 상황은 아래 상태 바와 해당 탭에서 볼 수 있어요.": "You can follow progress in the status bar below and in its tab.", "진행 중": "Running", "진행 중 · ": "Running · ", "진행 중인 작업": "Running job", "진행 중인 작업이 없어요": "No job running", "쯤": "", "창을 닫으면 프로그램이 끝나요. 작업 중에는 닫기를 막아요. 멈춘 뒤 닫으면 나중에 이어서 할 수 있어요.": "Closing the window ends the program. Closing is blocked while a job runs. Stop first, and you can resume later.", "창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.": "Just keep the window open. When done, the extracted files are checked automatically.", "찾기 시작": "Start search", "찾는 대로 여기에 나타나요.": "They'll appear here as they're found.", "찾는 중": "Searching", "찾은 파일": "Found files", "찾은 파일 ": "", "찾은 파일 목록. 화살표로 옮기고 Space 로 선택을 바꿔요": "Found files. Move with the arrow keys; Space changes selection", "찾은 파일을": "some", "찾은 파일이 없어요": "No files found", "찾음": "Found", "찾음 ": "Found ", "처음 한 번은 몇 초 걸릴 수 있어요.": "The first time can take a few seconds.", "처음부터 다시": "Start over", "처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.": "It's the same disk that was scanned. Press [Resume] to continue from where it stopped.", "초": " s", "촬영 날짜를 읽은 파일이 없어요.": "No files with a capture date.", "촬영 시각 없음": "No capture time", "촬영 시각+카메라": "Capture time + camera", "촬영 월": "Month taken", "최근 활동": "Recent activity", "추출": "Extract", "추출 탭으로": "Go to Extract tab", "추출로": "Go to Extract", "충분합니다": "Enough space", "취소": "Cancel", "취소해도 나중에 이어서 할 수 있어요": "You can resume later even if you cancel", "카메라": "Camera", "카메라: 모두": "Camera: all", "켜고 끈 횟수": "Power cycles", "파일": "File", "파일 시작 표시를 찾았어요. 그 구간까지 검사해 볼 만해요.": "Found file start markers. Worth scanning up to that area.", "파일 안에 든 작은 미리보기를 키운 것이에요(흐릴 수 있어요)": "Enlarged from the small embedded preview (may be blurry)", "파일 안에 미리보기가 없어요": "This file has no embedded preview", "파일 이름": "File names", "파일 이름은 촬영 시각으로 지어요": "Files are named by capture time", "파일 있음": "Files", "파일 찾기": "Finding files", "파일을 누르면 여기에서 자세히 봐요.": "Click a file to see details here.", "파일을 찾고 있어요": "Finding files", "파티션 찾기": "Partition finder", "파티션 표(GPT·MBR)와 디스크 앞쪽에서 APFS·HFS+·NTFS·exFAT·FAT32 의 시작 표시를 찾아요. 표에서 사라진 파티션도 알려 줘요.": "Looks for APFS·HFS+·NTFS·exFAT·FAT32 start markers in the partition table (GPT/MBR) and the start of the disk. Also reports partitions missing from the table.", "파티션 표(GPT·MBR)와 디스크 앞쪽에서 파티션의 시작 표시를 찾아요. 표에서 사라진 파티션도 알려 줘요.": "Looks for partition start markers in the partition table (GPT/MBR) and the start of the disk. Also reports partitions missing from the table.", "파티션 표: ": "Partition table: ", "파티션 표와 디스크 앞쪽 2GB 안에서 파티션 시작 표시를 찾아요. 1분 안팎(추정).": "Looks for partition start markers in the partition table and the first 2 GB of the disk. About a minute (estimate).", "판정": "Verdict", "판정: 모두": "Verdict: all", "평소에는 컴퓨터 안의 시스템·내장 디스크를 숨겨요. 켜도 읽기만 해요.": "System and internal disks are normally hidden. Even when shown, they are only read.", "포맷 가능": "OK to format", "포맷 점검": "Format check", "포맷 점검으로": "Go to Format check", "포맷해도 되는지 확인해 보세요": "Check whether it's safe to format", "폴더": "Folders", "폴더 선택": "Choose folder", "폴더 열기": "Open folder", "폴더가 너무 많아 일부만 보여 줍니다.": "Too many folders; showing some of them.", "폴더로": "folder", "폴더를 선택하세요": "Choose a folder", "프로그램은 관리자 권한으로 실행돼야 장치를 읽을 수 있어요. 컴퓨터 안의 시스템·내장 디스크는 [설정]에서 켜야 보여요.": "The program must run as administrator to read devices. Internal/system disks appear only after turning them on in [Settings].", "필요한 공간 ": "Space needed ", "필요한 파일부터 바로 꺼내세요. 오래 읽는 작업은 피하세요.": "Extract the files you need right away. Avoid long reads.", "하드 건강 상태": "Drive health", "하드가 고장 나고 있을 수 있어요": "The drive may be failing", "하드디스크 연결이 끊겼어요": "The drive was disconnected", "하드디스크의 케이블과 전원을 확인하세요.": "Check the drive's cable and power.", "하드를 연결하면 운영체제에 물어볼게요.": "Connect the drive and we'll ask the operating system.", "한 번에 꺼낼 양": "Amount per batch", "해제": "Clear", "형식 없음(초기화 안 됨)": "No format (not initialized)", "홈": "Home", "화면 테마": "Theme", "화면이 프로그램과 연결되지 않아요. 다시 연결하는 중입니다. 프로그램이 꺼졌다면 다시 실행하세요. 이미 꺼낸 파일과 원본 디스크는 안전합니다.": "The screen lost contact with the program. Reconnecting. If the program closed, run it again. Extracted files and the source disk are safe.", "확인 건너뛰기": "Skip check", "확인 시작": "Start check", "확인 중": "Checking", "확인 필요": "Needs review", "확인 필요 ": "Needs review: ", "확인 필요로 되돌렸어요": "Set back to needs review", "확인 필요한 파일을 모두 확인했어요": "All files needing review are reviewed", "확인됨 (구조가 끝까지 맞음)": "Confirmed (structure matches to the end)", "확인됨만": "Confirmed only", "확인을 건너뛰어도 꺼낸 파일은 그대로 있어요": "Skipping the check keeps the extracted files as they are", "확인을 건너뛰었어요. 꺼낸 파일은 그대로 있어요.": "Check skipped. Extracted files stay as they are.", "확인이 필요합니다": "Needs attention", "확인하는 중…": "Checking…", "확인하는 중입니다…": "Checking…", "확인하지 못했어요": "Couldn't check", "확인한 파일": "Files checked", "흔적 있음": "Traces"}</script>
 <script>
+// ---- 화면 언어(H): 원문은 한국어. 영어는 아래 사전(#i18n-en)에서 찾고, 없으면 원문 그대로 ----
+// 실제 폴더 이름(사진, _의심, 날짜불명 등)과 서버가 준 문장과 비교하는 글은 번역하지 않는다(L 로 감싸지 않음).
+const LANG = (() => { try { const v = localStorage.getItem('lang'); if (v === 'ko' || v === 'en') return v; } catch (e) { }
+  return (navigator.language || 'ko').toLowerCase().startsWith('ko') ? 'ko' : 'en'; })();
+const EN = LANG === 'en' ? JSON.parse(document.getElementById('i18n-en').textContent) : {};
+const L = s => (LANG === 'en' && typeof s === 'string' && Object.prototype.hasOwnProperty.call(EN, s)) ? EN[s] : s;
+document.documentElement.lang = LANG;
+(function localizeStatic() {  // 처음부터 페이지에 적힌 글(제목·안내·버튼 등)
+  if (LANG !== 'en') return;
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+  for (const n of nodes) { const t = n.nodeValue, k = t.trim(); if (k && EN[k] != null) n.nodeValue = t.replace(k, EN[k]); }
+  document.querySelectorAll('[title],[aria-label],[placeholder]').forEach(e => ['title', 'aria-label', 'placeholder'].forEach(a => {
+    const v = e.getAttribute(a); if (v && EN[v] != null) e.setAttribute(a, EN[v]); }));
+})();
+
 const T = new URLSearchParams(location.search).get('token') || '';
 const $ = (s, r = document) => r.querySelector(s);
 const GROUPS = {  // dir 은 엔진(extract.KIND_DIR)이 쓰는 폴더 이름과 같아야 한다(진행 화면의 종류별 막대가 이 이름으로 맞춰진다)
-  photo: { label: '사진', sub: 'JPEG · PNG · GIF · WebP · HEIC · BMP', kinds: ['jpeg', 'heic', 'png', 'gif', 'webp', 'bmp'], unit: '장', dir: '사진' },
-  raw: { label: 'RAW 사진', sub: 'Canon CR3', kinds: ['raw-cr3'], unit: '장', dir: 'RAW' },
-  video: { label: '영상', sub: 'MP4 · MOV · AVI', kinds: ['video-mp4', 'video-mov', 'avi'], unit: '개', dir: '영상' },
-  doc: { label: '문서', sub: 'PDF · 한글 · 오피스 · RTF', kinds: ['pdf', 'hwp', 'hwpx', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'rtf'], unit: '개', dir: '문서' },
-  zip: { label: '압축', sub: 'ZIP · 7z', kinds: ['zip', '7z'], unit: '개', dir: '압축' },
-  misc: { label: '음성·데이터', sub: 'WAV · SQLite', kinds: ['wav', 'sqlite'], unit: '개', dir: '음성·데이터' },
+  photo: { label: L('사진'), sub: 'JPEG · PNG · GIF · WebP · HEIC · BMP', kinds: ['jpeg', 'heic', 'png', 'gif', 'webp', 'bmp'], unit: L('장'), dir: '사진' },
+  raw: { label: L('RAW 사진'), sub: 'Canon CR3', kinds: ['raw-cr3'], unit: L('장'), dir: 'RAW' },
+  video: { label: L('영상'), sub: 'MP4 · MOV · AVI', kinds: ['video-mp4', 'video-mov', 'avi'], unit: L('개'), dir: '영상' },
+  doc: { label: L('문서'), sub: L('PDF · 한글 · 오피스 · RTF'), kinds: ['pdf', 'hwp', 'hwpx', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'rtf'], unit: L('개'), dir: '문서' },
+  zip: { label: L('압축'), sub: 'ZIP · 7z', kinds: ['zip', '7z'], unit: L('개'), dir: '압축' },
+  misc: { label: L('음성·데이터'), sub: 'WAV · SQLite', kinds: ['wav', 'sqlite'], unit: L('개'), dir: '음성·데이터' },
 };
-const FMT = { Apple_APFS: 'APFS 형식', 'disk-image': '디스크 이미지', RAW: '형식 없음(초기화 안 됨)', Microsoft_Basic_Data: 'Windows 형식', Apple_HFS: 'Mac OS 확장 형식' };
-const STEPS = ['디스크', '복구 설정', '진행 · 결과'];
-const REASON_STATE = { unstable: '디스크가 불안정해 중단했습니다.', refused: '시작할 수 없습니다.', cancelled: '중단했습니다.',
-  disconnected: '장치 연결이 끊겼습니다.', nospace: '저장 공간이 부족해 중단했습니다.', error: '오류가 발생했습니다.' };
+const FMT = { Apple_APFS: L('APFS 형식'), 'disk-image': L('디스크 이미지'), RAW: L('형식 없음(초기화 안 됨)'), Microsoft_Basic_Data: L('Windows 형식'), Apple_HFS: L('Mac OS 확장 형식') };
+const STEPS = [L('디스크'), L('복구 설정'), L('진행 · 결과')];
+const REASON_STATE = { unstable: L('디스크가 불안정해 중단했습니다.'), refused: L('시작할 수 없습니다.'), cancelled: L('중단했습니다.'),
+  disconnected: L('장치 연결이 끊겼습니다.'), nospace: L('저장 공간이 부족해 중단했습니다.'), error: L('오류가 발생했습니다.') };
 const S = { screen: 'home', view: 'home', tab: 'over', units: [], unit: null, curSid: null, hold: null, stText: ['', ''], devices: [], sel: null, session: null, summary: null, job: null, flow: null, seen: null,
   kinds: { photo: true, raw: true, video: true, doc: true, zip: true, misc: false }, suspect: true, dest: '', batchGb: '', plan: null, rate: null,
   check: null, banners: {}, stripKey: '', ended: false, pausing: false, dur: {}, lost: false, lastOk: 0 };
@@ -931,13 +948,13 @@ function fmtSize(b) {
   return Math.max(0, b / 1e6).toFixed(0) + ' MB';
 }
 function fmtEta(s) {
-  if (s == null) return '계산 중';
-  if (s < 90) return '약 ' + Math.max(1, Math.round(s)) + '초';
+  if (s == null) return L('계산 중');
+  if (s < 90) return L('약 ') + Math.max(1, Math.round(s)) + L('초');
   const hh = Math.floor(s / 3600), mm = Math.round((s % 3600) / 60);
-  return (hh ? hh + '시간 ' : '') + mm + '분';
+  return (hh ? hh + L('시간 ') : '') + mm + L('분');
 }
 // '~(으)로' 조사: 받침이 있으면 '으로', 없거나 ㄹ 받침이면 '로', 한글이 아니면 '(으)로'
-const euro = name => { const c = (name || '').trim().slice(-1).charCodeAt(0); if (!(c >= 0xAC00 && c <= 0xD7A3)) return '(으)로'; const j = (c - 0xAC00) % 28; return j && j !== 8 ? '으로' : '로'; };
+const euro = name => { if (LANG === 'en') return ''; const c = (name || '').trim().slice(-1).charCodeAt(0); if (!(c >= 0xAC00 && c <= 0xD7A3)) return '(으)로'; const j = (c - 0xAC00) % 28; return j && j !== 8 ? '으로' : '로'; };
 const stateMsg = j => j.error || REASON_STATE[j.state] || j.state;
 const chip = (cls, t) => h('span', { class: 'chip ' + cls }, t);
 
@@ -946,7 +963,7 @@ async function api(path, body) {
   if (body !== undefined) { opt.method = 'POST'; opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
   let r;
   try { r = await fetch(path, opt); }
-  catch (e) { const err = new Error('도구와 통신하지 못했습니다'); err.network = true; throw err; }
+  catch (e) { const err = new Error(L('도구와 통신하지 못했습니다')); err.network = true; throw err; }
   if (S.banners.conn) banner('', '', 'conn');
   const ct = r.headers.get('content-type') || '';
   const data = ct.includes('json') ? await r.json() : await r.text();
@@ -957,6 +974,7 @@ const thumbUrl = p => '/api/thumb?token=' + encodeURIComponent(T) + '&p=' + enco
 
 // 배너 자리는 항상 같은 높이(한 줄). 여러 개면 가장 급한 것 하나만 보이고 나머지는 "+N"(툴팁)으로 알린다
 function banner(kind, text, key = 'msg', action = null) {
+  text = L(text);  // 서버가 준 문장도 사전에 있으면 번역
   if (text) S.banners[key] = { kind, text, action }; else delete S.banners[key];
   const b = clear($('#banner')); const all = Object.values(S.banners); if (!all.length) return;
   const x = all.filter(v => v.kind === 'bad').pop() || all[all.length - 1];
@@ -964,8 +982,8 @@ function banner(kind, text, key = 'msg', action = null) {
     all.length > 1 ? h('span', { class: 'more', title: all.map(v => v.text).join('\n') }, '+' + (all.length - 1)) : null,
     x.action ? h('button', { class: 'btn small', onclick: x.action.fn }, x.action.label) : null));
 }
-function toast(text) { const t = h('div', { class: 'toast', role: 'status' }, text); document.body.append(t); setTimeout(() => t.remove(), 3500); }
-function ask(title, text, yes = '예') {
+function toast(text) { text = L(text); const t = h('div', { class: 'toast', role: 'status' }, text); document.body.append(t); setTimeout(() => t.remove(), 3500); }
+function ask(title, text, yes = L('예')) {
   return new Promise(res => {
     const d = $('#ask'); $('#ask-title').textContent = title; $('#ask-text').textContent = text; $('#ask-yes').textContent = yes;
     const done = v => { d.close(); res(v); };
@@ -984,9 +1002,9 @@ function setActions(...items) {
   $('#actions').style.display = left.length || right.some(x => x instanceof Node) ? '' : 'none';
 }
 // ---- 화면 전환: 사이드바(홈 / 장치 목록 / 시스템) + 장치 화면의 탭 ----
-const TABS = [['over', '개요'], ['scan', '검사'], ['ext', '추출'], ['res', '결과'], ['org', '정리'], ['bak', '백업'], ['fmt', '포맷 점검']];
+const TABS = [['over', L('개요')], ['scan', L('검사')], ['ext', L('추출')], ['res', L('결과')], ['org', L('정리')], ['bak', L('백업')], ['fmt', L('포맷 점검')]];
 const SCREEN_TAB = { over: 'over', scanops: 'scan', scan: 'scan', settings: 'ext', run: 'ext', result: 'res', organize: 'org', backup: 'bak', fmt: 'fmt' };
-const PAGE = { home: ['홈', ''], prefs: ['설정', '기록 폴더, 장치 목록에 보일 장치, 화면 테마'], help: ['도움말', 'RecoveryHDD · 원본 장치는 읽기만 합니다'] };
+const PAGE = { home: [L('홈'), ''], prefs: [L('설정'), L('기록 폴더, 장치 목록에 보일 장치, 화면 테마')], help: [L('도움말'), L('RecoveryHDD · 원본 장치는 읽기만 합니다')] };
 const curUnit = () => S.units.find(u => u.key === S.unit) || null;
 const jobMine = j => !!(j && S.curSid && j.session === S.curSid);
 const jobRunning = () => !!(S.job && S.job.state === 'running');
@@ -1002,22 +1020,22 @@ function go(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + name));
   renderNav(); renderHead();
   $('#content').scrollTop = 0; setActions();
-  if (!jobRunning()) setStatus('대기 중', '');
+  if (!jobRunning()) setStatus(L('대기 중'), '');
   if (name === 'home') loadHome();
   if (name === 'over') loadOver();
   if (name === 'scanops') loadScanOps();
-  if (name === 'scan') setActions(btn('취소', '', cancelJob, { id: 'scancancel' }), '|', '취소해도 나중에 이어서 할 수 있어요');
+  if (name === 'scan') setActions(btn(L('취소'), '', cancelJob, { id: 'scancancel' }), '|', L('취소해도 나중에 이어서 할 수 있어요'));
   $('#content').classList.toggle('bx-on', name === 'settings');  // 탐색 화면은 격자와 미리보기가 각자 스크롤한다
   if (name !== 'settings') { banner('', '', 'bxscan'); banner('', '', 'bxold'); }
-  if (name === 'settings') { if (S.banners.msg && S.banners.msg.text.includes('[추출] 탭')) banner('', '', 'msg'); initSettings(); }  // 이미 추출 탭이다
-  if (name === 'run') { if (S.flow === 'verify') setActions(btn('확인 건너뛰기', '', cancelJob, { id: 'stop' }), '|', '확인을 건너뛰어도 꺼낸 파일은 그대로 있어요');
-    else setActions(btn('일시 중지', '', pauseJob, { id: 'pause' }), btn('중단', 'danger', stopJob, { id: 'stop' }), '|', '멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요'); }
+  if (name === 'settings') { if (S.banners.msg && S.banners.msg.text.includes(L('[추출] 탭'))) banner('', '', 'msg'); initSettings(); }  // 이미 추출 탭이다
+  if (name === 'run') { if (S.flow === 'verify') setActions(btn(L('확인 건너뛰기'), '', cancelJob, { id: 'stop' }), '|', L('확인을 건너뛰어도 꺼낸 파일은 그대로 있어요'));
+    else setActions(btn(L('일시 중지'), '', pauseJob, { id: 'pause' }), btn(L('중단'), 'danger', stopJob, { id: 'stop' }), '|', L('멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요')); }
   if (name === 'result') loadResult();
   if (name === 'fmt') loadFormatCheck();
   if (name === 'backup') loadBackup();
   if (name === 'organize') loadOrganize();
   if (name === 'prefs') loadPrefs();
-  if (name === 'help') setActions('|', btn('장치 목록 새로 고침', '', () => loadUnits('fresh')));
+  if (name === 'help') setActions('|', btn(L('장치 목록 새로 고침'), '', () => loadUnits('fresh')));
 }
 // 탭을 누르면: 이 장치의 작업이 돌고 있거나 막 멈춘 상태면 진행 화면, 아니면 기본 화면
 function openTab(t) {
@@ -1037,32 +1055,32 @@ function renderNav() {
 }
 function unitState(u) {
   if (!u) return ['pause', '-'];
-  if (u.running || jobOf(u)) return ['', '작업 중'];
-  if (!u.connected) return ['pause', '연결 안 됨'];
-  if (!u.sid) return ['pause', '검사 전'];
-  if (!u.finished) return ['alert', '검사 멈춤'];
-  if (u.need) return ['alert', '확인 필요'];
-  return ['ok', '정상'];
+  if (u.running || jobOf(u)) return ['', L('작업 중')];
+  if (!u.connected) return ['pause', L('연결 안 됨')];
+  if (!u.sid) return ['pause', L('검사 전')];
+  if (!u.finished) return ['alert', L('검사 멈춤')];
+  if (u.need) return ['alert', L('확인 필요')];
+  return ['ok', L('정상')];
 }
 function unitLine(u) {
   const j = S.job;
-  if (jobOf(u)) return KIND_TXT[j.kind] + ' 중 · ' + Math.round(jobPct(j)) + '%';
-  if (!u.sid) return u.connected ? (u.size ? fmtSize(u.size) + ' · ' : '') + (u.readable ? '검사 안 함' : '관리자 권한 필요') : '';
-  return (u.connected ? '' : '연결 안 됨 · ') + (u.extracted ? num(u.extracted) + '개 꺼냄' : num(u.found) + '개 찾음') + (u.need ? ' · 확인 ' + num(u.need) : '');
+  if (jobOf(u)) return KIND_TXT[j.kind] + L(' 중 · ') + Math.round(jobPct(j)) + '%';
+  if (!u.sid) return u.connected ? (u.size ? fmtSize(u.size) + ' · ' : '') + (u.readable ? L('검사 안 함') : L('관리자 권한 필요')) : '';
+  return (u.connected ? '' : L('연결 안 됨 · ')) + (u.extracted ? num(u.extracted) + L('개 꺼냄') : num(u.found) + L('개 찾음')) + (u.need ? L(' · 확인 ') + num(u.need) : '');
 }
 function renderHead() {
   const t = $('#p-title'), c = $('#p-chip'), m = $('#p-meta'), tabs = clear($('#p-tabs'));
   if (S.view !== 'unit') {
     const p = PAGE[S.view] || ['', ''];
     t.textContent = p[0]; t.title = p[0]; c.style.visibility = 'hidden';
-    const meta = S.view === 'home' && !S.loaded ? '장치를 찾는 중…' : S.view === 'home' ? '연결된 장치 ' + num(S.units.filter(u => u.connected).length) + '개 · 기록이 있는 장치 ' + num(S.units.filter(u => u.sid).length) + '개' + (jobRunning() ? ' · 작업 1개 진행 중' : '') : p[1];
+    const meta = S.view === 'home' && !S.loaded ? L('장치를 찾는 중…') : S.view === 'home' ? L('연결된 장치 ') + num(S.units.filter(u => u.connected).length) + L('개 · 기록이 있는 장치 ') + num(S.units.filter(u => u.sid).length) + L('개') + (jobRunning() ? L(' · 작업 1개 진행 중') : '') : p[1];
     m.textContent = meta; m.title = meta; return;
   }
   const u = curUnit(); if (!u) return;
   t.textContent = u.name; t.title = u.name; c.style.visibility = '';
   const st = unitState(u); c.className = 'chip ' + st[0]; c.textContent = st[1];
-  const meta = [u.size ? fmtSize(u.size) : null, u.bus === 'USB' ? 'USB 연결' : u.bus, u.scanned != null && u.size ? '검사 범위 앞쪽 ' + fmtSize(u.scanned) + ' / ' + fmtSize(u.size) : u.sid ? null : '아직 검사하지 않았어요',
-    u.last ? '마지막 작업 ' + u.last : null].filter(Boolean).join(' · ');
+  const meta = [u.size ? fmtSize(u.size) : null, u.bus === 'USB' ? L('USB 연결') : u.bus, u.scanned != null && u.size ? L('검사 범위 앞쪽 ') + fmtSize(u.scanned) + ' / ' + fmtSize(u.size) : u.sid ? null : L('아직 검사하지 않았어요'),
+    u.last ? L('마지막 작업 ') + u.last : null].filter(Boolean).join(' · ');
   m.textContent = meta; m.title = meta;
   TABS.forEach(([k, l]) => tabs.append(h('button', { class: 'tab' + (S.tab === k ? ' on' : ''), type: 'button', onclick: () => openTab(k) },
     l, k === 'res' && u.need ? h('span', { class: 'b' }, num(u.need)) : null)));
@@ -1085,19 +1103,19 @@ async function loadUnits0(force) {
     const u = curUnit(); S.sel = u && u.readable ? u.device_id : null;
     renderUnits(); renderHead();
     const noadm = !r.is_root && !r.images;
-    banner(noadm ? 'warn' : '', noadm ? '관리자 권한이 아니라서 장치를 읽을 수 없습니다. 프로그램을 닫고 다시 실행하세요(관리자 확인 창에서 [예]).' : '', 'root');
+    banner(noadm ? 'warn' : '', noadm ? L('관리자 권한이 아니라서 장치를 읽을 수 없습니다. 프로그램을 닫고 다시 실행하세요(관리자 확인 창에서 [예]).') : '', 'root');
     if (S.screen === 'home') renderHome();
     if (S.screen === 'over' && force) loadOver();  // 작업이 끝난 뒤 숫자를 새로 보여 준다
-  } catch (e) { if (!S.units.length) clear($('#units')).append(h('div', { class: 'uempty' }, '장치 목록을 불러오지 못했어요')); }
+  } catch (e) { if (!S.units.length) clear($('#units')).append(h('div', { class: 'uempty' }, L('장치 목록을 불러오지 못했어요'))); }
   finally { if (!S.loaded) { S.loaded = true; if (S.screen === 'home') renderHome(); } statusBar(); }
 }
 const loadingRow = (a, b) => h('div', { class: 'loading' }, h('span', { class: 'spin' }), h('div', { class: 'tx' }, h('div', { class: 'a ell' }, a), b ? h('div', { class: 'b ell' }, b) : null));
 function renderUnits() {
   const box = clear($('#units'));
-  if (!S.loaded) { box.append(loadingRow('장치를 찾는 중…')); return; }
-  if (!S.units.length) { box.append(h('div', { class: 'uempty' }, '연결된 장치가 없어요. 케이블을 연결하면 자동으로 나타나요.')); return; }
+  if (!S.loaded) { box.append(loadingRow(L('장치를 찾는 중…'))); return; }
+  if (!S.units.length) { box.append(h('div', { class: 'uempty' }, L('연결된 장치가 없어요. 케이블을 연결하면 자동으로 나타나요.'))); return; }
   S.units.forEach(u => {
-    const st = unitState(u), dot = st[1] === '작업 중' ? 'run' : !u.sid ? 'none' : st[0] === 'ok' ? 'ok' : st[0] === 'alert' ? 'warn' : '';
+    const st = unitState(u), dot = st[1] === L('작업 중') ? 'run' : !u.sid ? 'none' : st[0] === 'ok' ? 'ok' : st[0] === 'alert' ? 'warn' : '';
     const line = unitLine(u);
     box.append(h('div', { class: 'un' + (u.connected ? '' : ' off') + (S.view === 'unit' && u.key === S.unit ? ' on' : ''), 'data-key': u.key, tabindex: 0, role: 'button',
       onclick: () => openUnit(u.key), onkeydown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openUnit(u.key); } } },
@@ -1112,7 +1130,7 @@ async function openUnit(key, screen) {
     document.querySelectorAll('.nv').forEach(n => n.classList.remove('on'));
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-over'));
     if (pu) { $('#p-title').textContent = pu.name; $('#p-meta').textContent = ''; $('#p-chip').style.visibility = 'hidden'; clear($('#p-tabs')); }
-    clear($('#over-box')).append(h('div', { class: 'card' }, loadingRow('장치 기록을 불러오는 중…', '처음 한 번은 몇 초 걸릴 수 있어요.')));
+    clear($('#over-box')).append(h('div', { class: 'card' }, loadingRow(L('장치 기록을 불러오는 중…'), L('처음 한 번은 몇 초 걸릴 수 있어요.'))));
     let r; try { r = await api('/api/select', { key }); } catch (e) { banner('bad', e.message, 'msg'); go(back); return; }
     S.unit = key; S.curSid = r.session; S.hold = null; S.summary = null; S.check = null; S.plan = null; S.partial = false; S.tail = null; S.flow = null;
     clear($('#fmt-list')); banner('', '', 'msg');
@@ -1128,20 +1146,20 @@ $('#u-refresh').onclick = () => loadUnits('fresh');
 document.querySelectorAll('.nv').forEach(n => n.onclick = () => go(n.dataset.v));
 
 // ---- 상태 바: 어느 장치에서 무엇을 하는지 · 진행 막대 · % · 남은 시간 ----
-const KIND_TXT = { scan: '검사', extract: '꺼내기', verify: '열림 확인', tail: '끝부분 촘촘 검사', auto: '복구' };
+const KIND_TXT = { scan: L('검사'), extract: L('꺼내기'), verify: L('열림 확인'), tail: L('끝부분 촘촘 검사'), auto: L('복구') };
 function jobPct(j) { const p = (j && j.progress) || {}; return p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : (p.total ? 100 * (p.done || 0) / p.total : 0); }
 function setStatus(l, r) { S.stText = [l || '', r || '']; statusBar(); }
 function statusBar() {
   const j = S.job, run = jobRunning(), bar = $('#status');
   const u = run ? (S.units.find(x => jobOf(x)) || null) : curUnit();
   const who = u ? u.name : '', st = S.stText || ['', ''];
-  const what = run ? (jobMine(j) && st[0] && st[0] !== '대기 중' ? st[0] : KIND_TXT[j.kind] + ' 중 · 원본은 읽기만 해요') : '대기 중';
+  const what = run ? (jobMine(j) && st[0] && st[0] !== L('대기 중') ? st[0] : KIND_TXT[j.kind] + L(' 중 · 원본은 읽기만 해요')) : L('대기 중');
   const p = (j && j.progress) || {}, pct = run ? jobPct(j) : 0;
   bar.classList.toggle('idle', !run);
   $('#st-who').textContent = who; $('#st-who').title = who;
   $('#st-what').textContent = what; $('#st-what').title = what;
   $('#st-pb').style.width = pct.toFixed(1) + '%';
-  $('#st-pc').textContent = run ? Math.round(pct) + '%' + (p.eta_s != null ? ' · 남은 시간 ' + fmtEta(p.eta_s) : '') : '';
+  $('#st-pc').textContent = run ? Math.round(pct) + '%' + (p.eta_s != null ? L(' · 남은 시간 ') + fmtEta(p.eta_s) : '') : '';
 }
 
 // ---- 홈: 모든 장치 ----
@@ -1149,31 +1167,31 @@ async function loadHome() { renderHome(); loadUnits(); }
 function renderHome() {
   const box = clear($('#home-box')); const j = S.job, run = jobRunning();
   if (!S.loaded) {
-    box.append(h('div', { class: 'card next hot' }, loadingRow('연결된 장치를 찾는 중이에요', '디스크 정보를 운영체제에 물어보고 있어요. 몇 초 걸릴 수 있어요. 원본은 읽기만 해요.')));
+    box.append(h('div', { class: 'card next hot' }, loadingRow(L('연결된 장치를 찾는 중이에요'), L('디스크 정보를 운영체제에 물어보고 있어요. 몇 초 걸릴 수 있어요. 원본은 읽기만 해요.'))));
     renderHead(); return;
   }
   const ju = run ? S.units.find(u => jobOf(u)) : null;
-  box.append(h('div', { class: 'secx' }, '진행 중인 작업'));
+  box.append(h('div', { class: 'secx' }, L('진행 중인 작업')));
   box.append(run
     ? h('div', { class: 'card next hot' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, (ju ? ju.name + ' — ' : '') + KIND_TXT[j.kind] + ' ' + Math.round(jobPct(j)) + '%'),
-        h('div', { class: 'b ell' }, ((j.progress || {}).eta_s != null ? '남은 시간 ' + fmtEta(j.progress.eta_s) + ' · ' : '') + '원본은 읽기만 해요')),
-        btn('보러 가기', 'primary', () => ju ? openUnit(ju.key, KIND_SCREEN[j.kind] || 'run') : null))
-    : h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, '진행 중인 작업이 없어요'), h('div', { class: 'b ell' }, '왼쪽 장치 목록에서 장치를 골라 검사·추출을 시작하세요.')), h('span', {})));
-  box.append(h('div', { class: 'secx' }, '장치'));
+        h('div', { class: 'b ell' }, ((j.progress || {}).eta_s != null ? L('남은 시간 ') + fmtEta(j.progress.eta_s) + ' · ' : '') + L('원본은 읽기만 해요'))),
+        btn(L('보러 가기'), 'primary', () => ju ? openUnit(ju.key, KIND_SCREEN[j.kind] || 'run') : null))
+    : h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, L('진행 중인 작업이 없어요')), h('div', { class: 'b ell' }, L('왼쪽 장치 목록에서 장치를 골라 검사·추출을 시작하세요.'))), h('span', {})));
+  box.append(h('div', { class: 'secx' }, L('장치')));
   const devs = h('div', { class: 'card lst devs' });
-  if (!S.units.length) devs.append(h('div', { class: 'row' }, h('span', { class: 'w ell sub' }, '연결된 장치가 없어요. 케이블을 연결하면 자동으로 나타나요.')));
+  if (!S.units.length) devs.append(h('div', { class: 'row' }, h('span', { class: 'w ell sub' }, L('연결된 장치가 없어요. 케이블을 연결하면 자동으로 나타나요.'))));
   S.units.forEach(u => { const st = unitState(u);
-    const info = u.sid ? '찾음 ' + num(u.found) + ' · 꺼냄 ' + num(u.extracted) + (u.need ? ' · 확인 필요 ' + num(u.need) : '') : u.connected ? (u.readable ? '아직 검사하지 않았어요' : '관리자 권한으로 실행해야 읽을 수 있어요') : '';
+    const info = u.sid ? L('찾음 ') + num(u.found) + L(' · 꺼냄 ') + num(u.extracted) + (u.need ? L(' · 확인 필요 ') + num(u.need) : '') : u.connected ? (u.readable ? L('아직 검사하지 않았어요') : L('관리자 권한으로 실행해야 읽을 수 있어요')) : '';
     devs.append(h('div', { class: 'row' + (u.connected ? '' : ' off') }, h('span', { class: 'ic2' }, ico('disk')),
-      h('span', { class: 'nm' }, h('b', { class: 'ell', title: u.name }, u.name), h('span', { class: 'ell' }, [u.size ? fmtSize(u.size) : '', u.connected ? '' : '연결 안 됨'].filter(Boolean).join(' · '))),
-      h('span', { class: 'w ell num', title: info }, info), chip(st[0], st[1]), btn('열기', '', () => openUnit(u.key)))); });
+      h('span', { class: 'nm' }, h('b', { class: 'ell', title: u.name }, u.name), h('span', { class: 'ell' }, [u.size ? fmtSize(u.size) : '', u.connected ? '' : L('연결 안 됨')].filter(Boolean).join(' · '))),
+      h('span', { class: 'w ell num', title: info }, info), chip(st[0], st[1]), btn(L('열기'), '', () => openUnit(u.key)))); });
   box.append(devs);
   const recent = S.units.filter(u => u.last).sort((a, b) => (b.last > a.last ? 1 : -1)).slice(0, 5);
-  box.append(h('div', { class: 'secx' }, '최근 활동'));
+  box.append(h('div', { class: 'secx' }, L('최근 활동')));
   const lst = h('div', { class: 'card lst' });
-  if (!recent.length) lst.append(h('div', { class: 'row' }, h('span', { class: 'w ell sub' }, '아직 기록이 없어요.')));
+  if (!recent.length) lst.append(h('div', { class: 'row' }, h('span', { class: 'w ell sub' }, L('아직 기록이 없어요.'))));
   recent.forEach(u => { const st = unitState(u);
-    const t = u.name + ' — 검사 ' + num(u.found) + '개 찾음' + (u.extracted ? ', ' + num(u.extracted) + '개 꺼냄' : '') + (u.need ? ', 확인 필요 ' + num(u.need) : '');
+    const t = u.name + L(' — 검사 ') + num(u.found) + L('개 찾음') + (u.extracted ? ', ' + num(u.extracted) + L('개 꺼냄') : '') + (u.need ? L(', 확인 필요 ') + num(u.need) : '');
     lst.append(h('div', { class: 'row' }, h('span', { class: 'd num' }, u.last.slice(5)), h('span', { class: 'w ell', title: t }, t), chip(st[0], st[1]))); });
   box.append(lst);
   renderHead();
@@ -1184,38 +1202,38 @@ async function loadOver() {
   const u = curUnit(), box = clear($('#over-box')); if (!u) return;
   const hs = h('div', { class: 'card next health' }); box.append(hs); loadHealth(hs);
   if (!u.sid) {
-    box.append(h('div', { class: 'card next hot' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, '아직 검사하지 않은 장치예요'),
-      h('div', { class: 'b ell' }, u.readable ? '검사는 장치를 읽기만 하고 사진·영상·문서·압축 파일을 찾아요.' : u.connected ? '관리자 권한으로 실행해야 이 장치를 읽을 수 있어요.' : '')),
-      btn('검사하러 가기', 'primary', () => go('scanops'), { disabled: !u.readable })));
+    box.append(h('div', { class: 'card next hot' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, L('아직 검사하지 않은 장치예요')),
+      h('div', { class: 'b ell' }, u.readable ? L('검사는 장치를 읽기만 하고 사진·영상·문서·압축 파일을 찾아요.') : u.connected ? L('관리자 권한으로 실행해야 이 장치를 읽을 수 있어요.') : '')),
+      btn(L('검사하러 가기'), 'primary', () => go('scanops'), { disabled: !u.readable })));
     return;
   }
   box.append(h('div', { class: 'tiles' },
-    h('div', { class: 'card tile' }, h('div', { class: 'v num' }, num(u.found)), h('div', { class: 'l' }, '찾은 파일')),
-    h('div', { class: 'card tile' }, h('div', { class: 'v num' }, num(u.extracted)), h('div', { class: 'l' }, '꺼낸 파일')),
-    h('div', { class: 'card tile' + (u.need ? ' warn' : '') }, h('div', { class: 'v num' }, num(u.need)), h('div', { class: 'l' }, '열림 확인 필요'))));
-  const nextSlot = h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, '확인하는 중…'), h('div', { class: 'b ell' }, ' ')), h('span', {}));
+    h('div', { class: 'card tile' }, h('div', { class: 'v num' }, num(u.found)), h('div', { class: 'l' }, L('찾은 파일'))),
+    h('div', { class: 'card tile' }, h('div', { class: 'v num' }, num(u.extracted)), h('div', { class: 'l' }, L('꺼낸 파일'))),
+    h('div', { class: 'card tile' + (u.need ? ' warn' : '') }, h('div', { class: 'v num' }, num(u.need)), h('div', { class: 'l' }, L('열림 확인 필요')))));
+  const nextSlot = h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, L('확인하는 중…')), h('div', { class: 'b ell' }, ' ')), h('span', {}));
   const steps = h('div', { class: 'card lst' });
-  box.append(h('div', { class: 'secx' }, '다음에 할 일'), nextSlot, h('div', { class: 'secx' }, '단계별 상태'), steps);
+  box.append(h('div', { class: 'secx' }, L('다음에 할 일')), nextSlot, h('div', { class: 'secx' }, L('단계별 상태')), steps);
   let s = S.session, t = null, v = null;
   try { [s, t, v] = await Promise.all([api('/api/session'), api('/api/tail'), api('/api/verify/summary')]); S.session = s; } catch (e) { }
   if (S.screen !== 'over' || (curUnit() || {}).key !== u.key) return;
   const it = s && s.interrupted, vs = v && v.summary, tv = t && t.verdict, mine = jobMine(S.job) && jobRunning();
   const tailNeed = t && t.can && (!t.state || !t.state.finished);
   let nx;
-  if (mine) nx = ['지금 ' + KIND_TXT[S.job.kind] + '이(가) 진행 중이에요', '진행 상황은 아래 상태 바와 해당 탭에서 볼 수 있어요.', '진행 보기', () => go(KIND_SCREEN[S.job.kind] || 'run')];
-  else if (it && it.kind === 'scan') nx = ['검사가 중간에 멈춰 있어요', '이어서 하면 멈춘 곳부터 계속해요. 이미 찾은 파일은 그대로예요.', '검사 탭으로', () => go('scanops')];
-  else if (it && it.kind === 'extract') nx = ['꺼내기가 중간에 멈춰 있어요', '이어서 하면 이미 꺼낸 파일은 건너뛰고 남은 것만 꺼내요.', '추출 탭으로', () => { if (it.plan) applyPlan(it.plan); go('settings'); }];
-  else if (!u.extracted) nx = ['검사를 마쳤어요. 꺼낼 종류를 고르세요', '찾은 파일 ' + num(u.found) + '개 중에서 필요한 종류만 골라 꺼낼 수 있어요.', '추출 탭으로', () => go('settings')];
-  else if (vs && vs.fail && (v.failures || []).some(f => /zip|docx|xlsx|pptx|hwpx/i.test(f.path || ''))) nx = ['열리지 않는 ZIP 이 있어요', '[열림 다시 확인]을 누르면 온전한 항목만 모아 복원본을 만들어요.', '결과 탭으로', () => go('result')];
-  else if (tailNeed) nx = ['끝부분 촘촘 검사를 아직 안 했어요', '검사하지 않은 뒤쪽 ' + fmtSize(t.size - t.scanned_bytes) + '에 놓친 파일이 있는지 찍어 봐요.', '검사 탭으로', () => go('scanops')];
-  else nx = ['포맷해도 되는지 확인해 보세요', '다 꺼냈다면 [포맷 점검]에서 7가지를 확인할 수 있어요.', '포맷 점검으로', () => go('fmt')];
+  if (mine) nx = [L('지금 ') + KIND_TXT[S.job.kind] + L('이(가) 진행 중이에요'), L('진행 상황은 아래 상태 바와 해당 탭에서 볼 수 있어요.'), L('진행 보기'), () => go(KIND_SCREEN[S.job.kind] || 'run')];
+  else if (it && it.kind === 'scan') nx = [L('검사가 중간에 멈춰 있어요'), L('이어서 하면 멈춘 곳부터 계속해요. 이미 찾은 파일은 그대로예요.'), L('검사 탭으로'), () => go('scanops')];
+  else if (it && it.kind === 'extract') nx = [L('꺼내기가 중간에 멈춰 있어요'), L('이어서 하면 이미 꺼낸 파일은 건너뛰고 남은 것만 꺼내요.'), L('추출 탭으로'), () => { if (it.plan) applyPlan(it.plan); go('settings'); }];
+  else if (!u.extracted) nx = [L('검사를 마쳤어요. 꺼낼 종류를 고르세요'), L('찾은 파일 ') + num(u.found) + L('개 중에서 필요한 종류만 골라 꺼낼 수 있어요.'), L('추출 탭으로'), () => go('settings')];
+  else if (vs && vs.fail && (v.failures || []).some(f => /zip|docx|xlsx|pptx|hwpx/i.test(f.path || ''))) nx = [L('열리지 않는 ZIP 이 있어요'), L('[열림 다시 확인]을 누르면 온전한 항목만 모아 복원본을 만들어요.'), L('결과 탭으로'), () => go('result')];
+  else if (tailNeed) nx = [L('끝부분 촘촘 검사를 아직 안 했어요'), L('검사하지 않은 뒤쪽 ') + fmtSize(t.size - t.scanned_bytes) + L('에 놓친 파일이 있는지 찍어 봐요.'), L('검사 탭으로'), () => go('scanops')];
+  else nx = [L('포맷해도 되는지 확인해 보세요'), L('다 꺼냈다면 [포맷 점검]에서 7가지를 확인할 수 있어요.'), L('포맷 점검으로'), () => go('fmt')];
   nextSlot.replaceWith(h('div', { class: 'card next hot' }, h('div', { class: 'tx' }, h('div', { class: 'a ell', title: nx[0] }, nx[0]), h('div', { class: 'b ell', title: nx[1] }, nx[1])), btn(nx[2], 'primary', nx[3])));
   const row = (d, w, c) => h('div', { class: 'row' }, h('span', { class: 'd' }, d), h('span', { class: 'w ell', title: w }, w), chip(c[0], c[1]));
   steps.append(
-    row('검사', u.finished ? '검사 범위 앞쪽 ' + fmtSize(u.scanned || 0) + ' · ' + num(u.found) + '개 찾음' : '중간에 멈춤 · 지금까지 ' + num(u.found) + '개 찾음', u.finished ? ['ok', '완료'] : ['alert', '멈춤']),
-    row('끝부분 검사', !t || !t.can && !t.state ? (t && t.why) || '-' : !t.state ? '아직 안 함' : (TAIL_VERDICT[tv] || TAIL_VERDICT.partial)[2], !t || (!t.can && !t.state) ? ['pause', '-'] : !t.state ? ['pause', '안 함'] : (TAIL_VERDICT[tv] || TAIL_VERDICT.partial).slice(0, 2)),
-    row('추출', u.extracted ? num(u.extracted) + '개 꺼냄' + (it && it.kind === 'extract' ? ' · 중간에 멈춤' : '') : '아직 꺼내지 않았어요', u.extracted ? (it && it.kind === 'extract' ? ['alert', '멈춤'] : ['ok', '완료']) : ['pause', '안 함']),
-    row('열림 확인', vs ? '정상 ' + num(vs.ok) + (vs.fixed ? ' · 복원본 ' + num(vs.fixed) : '') + ' · 확인 필요 ' + num(vs.fail) + (vs.unchecked ? ' · 미확인 ' + num(vs.unchecked) : '') + (vs.acked ? ' · 문제없음 표시 ' + num(vs.acked) : '') : '아직 안 함', vs ? (vs.fail ? ['alert', '확인 필요'] : ['ok', '완료']) : ['pause', '안 함']));
+    row(L('검사'), u.finished ? L('검사 범위 앞쪽 ') + fmtSize(u.scanned || 0) + ' · ' + num(u.found) + L('개 찾음') : L('중간에 멈춤 · 지금까지 ') + num(u.found) + L('개 찾음'), u.finished ? ['ok', L('완료')] : ['alert', L('멈춤')]),
+    row(L('끝부분 검사'), !t || !t.can && !t.state ? (t && t.why) || '-' : !t.state ? L('아직 안 함') : (TAIL_VERDICT[tv] || TAIL_VERDICT.partial)[2], !t || (!t.can && !t.state) ? ['pause', '-'] : !t.state ? ['pause', L('안 함')] : (TAIL_VERDICT[tv] || TAIL_VERDICT.partial).slice(0, 2)),
+    row(L('추출'), u.extracted ? num(u.extracted) + L('개 꺼냄') + (it && it.kind === 'extract' ? L(' · 중간에 멈춤') : '') : L('아직 꺼내지 않았어요'), u.extracted ? (it && it.kind === 'extract' ? ['alert', L('멈춤')] : ['ok', L('완료')]) : ['pause', L('안 함')]),
+    row(L('열림 확인'), vs ? L('정상 ') + num(vs.ok) + (vs.fixed ? L(' · 복원본 ') + num(vs.fixed) : '') + L(' · 확인 필요 ') + num(vs.fail) + (vs.unchecked ? L(' · 미확인 ') + num(vs.unchecked) : '') + (vs.acked ? L(' · 문제없음 표시 ') + num(vs.acked) : '') : L('아직 안 함'), vs ? (vs.fail ? ['alert', L('확인 필요')] : ['ok', L('완료')]) : ['pause', L('안 함')]));
 }
 
 // ---- 장치 > 검사 ----
@@ -1224,23 +1242,23 @@ async function loadScanOps() {
   try { S.session = await api('/api/session'); } catch (e) { }
   if (S.screen !== 'scanops') return;
   const it = S.session && S.session.interrupted, run = jobRunning(), can = !!S.sel && !run;
-  const why = !u.connected ? '장치가 연결돼 있지 않아요' : !u.readable ? '관리자 권한이 필요해요' : run ? '다른 작업이 실행 중이에요' : '';
+  const why = !u.connected ? L('장치가 연결돼 있지 않아요') : !u.readable ? L('관리자 권한이 필요해요') : run ? L('다른 작업이 실행 중이에요') : '';
   const scanPaused = it && it.kind === 'scan';
   const bc = $('#op-base-chip'), mineScan = jobMine(S.job) && run && S.job.kind === 'scan';
-  const st = mineScan ? ['', '진행 중'] : scanPaused ? ['alert', '멈춤'] : u.finished ? ['ok', '완료'] : u.sid ? ['alert', '멈춤'] : ['pause', '안 함'];
+  const st = mineScan ? ['', L('진행 중')] : scanPaused ? ['alert', L('멈춤')] : u.finished ? ['ok', L('완료')] : u.sid ? ['alert', L('멈춤')] : ['pause', L('안 함')];
   bc.className = 'chip ' + st[0]; bc.textContent = st[1];
-  const c = u.sid ? (u.finished ? '검사 범위 앞쪽 ' + fmtSize(u.scanned || 0) + ' · ' + num(u.found) + '개 찾음' + (u.last ? ' · ' + u.last : '') : '지금까지 ' + num(u.found) + '개 찾음') : '';
+  const c = u.sid ? (u.finished ? L('검사 범위 앞쪽 ') + fmtSize(u.scanned || 0) + ' · ' + num(u.found) + L('개 찾음') + (u.last ? ' · ' + u.last : '') : L('지금까지 ') + num(u.found) + L('개 찾음')) : '';
   $('#op-base-c').textContent = c; $('#op-base-c').title = c;
   const act = clear($('#op-base-act'));
-  if (mineScan) act.append(btn('진행 보기', 'primary', () => go('scan')), h('span', { class: 'hint ell' }, ''));
-  else if (scanPaused || (u.sid && !u.finished)) act.append(btn('이어서 하기', 'primary', () => startScan(true), { disabled: !can }), h('span', { class: 'hint ell', title: why }, why || '멈춘 곳부터 계속해요'));
-  else act.append(btn(u.sid ? '다시 검사' : '검사 시작', u.sid ? '' : 'primary', async () => {
-      if (u.sid && !(await ask('다시 검사할까요?', '지금 검사 기록은 보관 폴더로 옮기고 새로 찾아요. 꺼낸 파일은 그대로 있어요. 이전 결과를 활용하면 이미 찾은 구간은 건너뛰어서 빨라요.', '다시 검사'))) return;
+  if (mineScan) act.append(btn(L('진행 보기'), 'primary', () => go('scan')), h('span', { class: 'hint ell' }, ''));
+  else if (scanPaused || (u.sid && !u.finished)) act.append(btn(L('이어서 하기'), 'primary', () => startScan(true), { disabled: !can }), h('span', { class: 'hint ell', title: why }, why || L('멈춘 곳부터 계속해요')));
+  else act.append(btn(u.sid ? L('다시 검사') : L('검사 시작'), u.sid ? '' : 'primary', async () => {
+      if (u.sid && !(await ask(L('다시 검사할까요?'), L('지금 검사 기록은 보관 폴더로 옮기고 새로 찾아요. 꺼낸 파일은 그대로 있어요. 이전 결과를 활용하면 이미 찾은 구간은 건너뛰어서 빨라요.'), L('다시 검사')))) return;
       startScan(false); }, { disabled: !can }), h('span', { class: 'hint ell', title: why }, why));
   const fa = clear($('#op-full-act'));
-  fa.append(btn('전체 검사', '', async () => { if (await ask('장치 전체를 검사할까요?', '장치 전체를 읽어서 시간이 오래 걸립니다(수 시간). 기본 검사는 데이터가 있는 구간까지만 읽습니다.', '전체 검사')) startScan(false, true); }, { disabled: !can }),
+  fa.append(btn(L('전체 검사'), '', async () => { if (await ask(L('장치 전체를 검사할까요?'), L('장치 전체를 읽어서 시간이 오래 걸립니다(수 시간). 기본 검사는 데이터가 있는 구간까지만 읽습니다.'), L('전체 검사'))) startScan(false, true); }, { disabled: !can }),
     h('span', { class: 'hint ell', title: why }, why));
-  const fc = u.scanned != null && u.size ? (u.scanned >= u.size ? '이미 전체를 검사했어요' : '아직 안 읽은 구간 ' + fmtSize(u.size - u.scanned)) : '';
+  const fc = u.scanned != null && u.size ? (u.scanned >= u.size ? L('이미 전체를 검사했어요') : L('아직 안 읽은 구간 ') + fmtSize(u.size - u.scanned)) : '';
   $('#op-full-c').textContent = fc;
   loadTail(); loadParts();
   // 고급 검사가 돌고 있거나 멈춰 있으면 접어 두지 않는다
@@ -1250,10 +1268,10 @@ async function loadScanOps() {
 
 // ---- 장치 > 검사 > 끝부분 촘촘 검사 ----
 const TAIL_VERDICT = {
-  empty: ['ok', '비어 있음', '뒤쪽에서 내용을 찾지 못했어요. 이미 꺼낸 파일이 전부일 가능성이 높아요(추정).'],
-  residue: ['alert', '흔적 있음', '내용은 있지만 파일 시작은 못 찾았어요(지워진 찌꺼기일 수 있음).'],
-  files: ['bad', '파일 있음', '파일 시작 표시를 찾았어요. 그 구간까지 검사해 볼 만해요.'],
-  partial: ['pause', '멈춤', '중간에 멈췄어요. 이어서 하면 멈춘 곳부터 계속해요.'],
+  empty: ['ok', L('비어 있음'), L('뒤쪽에서 내용을 찾지 못했어요. 이미 꺼낸 파일이 전부일 가능성이 높아요(추정).')],
+  residue: ['alert', L('흔적 있음'), L('내용은 있지만 파일 시작은 못 찾았어요(지워진 찌꺼기일 수 있음).')],
+  files: ['bad', L('파일 있음'), L('파일 시작 표시를 찾았어요. 그 구간까지 검사해 볼 만해요.')],
+  partial: ['pause', L('멈춤'), L('중간에 멈췄어요. 이어서 하면 멈춘 곳부터 계속해요.')],
 };
 function tailSet(o) {
   const T = (id, t) => { const e = $(id); e.textContent = t; e.title = t; };
@@ -1265,27 +1283,27 @@ async function loadTail() {
   const j = S.job;
   if (j && j.state === 'running' && j.kind === 'tail' && jobMine(j)) { tailActions(true); return tailPoll(); }
   let t;
-  try { t = await api('/api/tail'); } catch (e) { tailSet({ msg: '불러오지 못했어요: ' + e.message }); tailActions(false, null); return; }
+  try { t = await api('/api/tail'); } catch (e) { tailSet({ msg: L('불러오지 못했어요: ') + e.message }); tailActions(false, null); return; }
   if (S.screen !== 'scanops') return;
   S.tail = t; const st = t.state;
   const step = t.step >= 1048576 ? Math.round(t.step / 1048576) + 'MB' : Math.round(t.step / 1024) + 'KB';
-  const desc = t.can ? fmtSize(t.scanned_bytes) + ' ~ ' + fmtSize(t.size) + ' 구간을 ' + step + '마다 찍어 봐요. 놓친 파일의 흔적이 있는지 확인해요.' : '기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.';
+  const desc = t.can ? fmtSize(t.scanned_bytes) + ' ~ ' + fmtSize(t.size) + L(' 구간을 ') + step + L('마다 찍어 봐요. 놓친 파일의 흔적이 있는지 확인해요.') : L('기본 검사가 읽지 않은 뒤쪽 구간을 더 촘촘하게 찍어 봐서, 놓친 파일의 흔적이 있는지 확인해요.');
   $('#tail-desc').textContent = desc; $('#tail-desc').title = desc;
   if (st) {
     const v = TAIL_VERDICT[t.verdict] || TAIL_VERDICT.partial, done = st.pos - st.start, all = st.end - st.start;
     const where = Object.keys(st.buckets || {}).map(Number).sort((a, b) => a - b);
-    const at = where.length ? ' 위치: ' + where.slice(0, 5).map(k => k + '~' + (k + 1) + 'GB').join(', ') + (where.length > 5 ? ' 외 ' + (where.length - 5) + '곳' : '') : '';
-    tailSet({ chip: v[0], chipText: v[1], pct: all ? 100 * done / all : 0, s1: fmtSize(done) + ' / ' + fmtSize(all), s2: num(st.nonzero) + '곳', s3: num(st.hits.length) + '개', msg: v[2] + at });
-  } else tailSet({ chip: 'pause', chipText: '안 해 봄', s1: t.can ? '0 / ' + fmtSize(t.size - t.scanned_bytes) : '-', msg: t.can ? '약 ' + num(t.samples) + '곳을 찍어 봐요. 하드디스크에서는 20분 안팎 걸릴 수 있어요(추정).' : t.why });
+    const at = where.length ? L(' 위치: ') + where.slice(0, 5).map(k => k + '~' + (k + 1) + 'GB').join(', ') + (where.length > 5 ? L(' 외 ') + (where.length - 5) + L('곳') : '') : '';
+    tailSet({ chip: v[0], chipText: v[1], pct: all ? 100 * done / all : 0, s1: fmtSize(done) + ' / ' + fmtSize(all), s2: num(st.nonzero) + L('곳'), s3: num(st.hits.length) + L('개'), msg: v[2] + at });
+  } else tailSet({ chip: 'pause', chipText: L('안 해 봄'), s1: t.can ? '0 / ' + fmtSize(t.size - t.scanned_bytes) : '-', msg: t.can ? L('약 ') + num(t.samples) + L('곳을 찍어 봐요. 하드디스크에서는 20분 안팎 걸릴 수 있어요(추정).') : t.why });
   tailActions(false, t);
 }
 function tailActions(running, t) {
   const act = clear($('#tail-act'));
-  if (running) { act.append(btn('멈추기', '', cancelJob, { id: 'tailstop' }), h('span', { class: 'hint ell' }, '이어서 할 수 있어요')); return; }
+  if (running) { act.append(btn(L('멈추기'), '', cancelJob, { id: 'tailstop' }), h('span', { class: 'hint ell' }, L('이어서 할 수 있어요'))); return; }
   const partial = t && t.state && !t.state.finished, ok = t && t.can && !!S.sel && !jobRunning();
-  const why = !t || !t.can ? '' : !S.sel ? '장치가 연결돼 있지 않아요' : jobRunning() ? '다른 작업이 실행 중이에요' : '';
-  act.append(btn(partial ? '이어서 하기' : t && t.state ? '다시 확인' : '확인 시작', 'primary', () => startTail(partial), { id: 'tailgo', disabled: !ok }),
-    partial && ok ? h('button', { class: 'linkish hint', type: 'button', onclick: () => startTail(false) }, '처음부터 다시') : h('span', { class: 'hint ell', title: why }, why));
+  const why = !t || !t.can ? '' : !S.sel ? L('장치가 연결돼 있지 않아요') : jobRunning() ? L('다른 작업이 실행 중이에요') : '';
+  act.append(btn(partial ? L('이어서 하기') : t && t.state ? L('다시 확인') : L('확인 시작'), 'primary', () => startTail(partial), { id: 'tailgo', disabled: !ok }),
+    partial && ok ? h('button', { class: 'linkish hint', type: 'button', onclick: () => startTail(false) }, L('처음부터 다시')) : h('span', { class: 'hint ell', title: why }, why));
 }
 async function startTail(resume) {
   await startSide('/api/tail/start', { resume }, 'tail'); if (jobRunning()) tailActions(true);
@@ -1296,18 +1314,18 @@ function renderUnitsLight() { const now = Date.now(); if (now - (S.lightT || 0) 
 
 // ---- 도구 작업(끝부분 검사 · 파티션 찾기 · 백업 · 원래 이름) 공통 진행 확인 ----
 const SIDE = {
-  tail: { screen: 'scanops', tick: j => { const p = j.progress || {}; tailSet({ chip: '', chipText: '확인 중', pct: p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : 0,
-      s1: fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), s2: num(p.nonzero || 0) + '곳', s3: num(p.hits || 0) + '개', msg: '남은 시간 ' + fmtEta(p.eta_s) + ' · 원본은 읽기만 해요' }); },
+  tail: { screen: 'scanops', tick: j => { const p = j.progress || {}; tailSet({ chip: '', chipText: L('확인 중'), pct: p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : 0,
+      s1: fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), s2: num(p.nonzero || 0) + L('곳'), s3: num(p.hits || 0) + L('개'), msg: L('남은 시간 ') + fmtEta(p.eta_s) + L(' · 원본은 읽기만 해요') }); },
     done: () => loadScanOps() },
-  partfind: { screen: 'scanops', tick: j => { const p = j.progress || {}; partSet({ chip: ['', '찾는 중'], pct: p.total ? 100 * p.done / p.total : 0,
-      c1: '살펴본 위치 ' + num(p.done || 0) + ' / ' + num(p.total || 0) + ' · 찾은 시작 표시 ' + num(p.found || 0) + '개', c2: '원본은 읽기만 해요' }); partActions(true); },
+  partfind: { screen: 'scanops', tick: j => { const p = j.progress || {}; partSet({ chip: ['', L('찾는 중')], pct: p.total ? 100 * p.done / p.total : 0,
+      c1: L('살펴본 위치 ') + num(p.done || 0) + ' / ' + num(p.total || 0) + L(' · 찾은 시작 표시 ') + num(p.found || 0) + L('개'), c2: L('원본은 읽기만 해요') }); partActions(true); },
     done: () => loadScanOps() },
   backup: { screen: 'backup', tick: j => bakTick(j), done: () => loadBackup() },
   organize: { screen: 'organize', tick: j => orgTick(j), done: () => loadOrganize() },
-  names: { screen: 'result', tick: j => { const p = j.progress || {}; namesSet('찾는 중', '', p.total ? '꺼낸 파일 ' + num(p.done || 0) + ' / ' + num(p.total) + ' 확인 · 이름 찾음 ' + num(p.matched || 0) + '개' : 'APFS 파일 목록을 읽고 있어요(원본은 읽기만 해요)', true); },
-    done: j => { if (j.result && j.result.names_error) banner('warn', '원래 이름을 찾지 못했어요: ' + j.result.names_error, 'msg'); loadResult(); } },
+  names: { screen: 'result', tick: j => { const p = j.progress || {}; namesSet(L('찾는 중'), '', p.total ? L('꺼낸 파일 ') + num(p.done || 0) + ' / ' + num(p.total) + L(' 확인 · 이름 찾음 ') + num(p.matched || 0) + L('개') : L('APFS 파일 목록을 읽고 있어요(원본은 읽기만 해요)'), true); },
+    done: j => { if (j.result && j.result.names_error) banner('warn', L('원래 이름을 찾지 못했어요: ') + j.result.names_error, 'msg'); loadResult(); } },
 };
-KIND_TXT.partfind = '파티션 찾기'; KIND_TXT.backup = '디스크 백업'; KIND_TXT.names = '원래 이름 찾기'; KIND_TXT.organize = '정리해서 복사';
+KIND_TXT.partfind = L('파티션 찾기'); KIND_TXT.backup = L('디스크 백업'); KIND_TXT.names = L('원래 이름 찾기'); KIND_TXT.organize = L('정리해서 복사');
 const KIND_SCREEN = { scan: 'scan', tail: 'scanops', partfind: 'scanops', backup: 'backup', names: 'result', organize: 'organize' };
 function sidePoll() { if (S.sidePolling) return; S.sidePolling = true; sideTick(); }
 async function sideTick() {
@@ -1315,13 +1333,13 @@ async function sideTick() {
   S.job = j; const sd = j && SIDE[j.kind]; if (!sd) { S.sidePolling = false; return; }
   if (j.state === 'running') {
     if (S.screen === sd.screen && jobMine(j)) sd.tick(j);
-    S.stText = [KIND_TXT[j.kind] + ' 중 · 원본은 읽기만 해요', '']; statusBar(); renderUnitsLight();
+    S.stText = [KIND_TXT[j.kind] + L(' 중 · 원본은 읽기만 해요'), '']; statusBar(); renderUnitsLight();
     setTimeout(sideTick, 700); return;
   }
   S.sidePolling = false;
   if (j.state !== 'done' && j.state !== 'cancelled' && jobMine(j)) banner('bad', stateMsg(j), 'msg');
-  if (!jobMine(j) && S.sideSeen !== j.id) { S.sideSeen = j.id; const u = S.units.find(x => x.sid && x.sid === j.session); toast((u ? u.name + ': ' : '') + KIND_TXT[j.kind] + '이(가) 끝났어요'); }
-  setStatus('대기 중', ''); loadUnits(true);
+  if (!jobMine(j) && S.sideSeen !== j.id) { S.sideSeen = j.id; const u = S.units.find(x => x.sid && x.sid === j.session); toast((u ? u.name + ': ' : '') + KIND_TXT[j.kind] + L('이(가) 끝났어요')); }
+  setStatus(L('대기 중'), ''); loadUnits(true);
   if (jobMine(j) && S.screen === sd.screen) sd.done(j);
   if (S.screen === 'over') loadOver();
 }
@@ -1333,26 +1351,26 @@ async function startSide(path, body, kind) {
 
 // ---- 개요 > 건강 상태 ----
 const HEALTH = {
-  ok: ['ok', '정상', '지금은 고장 징후가 없어요', '그래도 중요한 파일은 먼저 꺼내 두세요.'],
-  warn: ['alert', '주의', '읽기 오류가 있었어요', '오래 읽는 작업(전체 검사·백업)은 줄이고, 필요한 파일부터 꺼내세요.'],
-  bad: ['bad', '위험', '하드가 고장 나고 있을 수 있어요', '필요한 파일부터 바로 꺼내세요. 오래 읽는 작업은 피하세요.'],
-  unknown: ['pause', '알 수 없음', '건강 정보를 알 수 없어요', ''],
+  ok: ['ok', L('정상'), L('지금은 고장 징후가 없어요'), L('그래도 중요한 파일은 먼저 꺼내 두세요.')],
+  warn: ['alert', L('주의'), L('읽기 오류가 있었어요'), L('오래 읽는 작업(전체 검사·백업)은 줄이고, 필요한 파일부터 꺼내세요.')],
+  bad: ['bad', L('위험'), L('하드가 고장 나고 있을 수 있어요'), L('필요한 파일부터 바로 꺼내세요. 오래 읽는 작업은 피하세요.')],
+  unknown: ['pause', L('알 수 없음'), L('건강 정보를 알 수 없어요'), ''],
 };
 async function loadHealth(slot) {
   const u = curUnit();
   const fill = (st, a, b, items) => {
-    clear(slot).append(h('div', { class: 'hh' }, h('span', { class: 'k' }, '하드 건강 상태'), chip(st[0], st[1]), h('span', { class: 'sp' })),
+    clear(slot).append(h('div', { class: 'hh' }, h('span', { class: 'k' }, L('하드 건강 상태')), chip(st[0], st[1]), h('span', { class: 'sp' })),
       h('div', { class: 'hv ell', title: a }, a), h('div', { class: 'hb ell', title: b || '' }, b || ''),
       h('div', { class: 'hs' }, ...[0, 1, 2, 3].map(i => { const x = (items || [])[i];
         return h('div', { class: 'm' + (x ? '' : ' empty') }, h('div', { class: 'v num ell' }, x ? x[1] : ''), h('div', { class: 'l ell' }, x ? x[0] : '')); })));
   };
-  if (!u || !u.connected) return fill(['pause', '-'], '장치가 연결돼 있지 않아요', '하드를 연결하면 운영체제에 물어볼게요.');
-  fill(['pause', '확인 중'], '운영체제에 물어보는 중이에요…', '몇 초 걸릴 수 있어요.');
-  let r; try { r = await api('/api/health?device_id=' + encodeURIComponent(u.device_id)); } catch (e) { return fill(['pause', '-'], '확인하지 못했어요', e.message); }
+  if (!u || !u.connected) return fill(['pause', '-'], L('장치가 연결돼 있지 않아요'), L('하드를 연결하면 운영체제에 물어볼게요.'));
+  fill(['pause', L('확인 중')], L('운영체제에 물어보는 중이에요…'), L('몇 초 걸릴 수 있어요.'));
+  let r; try { r = await api('/api/health?device_id=' + encodeURIComponent(u.device_id)); } catch (e) { return fill(['pause', '-'], L('확인하지 못했어요'), e.message); }
   if (S.screen !== 'over' || (curUnit() || {}).key !== u.key) return;
   const H = HEALTH[r.status] || HEALTH.unknown;
   const want = ['고치지 못한 읽기 오류', '온도', '사용 시간', '켜고 끈 횟수', '읽기 오류(전체)', '닳은 정도', 'SMART 상태', '윈도우 판정'];
-  const items = want.map(k => (r.items || []).find(x => x[0] === k)).filter(Boolean).slice(0, 4);
+  const items = want.map(k => (r.items || []).find(x => x[0] === k)).filter(Boolean).slice(0, 4).map(x => [L(x[0]), ...x.slice(1)]);  // 이름은 서버가 준 한국어(찾을 때는 그대로, 보일 때만 번역)
   const sub = r.status === 'unknown' ? (r.note || '') : r.note ? H[3] + ' (' + r.note + ')' : H[3];
   fill([H[0], H[1]], H[2], sub, items);
 }
@@ -1366,9 +1384,9 @@ function partSet(o) {
 }
 function partActions(running) {
   const act = clear($('#part-act')); const run = jobRunning();
-  if (running) { act.append(btn('멈추기', '', cancelJob), h('span', { class: 'hint ell' }, '원본은 읽기만 해요')); return; }
-  const why = !S.sel ? '장치가 연결돼 있지 않아요' : run ? '다른 작업이 실행 중이에요' : '';
-  act.append(btn(S.partDone ? '다시 찾기' : '찾기 시작', S.partDone ? '' : 'primary', () => startSide('/api/partitions/start', {}, 'partfind'), { disabled: !S.sel || run }),
+  if (running) { act.append(btn(L('멈추기'), '', cancelJob), h('span', { class: 'hint ell' }, L('원본은 읽기만 해요'))); return; }
+  const why = !S.sel ? L('장치가 연결돼 있지 않아요') : run ? L('다른 작업이 실행 중이에요') : '';
+  act.append(btn(S.partDone ? L('다시 찾기') : L('찾기 시작'), S.partDone ? '' : 'primary', () => startSide('/api/partitions/start', {}, 'partfind'), { disabled: !S.sel || run }),
     h('span', { class: 'hint ell', title: why }, why));
 }
 async function loadParts() {
@@ -1377,12 +1395,12 @@ async function loadParts() {
   let r = null; try { r = (await api('/api/partitions')).result; } catch (e) { }
   if (S.screen !== 'scanops') return;
   S.partDone = !!r;
-  if (!r) partSet({ chip: ['pause', '안 해 봄'], pct: 0, c1: '파티션 표와 디스크 앞쪽 2GB 안에서 파티션 시작 표시를 찾아요. 1분 안팎(추정).', c2: '' });
+  if (!r) partSet({ chip: ['pause', L('안 해 봄')], pct: 0, c1: L('파티션 표와 디스크 앞쪽 2GB 안에서 파티션 시작 표시를 찾아요. 1분 안팎(추정).'), c2: '' });
   else {
     const lost = r.parts.filter(p => !p.in_table && p.fs).length;
-    const desc = p => fmtSize(p.offset) + ' 위치 · ' + (p.fs || p.table_type || '알 수 없음') + (p.size ? ' ' + fmtSize(p.size) : '') + (p.label ? ' "' + p.label + '"' : '') + (p.in_table ? '' : ' · 표에 없음');
-    partSet({ chip: lost ? ['alert', '사라진 것 있음'] : r.parts.length ? ['ok', r.parts.length + '개 찾음'] : ['pause', '못 찾음'], pct: r.finished ? 100 : 0,
-      c1: '파티션 표: ' + r.table + ' · 찾은 파티션 ' + r.parts.length + '개' + (lost ? ' (표에 없는 것 ' + lost + '개)' : '') + (r.finished ? '' : ' · 중간에 멈춤'),
+    const desc = p => fmtSize(p.offset) + L(' 위치 · ') + (p.fs || p.table_type || L('알 수 없음')) + (p.size ? ' ' + fmtSize(p.size) : '') + (p.label ? ' "' + p.label + '"' : '') + (p.in_table ? '' : L(' · 표에 없음'));
+    partSet({ chip: lost ? ['alert', L('사라진 것 있음')] : r.parts.length ? ['ok', r.parts.length + L('개 찾음')] : ['pause', L('못 찾음')], pct: r.finished ? 100 : 0,
+      c1: L('파티션 표: ') + r.table + L(' · 찾은 파티션 ') + r.parts.length + L('개') + (lost ? L(' (표에 없는 것 ') + lost + L('개)') : '') + (r.finished ? '' : L(' · 중간에 멈춤')),
       c2: r.parts.slice(0, 4).map((p, i) => '①②③④'[i] + ' ' + desc(p)).join('   ') });
   }
   partActions(false);
@@ -1392,11 +1410,11 @@ async function loadParts() {
 function bakTick(j) {
   const p = j.progress || {};
   $('#bak-bar').style.width = (p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : 0).toFixed(1) + '%';
-  const c = $('#bak-chip'); c.className = 'chip'; c.textContent = '복사 중';
-  const t = '복사함 ' + fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0) + ' · 못 읽은 곳 ' + fmtSize(p.bad_bytes || 0) + ' · 남은 시간 ' + fmtEta(p.eta_s);
+  const c = $('#bak-chip'); c.className = 'chip'; c.textContent = L('복사 중');
+  const t = L('복사함 ') + fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0) + L(' · 못 읽은 곳 ') + fmtSize(p.bad_bytes || 0) + L(' · 남은 시간 ') + fmtEta(p.eta_s);
   $('#bak-c').textContent = t; $('#bak-c').title = t;
-  $('#bak-msg').textContent = '원본은 읽기만 해요. 멈춰도 나중에 이어서 할 수 있어요.';
-  setActions('|', btn('멈추기', '', cancelJob));
+  $('#bak-msg').textContent = L('원본은 읽기만 해요. 멈춰도 나중에 이어서 할 수 있어요.');
+  setActions('|', btn(L('멈추기'), '', cancelJob));
 }
 async function loadBackup() {
   const u = curUnit(); if (!u) return;
@@ -1408,29 +1426,29 @@ async function loadBackup() {
   const scanned = b.scanned_bytes, size = u.size || 0;
   if (S.bakWhole == null) S.bakWhole = !scanned;
   const seg = clear($('#bak-range'));
-  [[false, '검사한 앞쪽' + (scanned ? ' ' + fmtSize(scanned) : '')], [true, '전체' + (size ? ' ' + fmtSize(size) : '')]].forEach(([w, l]) =>
+  [[false, L('검사한 앞쪽') + (scanned ? ' ' + fmtSize(scanned) : '')], [true, L('전체') + (size ? ' ' + fmtSize(size) : '')]].forEach(([w, l]) =>
     seg.append(h('button', { type: 'button', class: S.bakWhole === w ? 'on' : '', disabled: w === false && !scanned, onclick: () => { S.bakWhole = w; loadBackup(); } }, l)));
   const need = S.bakWhole ? size : (scanned || size);
-  $('#bak-dest').textContent = S.bakDest || '폴더를 선택하세요'; $('#bak-dest').classList.toggle('empty', !S.bakDest);
+  $('#bak-dest').textContent = S.bakDest || L('폴더를 선택하세요'); $('#bak-dest').classList.toggle('empty', !S.bakDest);
   let free = null;
   if (S.bakDest) { try { free = (await api('/api/fs/list?path=' + encodeURIComponent(S.bakDest) + '&device_id=' + encodeURIComponent(S.sel || ''))).free; } catch (e) { } }
-  const ft = '필요한 공간 ' + fmtSize(need) + (free != null ? ' · 여유 공간 ' + fmtSize(free) + (free < need ? ' — 모자라요' : '') : '');
+  const ft = L('필요한 공간 ') + fmtSize(need) + (free != null ? L(' · 여유 공간 ') + fmtSize(free) + (free < need ? L(' — 모자라요') : '') : '');
   $('#bak-need').textContent = ft;
   const c = $('#bak-chip');
   const done = st && st.finished, partial = st && !st.finished;
-  c.className = 'chip ' + (done ? (st.bad_bytes ? 'alert' : 'ok') : partial ? 'pause' : 'pause'); c.textContent = done ? (st.bad_bytes ? '일부 못 읽음' : '완료') : partial ? '멈춤' : '안 해 봄';
+  c.className = 'chip ' + (done ? (st.bad_bytes ? 'alert' : 'ok') : partial ? 'pause' : 'pause'); c.textContent = done ? (st.bad_bytes ? L('일부 못 읽음') : L('완료')) : partial ? L('멈춤') : L('안 해 봄');
   $('#bak-bar').style.width = (st ? 100 * (st.pos - st.start) / Math.max(1, st.end - st.start) : 0).toFixed(1) + '%';
-  const ct = st ? '이미지: ' + (st.image || plan.image) + ' · ' + fmtSize(st.pos - st.start) + ' / ' + fmtSize(st.end - st.start) + ' · 못 읽은 곳 ' + fmtSize(st.bad_bytes || 0) : '아직 만든 이미지가 없어요.';
+  const ct = st ? L('이미지: ') + (st.image || plan.image) + ' · ' + fmtSize(st.pos - st.start) + ' / ' + fmtSize(st.end - st.start) + L(' · 못 읽은 곳 ') + fmtSize(st.bad_bytes || 0) : L('아직 만든 이미지가 없어요.');
   $('#bak-c').textContent = ct; $('#bak-c').title = ct;
-  $('#bak-msg').textContent = done ? '이미지를 장치처럼 열어 검사·추출할 수 있어요. 원본 하드를 포맷하기 전에 보관해 두세요.' : '장치를 이미지 파일로 통째로 복사해요. 읽기 오류가 나는 곳은 0 으로 채우고 기록해요.';
+  $('#bak-msg').textContent = done ? L('이미지를 장치처럼 열어 검사·추출할 수 있어요. 원본 하드를 포맷하기 전에 보관해 두세요.') : L('장치를 이미지 파일로 통째로 복사해요. 읽기 오류가 나는 곳은 0 으로 채우고 기록해요.');
   const run = jobRunning(), can = !!S.sel && !run;
-  const why = !S.sel ? '장치가 연결돼 있지 않아요' : run ? '다른 작업이 실행 중이에요' : !S.bakDest && !partial ? '저장할 폴더를 고르세요' : free != null && free < need && !partial ? '저장 공간이 모자라요' : '';
+  const why = !S.sel ? L('장치가 연결돼 있지 않아요') : run ? L('다른 작업이 실행 중이에요') : !S.bakDest && !partial ? L('저장할 폴더를 고르세요') : free != null && free < need && !partial ? L('저장 공간이 모자라요') : '';
   const items = [];
-  if (done) items.push(btn('이미지 열기', '', async () => { try { const r = await api('/api/images/open', { path: st.image }); await loadUnits('fresh'); openUnit(r.key, 'over'); } catch (e) { banner('bad', e.message, 'msg'); } }));
+  if (done) items.push(btn(L('이미지 열기'), '', async () => { try { const r = await api('/api/images/open', { path: st.image }); await loadUnits('fresh'); openUnit(r.key, 'over'); } catch (e) { banner('bad', e.message, 'msg'); } }));
   setActions(...items, '|', why,
-    partial ? btn('이어서 하기', 'primary', () => startSide('/api/backup/start', { resume: true }, 'backup'), { disabled: !can })
-      : btn(done ? '새로 만들기' : '백업 시작', 'primary', async () => {
-        if (!(await ask('백업을 시작할까요?', fmtSize(need) + '를 ' + S.bakDest + ' 에 이미지 파일로 복사해요. 하드 크기에 따라 몇 시간 걸릴 수 있어요(5TB 전체는 10시간 안팎, 추정).', '시작'))) return;
+    partial ? btn(L('이어서 하기'), 'primary', () => startSide('/api/backup/start', { resume: true }, 'backup'), { disabled: !can })
+      : btn(done ? L('새로 만들기') : L('백업 시작'), 'primary', async () => {
+        if (!(await ask(L('백업을 시작할까요?'), fmtSize(need) + L('를 ') + S.bakDest + L(' 에 이미지 파일로 복사해요. 하드 크기에 따라 몇 시간 걸릴 수 있어요(5TB 전체는 10시간 안팎, 추정).'), L('시작')))) return;
         startSide('/api/backup/start', { dest: S.bakDest, whole: S.bakWhole }, 'backup'); }, { disabled: !can || !S.bakDest || (free != null && free < need) }));
 }
 $('#bak-pick').onclick = async () => {
@@ -1442,11 +1460,11 @@ $('#bak-pick').onclick = async () => {
 // ---- 정리해서 복사 ----
 const ORG = { out: '', opts: { rename: 'time', layout: 'ymd', merge: true, review: true, groups: ['photo', 'raw', 'video'] }, t: null, seq: 0 };
 const ORG_SEG = {
-  'org-rename': ['rename', [['time', '촬영 시각+카메라'], ['orig', '원래 이름']]],
-  'org-layout': ['layout', [['ymd', '연도 › 월 › 날짜'], ['day', '날짜만']]],
-  'org-merge': ['merge', [[true, '날짜 폴더에 합치기'], [false, '사진·RAW·영상 따로']]],
+  'org-rename': ['rename', [['time', L('촬영 시각+카메라')], ['orig', L('원래 이름')]]],
+  'org-layout': ['layout', [['ymd', L('연도 › 월 › 날짜')], ['day', L('날짜만')]]],
+  'org-merge': ['merge', [[true, L('날짜 폴더에 합치기')], [false, L('사진·RAW·영상 따로')]]],
 };
-const ORG_GROUPS = [['photo', '사진'], ['raw', 'RAW'], ['video', '영상'], ['docs', '문서·압축']];
+const ORG_GROUPS = [['photo', L('사진')], ['raw', 'RAW'], ['video', L('영상')], ['docs', L('문서·압축')]];
 function orgOpts(running) {
   Object.entries(ORG_SEG).forEach(([id, [k, list]]) => { const box = clear($('#' + id));
     list.forEach(([v, l]) => box.append(h('button', { type: 'button', class: ORG.opts[k] === v ? 'on' : '', disabled: running, onclick: () => { ORG.opts[k] = v; orgOpts(); orgCheck(); } }, l))); });
@@ -1462,40 +1480,40 @@ async function orgCheckNow() {
   const seq = ++ORG.seq;
   let r; try { r = await api('/api/organize/check', Object.assign({ out: ORG.out, opts: ORG.opts }, S.sel ? { device_id: S.sel } : {})); } catch (e) { banner('bad', e.message, 'msg'); return; }
   if (seq !== ORG.seq || S.screen !== 'organize' || jobRunning()) return;
-  $('#org-out').textContent = ORG.out || '폴더를 선택하세요'; $('#org-out').classList.toggle('empty', !ORG.out); $('#org-out').title = ORG.out || '';
-  orgSetText('#org-free', r.free != null ? '여유 공간 ' + fmtSize(r.free) : '');
+  $('#org-out').textContent = ORG.out || L('폴더를 선택하세요'); $('#org-out').classList.toggle('empty', !ORG.out); $('#org-out').title = ORG.out || '';
+  orgSetText('#org-free', r.free != null ? L('여유 공간 ') + fmtSize(r.free) : '');
   const c = r.counts || {}, present = r.present || 0;
   const sum = clear($('#org-sum'));
-  sum.append(h('div', { class: 'big num' }, num(r.files) + '개 · ' + fmtSize(r.bytes)),
-    h('div', { class: 'sub ell' }, [c.undated ? '날짜불명 ' + num(c.undated) : '', c.small ? '작은 사진 ' + num(c.small) : '', c.suspect ? '깨졌을 수 있음 ' + num(c.suspect) : '', c.docs ? '문서·압축 ' + num(c.docs) : ''].filter(Boolean).join(' · ') || ' '),
-    h('div', { class: 'sub ell' }, c.extra ? '직접 넣은 파일(압축 푼 사진 등) ' + num(c.extra) + '개 포함' : ' '),
-    h('div', { class: 'sub ell' }, present ? '이미 복사돼 있는 것 ' + fmtSize(present) + ' — 남은 것만 복사해요' : ' '));
+  sum.append(h('div', { class: 'big num' }, num(r.files) + L('개 · ') + fmtSize(r.bytes)),
+    h('div', { class: 'sub ell' }, [c.undated ? L('날짜불명 ') + num(c.undated) : '', c.small ? L('작은 사진 ') + num(c.small) : '', c.suspect ? L('깨졌을 수 있음 ') + num(c.suspect) : '', c.docs ? L('문서·압축 ') + num(c.docs) : ''].filter(Boolean).join(' · ') || ' '),
+    h('div', { class: 'sub ell' }, c.extra ? L('직접 넣은 파일(압축 푼 사진 등) ') + num(c.extra) + L('개 포함') : ' '),
+    h('div', { class: 'sub ell' }, present ? L('이미 복사돼 있는 것 ') + fmtSize(present) + L(' — 남은 것만 복사해요') : ' '));
   $('#org-bar').style.width = (r.bytes ? 100 * present / r.bytes : 0).toFixed(1) + '%';
   orgSetText('#org-c', '');
   const pv = clear($('#org-prev'));
-  if (!r.samples.length) pv.append(h('div', { class: 'pr sub' }, '복사할 파일이 없어요.'));
+  if (!r.samples.length) pv.append(h('div', { class: 'pr sub' }, L('복사할 파일이 없어요.')));
   r.samples.forEach(([a, b]) => pv.append(h('div', { class: 'pr' }, h('span', { class: 'mono ell a', title: a }, a), h('span', { class: 'ar' }, '→'), h('span', { class: 'mono ell b', title: b }, b))));
   orgLast(r.last);
-  const why = jobRunning() ? '다른 작업이 실행 중이에요' : (r.reasons || [])[0] || '';
-  setActions('|', why, btn(present && present < r.bytes ? '이어서 복사' : '정리해서 복사 시작', 'primary', async () => {
-    if (!(await ask('정리해서 복사할까요?', num(r.files) + '개(' + fmtSize(r.bytes - present) + ')를 ' + ORG.out + ' 에 복사하고, 다 되면 하나씩 다시 읽어 제대로 복사됐는지 확인해요. 꺼낸 폴더는 바꾸지 않아요.', '시작'))) return;
+  const why = jobRunning() ? L('다른 작업이 실행 중이에요') : (r.reasons || [])[0] || '';
+  setActions('|', why, btn(present && present < r.bytes ? L('이어서 복사') : L('정리해서 복사 시작'), 'primary', async () => {
+    if (!(await ask(L('정리해서 복사할까요?'), num(r.files) + L('개(') + fmtSize(r.bytes - present) + L(')를 ') + ORG.out + L(' 에 복사하고, 다 되면 하나씩 다시 읽어 제대로 복사됐는지 확인해요. 꺼낸 폴더는 바꾸지 않아요.'), L('시작')))) return;
     startSide('/api/organize/start', { out: ORG.out, opts: ORG.opts }, 'organize'); }, { disabled: !r.ok || jobRunning() }));
 }
 function orgLast(last) {
   const box = clear($('#org-last')); if (!last) return;
   const bad = last.mismatch;
-  box.append(h('div', { class: 'lt' }, chip(!last.finished ? 'pause' : bad ? 'bad' : 'ok', !last.finished ? '멈춤' : bad ? '불일치 ' + num(bad) : '완료'),
-    h('span', { class: 'ell', title: last.dir }, '지난번 ' + (last.at || '') )),
+  box.append(h('div', { class: 'lt' }, chip(!last.finished ? 'pause' : bad ? 'bad' : 'ok', !last.finished ? L('멈춤') : bad ? L('불일치 ') + num(bad) : L('완료')),
+    h('span', { class: 'ell', title: last.dir }, L('지난번 ') + (last.at || '') )),
     h('div', { class: 'sub ell', title: last.dir }, last.dir),
-    h('div', { class: 'sub ell' }, num(last.files) + '개 · 확인 ' + num(last.checked) + '개' + (last.finished ? (bad ? ' · 다르게 복사된 것 ' + num(bad) + '개' : ' · 모두 같음') : ' · 중간에 멈춤')),
-    btn('폴더 열기', 'small', () => api('/api/organize/open', {}).catch(e => banner('bad', e.message, 'msg'))));
+    h('div', { class: 'sub ell' }, num(last.files) + L('개 · 확인 ') + num(last.checked) + L('개') + (last.finished ? (bad ? L(' · 다르게 복사된 것 ') + num(bad) + L('개') : L(' · 모두 같음')) : L(' · 중간에 멈춤'))),
+    btn(L('폴더 열기'), 'small', () => api('/api/organize/open', {}).catch(e => banner('bad', e.message, 'msg'))));
 }
 function orgTick(j) {
   const p = j.progress || {}, ver = j.phase === 'verify';
   orgOpts(true);
   $('#org-bar').style.width = (p.total_bytes ? 100 * (p.done_bytes || 0) / p.total_bytes : 0).toFixed(1) + '%';
-  orgSetText('#org-c', (ver ? '2/2 제대로 복사됐는지 확인 ' : '1/2 복사 ') + num(p.done || 0) + ' / ' + num(p.total || 0) + '개 · ' + fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0) + (p.eta_s != null ? ' · 남은 시간 ' + fmtEta(p.eta_s) : ''));
-  setActions('|', '멈춰도 다시 시작하면 남은 것만 복사해요', btn('멈추기', '', cancelJob));
+  orgSetText('#org-c', (ver ? L('2/2 제대로 복사됐는지 확인 ') : L('1/2 복사 ')) + num(p.done || 0) + ' / ' + num(p.total || 0) + L('개 · ') + fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0) + (p.eta_s != null ? L(' · 남은 시간 ') + fmtEta(p.eta_s) : ''));
+  setActions('|', L('멈춰도 다시 시작하면 남은 것만 복사해요'), btn(L('멈추기'), '', cancelJob));
 }
 async function loadOrganize() {
   const u = curUnit(); if (!u) return;
@@ -1515,37 +1533,37 @@ function namesSet(chipText, chipCls, text, running) {
   const c = $('#names-chip'); if (!c) return; c.className = 'chip ' + (chipCls || ''); c.textContent = chipText;
   const t = $('#names-t'); t.textContent = text; t.title = text;
   const a = clear($('#names-act'));
-  if (running) a.append(btn('멈추기', '', cancelJob));
-  else a.append(btn(S.namesDone ? '다시 찾기' : '되살리기', S.namesDone ? '' : 'primary', () => startSide('/api/names/start', {}, 'names'), { disabled: !S.sel || jobRunning() }));
+  if (running) a.append(btn(L('멈추기'), '', cancelJob));
+  else a.append(btn(S.namesDone ? L('다시 찾기') : L('되살리기'), S.namesDone ? '' : 'primary', () => startSide('/api/names/start', {}, 'names'), { disabled: !S.sel || jobRunning() }));
 }
 async function loadNames(box) {
-  box.append(h('div', { class: 'card next', id: 'names-card' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, '원래 이름·폴더 되살리기 ', h('span', { class: 'chip pause', id: 'names-chip' }, '-')),
+  box.append(h('div', { class: 'card next', id: 'names-card' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, L('원래 이름·폴더 되살리기 '), h('span', { class: 'chip pause', id: 'names-chip' }, '-')),
     h('div', { class: 'b ell', id: 'names-t' }, '')), h('div', { id: 'names-act' })));
   const j = S.job;
   if (j && j.state === 'running' && j.kind === 'names' && jobMine(j)) { SIDE.names.tick(j); return sidePoll(); }
   let r = null; try { r = (await api('/api/names')).result; } catch (e) { }
   S.namesDone = !!r;
-  if (!r) return namesSet('안 해 봄', 'pause', 'APFS 파일 목록이 남아 있으면 꺼낸 파일에 원래 이름과 폴더를 붙여요(저장 폴더의 _원래이름 폴더, 용량을 더 쓰지 않아요).' + (S.sel ? '' : ' 장치를 연결해야 해요.'));
-  if (!r.ok) return namesSet('못 찾음', 'alert', '원래 이름을 찾지 못했어요: ' + (r.error || '알 수 없는 이유'));
-  namesSet(r.matched ? '찾음' : '못 맞춤', r.matched ? 'ok' : 'alert', num(r.total) + '개 중 ' + num(r.matched) + '개의 원래 이름을 찾았어요' + (r.linked < r.matched ? ' (' + num(r.linked) + '개만 연결, 나머지는 목록.csv 에)' : '') + ' → ' + (r.dir || '') +
-    ' · 볼륨: ' + r.volumes.map(v => v.name + (v.encrypted ? '(암호화돼 못 읽음)' : '')).join(', '));
+  if (!r) return namesSet(L('안 해 봄'), 'pause', L('APFS 파일 목록이 남아 있으면 꺼낸 파일에 원래 이름과 폴더를 붙여요(저장 폴더의 _원래이름 폴더, 용량을 더 쓰지 않아요).') + (S.sel ? '' : L(' 장치를 연결해야 해요.')));
+  if (!r.ok) return namesSet(L('못 찾음'), 'alert', L('원래 이름을 찾지 못했어요: ') + (r.error || L('알 수 없는 이유')));
+  namesSet(r.matched ? L('찾음') : L('못 맞춤'), r.matched ? 'ok' : 'alert', num(r.total) + L('개 중 ') + num(r.matched) + L('개의 원래 이름을 찾았어요') + (r.linked < r.matched ? ' (' + num(r.linked) + L('개만 연결, 나머지는 목록.csv 에)') : '') + ' → ' + (r.dir || '') +
+    L(' · 볼륨: ') + r.volumes.map(v => v.name + (v.encrypted ? L('(암호화돼 못 읽음)') : '')).join(', '));
 }
 
 // ---- 장치 > 포맷 점검 ----
-const FMT_VERDICT = { ok: ['ok', '포맷 가능'], warn: ['alert', '확인 필요'], bad: ['bad', '아직 안 됨'] };
+const FMT_VERDICT = { ok: ['ok', L('포맷 가능')], warn: ['alert', L('확인 필요')], bad: ['bad', L('아직 안 됨')] };
 function fmtRows(rows) {  // 항목은 늘 7줄, 자리 고정
   clear($('#fmt-list')).append(...rows.map(r => h('li', { class: r ? r[0] : 'skel' }, h('span', { class: 'dot' }), h('span', { class: 't', title: r ? r[1] : '' }, r ? r[1] : ''))));
 }
 async function loadFormatCheck() {
-  const c = $('#fmt-chip'); c.className = 'chip pause'; c.textContent = '확인 중';
+  const c = $('#fmt-chip'); c.className = 'chip pause'; c.textContent = L('확인 중');
   if (!$('#fmt-list').children.length) fmtRows(Array(7).fill(null));
-  setActions('|', btn('다시 점검', '', loadFormatCheck));
+  setActions('|', btn(L('다시 점검'), '', loadFormatCheck));
   try {
     const r = await api('/api/format-check' + (S.sel ? '?device_id=' + encodeURIComponent(S.sel) : ''));
     if (S.screen !== 'fmt') return;
     const v = FMT_VERDICT[r.verdict] || FMT_VERDICT.warn; c.className = 'chip ' + v[0]; c.textContent = v[1];
     fmtRows(r.items);
-  } catch (e) { c.className = 'chip pause'; c.textContent = '-'; fmtRows([['bad', '점검하지 못했어요: ' + e.message]].concat(Array(6).fill(['info', '-']))); }
+  } catch (e) { c.className = 'chip pause'; c.textContent = '-'; fmtRows([['bad', L('점검하지 못했어요: ') + e.message]].concat(Array(6).fill(['info', '-']))); }
 }
 
 // ---- 시스템 > 설정 ----
@@ -1557,47 +1575,49 @@ function theme(v) {
 function loadPrefs() {
   const box = clear($('#prefs-box')); const m = S.unitsMeta || {};
   const cur = theme();
-  const seg = h('span', { class: 'seg' }, ...[['system', '시스템'], ['light', '밝게'], ['dark', '어둡게']].map(([k, l]) =>
+  const seg = h('span', { class: 'seg' }, ...[['system', L('시스템')], ['light', L('밝게')], ['dark', L('어둡게')]].map(([k, l]) =>
     h('button', { type: 'button', class: k === cur ? 'on' : '', onclick: () => { theme(k); loadPrefs(); } }, l)));
-  const sw = h('button', { type: 'button', class: 'sw' + (m.all_disks ? ' on' : ''), 'aria-label': '내장 디스크도 보이기', onclick: async () => {
+  const sw = h('button', { type: 'button', class: 'sw' + (m.all_disks ? ' on' : ''), 'aria-label': L('내장 디스크도 보이기'), onclick: async () => {
     try { await api('/api/prefs', { all_disks: !m.all_disks }); await loadUnits(true); loadPrefs(); } catch (e) { banner('bad', e.message, 'msg'); } } });
   const row = (b, s, ctl) => h('div', { class: 'row' }, h('span', { class: 'w' }, h('b', { class: 'ell' }, b), h('span', { class: 'ell', title: s }, s)), ctl);
   box.append(
-    row('기록 폴더', (m.root || '-') + ' — 장치마다 검사·추출 기록을 이 안의 session 폴더에 따로 둬요', h('span', {})),
-    row('내장 디스크도 장치 목록에 보이기', '평소에는 컴퓨터 안의 시스템·내장 디스크를 숨겨요. 켜도 읽기만 해요.', sw),
-    row('화면 테마', '윈도우 설정을 따르거나 직접 고를 수 있어요', seg));
+    row(L('기록 폴더'), (m.root || '-') + L(' — 장치마다 검사·추출 기록을 이 안의 session 폴더에 따로 둬요'), h('span', {})),
+    row(L('내장 디스크도 장치 목록에 보이기'), L('평소에는 컴퓨터 안의 시스템·내장 디스크를 숨겨요. 켜도 읽기만 해요.'), sw),
+    row(L('화면 테마'), L('윈도우 설정을 따르거나 직접 고를 수 있어요'), seg),
+    row(L('언어'), L('바꾸면 화면을 다시 불러와요'), h('span', { class: 'seg' }, ...[['ko', '한국어'], ['en', 'English']].map(([k, l]) =>
+      h('button', { type: 'button', class: k === LANG ? 'on' : '', onclick: () => { try { localStorage.setItem('lang', k); } catch (e) { } location.reload(); } }, l)))));
 }
 const groupSum = (sum, g) => g.kinds.reduce((a, k) => a + ((sum.kinds || {})[k] || 0), 0);
 
 // ---- 1. 디스크 ----
-const diskName = dv => dv.label || '외장 디스크';
+const diskName = dv => dv.label || L('외장 디스크');
 async function loadDevices() {  // 장치 정보(재연결 확인용)와 세션 상태
   try {
     const [d, s] = await Promise.all([api('/api/devices'), api('/api/session')]);
     S.devices = d.devices; S.session = s; S.isAdmin = d.is_root; S.images = d.images; S.devLoaded = true;
-    banner(s.on_battery ? 'warn' : '', s.on_battery ? '배터리로 실행 중입니다. 전원을 연결하세요. 덮개를 닫거나 배터리가 떨어지면 장치 연결이 끊겨 작업이 멈춥니다.' : '', 'power');
+    banner(s.on_battery ? 'warn' : '', s.on_battery ? L('배터리로 실행 중입니다. 전원을 연결하세요. 덮개를 닫거나 배터리가 떨어지면 장치 연결이 끊겨 작업이 멈춥니다.') : '', 'power');
     const cp = s.compat || {};  // 다른 버전이 만든 기록 안내
-    banner(cp.newer ? 'warn' : '', cp.newer ? '이 장치의 기록은 더 새 버전 도구가 만든 것이에요. 보기만 하고 이어서 하기는 하지 마세요.' : '', 'compat');
-  } catch (e) { banner('bad', '도구와 통신하지 못했습니다: ' + e.message, 'conn'); }
+    banner(cp.newer ? 'warn' : '', cp.newer ? L('이 장치의 기록은 더 새 버전 도구가 만든 것이에요. 보기만 하고 이어서 하기는 하지 마세요.') : '', 'compat');
+  } catch (e) { banner('bad', L('도구와 통신하지 못했습니다: ') + e.message, 'conn'); }
 }
 setInterval(() => { if (!document.hidden && !(S.job && S.job.state === 'running' && S.screen === 'home')) loadUnits(); }, 8000);
 
 // ---- 검사 ----
-const SCAN_LEAD = '사진·문서 등 모든 종류를 한 번에 찾습니다. 창을 열어 두기만 하면 됩니다.';
+const SCAN_LEAD = L('사진·문서 등 모든 종류를 한 번에 찾습니다. 창을 열어 두기만 하면 됩니다.');
 async function startScan(resume, full) {
   clearInterval(S.watch); S.hold = null;
   let reuse;
   if (!resume && !full) {  // 같은 디스크를 이미 검사한 기록이 있으면, 이미 찾은 구간은 다시 읽지 않고 건너뛸 수 있다
     try {
       const c = (await api('/api/sessions/reusable?device_id=' + encodeURIComponent(S.sel))).sessions[0];
-      if (c && await ask('이전 검사 결과를 활용할까요?', '“' + c.name + '”에서 ' + (c.found != null ? num(c.found) + '개를' : '찾은 파일을') + ' 이미 찾았어요. 그 부분은 디스크에서 다시 읽지 않고 건너뛰어서 검사가 훨씬 빨라져요. 새로 지원하는 종류(문서 등)는 나머지 구간에서 찾아요. 처음부터 모두 다시 읽으려면 [아니요]를 누르세요.', '이전 결과 활용')) reuse = c.name;
+      if (c && await ask(L('이전 검사 결과를 활용할까요?'), '“' + c.name + L('”에서 ') + (c.found != null ? num(c.found) + L('개를') : L('찾은 파일을')) + L(' 이미 찾았어요. 그 부분은 디스크에서 다시 읽지 않고 건너뛰어서 검사가 훨씬 빨라져요. 새로 지원하는 종류(문서 등)는 나머지 구간에서 찾아요. 처음부터 모두 다시 읽으려면 [아니요]를 누르세요.'), L('이전 결과 활용'))) reuse = c.name;
     } catch (e) { }
   }
   try {
     await api('/api/scan/start', { device_id: S.sel, full: !!full, resume: !!resume, reuse });
     if (!resume) S.dur = {}; S.flow = 'scan'; S.seen = null; S.job = null; S.lost = false; clear($('#scanmsg'));
     S.scanStripKey = ''; S.scanStripT = 0; clear($('#scan-strip')).append(...Array.from({ length: 8 }, () => h('div', { class: 'th skel' }))); $('#scan-strip-n').textContent = '';
-    heading('scan', '파일을 찾고 있어요', reuse ? '이전 검사 결과를 활용하고 있어요. 이미 찾은 파일 구간은 읽지 않고 건너뜁니다.' : SCAN_LEAD);
+    heading('scan', L('파일을 찾고 있어요'), reuse ? L('이전 검사 결과를 활용하고 있어요. 이미 찾은 파일 구간은 읽지 않고 건너뜁니다.') : SCAN_LEAD);
     banner('', '', 'msg'); go('scan'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
 }
@@ -1606,33 +1626,33 @@ async function loadSummary() { S.summary = await api('/api/catalog/summary'); re
 // ---- 작업 진행 (검사 / 복구 / 검증 공통) ----
 const NS = 'http://www.w3.org/2000/svg';
 function ico(id) { const s = document.createElementNS(NS, 'svg'); s.setAttribute('class', 'i'); const u = document.createElementNS(NS, 'use'); u.setAttribute('href', '#' + id); s.append(u); return s; }
-const PHASES = [['scan', '파일 찾기'], ['extract', '꺼내기'], ['verify', '열림 확인']];
+const PHASES = [['scan', L('파일 찾기')], ['extract', L('꺼내기')], ['verify', L('열림 확인')]];
 function fmtDur(s) {
   s = Math.max(0, Math.round(s || 0));
-  if (s < 90) return s + '초';
+  if (s < 90) return s + L('초');
   const hh = Math.floor(s / 3600), mm = Math.round((s % 3600) / 60);
-  return (hh ? hh + '시간 ' : '') + mm + '분';
+  return (hh ? hh + L('시간 ') : '') + mm + L('분');
 }
 // 끝나는 시각: 오차가 커 보이지 않게 15분 넘게 남았으면 5분 단위로 맞춘다
 function clockAfter(sec) {
   let t = Date.now() + sec * 1000; if (sec > 900) t = Math.round(t / 300000) * 300000;
   const d = new Date(t), today = new Date();
   const hm = d.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
-  return (d.toDateString() === today.toDateString() ? '' : '내일 ') + hm + '쯤';
+  return (d.toDateString() === today.toDateString() ? '' : L('내일 ')) + hm + L('쯤');
 }
-const etaWords = s => { const e = fmtEta(s); return (e.startsWith('약') ? e : '약 ' + e) + ' 남았어요'; };
+const etaWords = s => { const e = fmtEta(s); return (e.startsWith(L('약')) ? e : L('약 ') + e) + L(' 남았어요'); };
 function phasesEl(now, pct, mod) {
-  return h('ol', { class: 'phases', 'aria-label': '전체 진행 단계' }, PHASES.map(([key, name], i) => {
+  return h('ol', { class: 'phases', 'aria-label': L('전체 진행 단계') }, PHASES.map(([key, name], i) => {
     const cls = i < now ? 'done' : i === now ? 'now ' + (mod || '') : '';
-    const sm = i < now ? '완료' + (S.dur[key] ? ' · ' + fmtDur(S.dur[key]) + ' 걸림' : '') : i === now ? (mod ? '멈춤 · ' : '진행 중 · ') + Math.round(pct) + '%' : '다음 단계';
+    const sm = i < now ? L('완료') + (S.dur[key] ? ' · ' + fmtDur(S.dur[key]) + L(' 걸림') : '') : i === now ? (mod ? L('멈춤 · ') : L('진행 중 · ')) + Math.round(pct) + '%' : L('다음 단계');
     const li = h('li', { class: cls }, h('b', {}, (i + 1) + '. ' + name), h('small', {}, sm)); li.style.setProperty('--p', Math.max(0, Math.min(100, pct)).toFixed(1) + '%'); return li;
   }));
 }
 function safePills() {
   const dest = S.dest || (S.session && S.session.dest) || '';
-  const dt = '저장 위치: ' + (dest || '아직 고르지 않았어요');
-  return [h('span', { class: 'pill ro' }, ico('lock'), '원본 디스크는 읽기만 해요'),
-    h('span', { class: 'pill' }, ico('moon'), S.lost ? '잠자기 방지 확인 중' : '잠자기 방지 켜짐'),
+  const dt = L('저장 위치: ') + (dest || L('아직 고르지 않았어요'));
+  return [h('span', { class: 'pill ro' }, ico('lock'), L('원본 디스크는 읽기만 해요')),
+    h('span', { class: 'pill' }, ico('moon'), S.lost ? L('잠자기 방지 확인 중') : L('잠자기 방지 켜짐')),
     h('span', { class: 'pill', title: dt }, ico('folder'), h('span', { class: 't2 ell' }, dt))];
 }
 function setRing(id, pct, label, mod) {
@@ -1649,15 +1669,15 @@ function paint(pre, o) {
   $('#' + pre + '-big').textContent = o.big;
   clear($('#' + pre + '-when')).append(ico('clock'), h('span', { class: 'ell', title: o.when || '' }, o.when || ''));
   $('#' + pre + '-big').title = o.big; setStats('#' + pre + '-stats', o.stats);
-  const m = o.stale ? 'paused' : o.mod, c = o.chip || (o.stale ? ['확인 중', 'pause'] : m === 'paused' ? ['멈춤', 'pause'] : m === 'alert' ? ['확인 필요', 'alert'] : ['진행 중', '']);
+  const m = o.stale ? 'paused' : o.mod, c = o.chip || (o.stale ? [L('확인 중'), 'pause'] : m === 'paused' ? [L('멈춤'), 'pause'] : m === 'alert' ? [L('확인 필요'), 'alert'] : [L('진행 중'), '']);
   const ch = $('#' + pre + '-chip'); ch.textContent = c[0]; ch.className = 'chip ' + c[1];
 }
-function lostNote() { return '마지막 업데이트 ' + fmtDur((Date.now() - S.lastOk) / 1000) + ' 전'; }
+function lostNote() { return L('마지막 업데이트 ') + fmtDur((Date.now() - S.lastOk) / 1000) + L(' 전'); }
 function timeLine(j, eta, extra) {
   const el = j.elapsed_s || 0;
-  if (S.lost) return { big: '남은 시간 확인 중', when: lostNote() };
-  if (eta == null || el < 90) return { big: '남은 시간을 계산하고 있어요', when: '조금 지나면 알려 드려요' + (el ? ' · 시작한 지 ' + fmtDur(el) : '') };
-  return { big: etaWords(eta), when: clockAfter(eta) + ' 끝나요 · 시작한 지 ' + fmtDur(el) + (extra ? ' · ' + extra : '') };
+  if (S.lost) return { big: L('남은 시간 확인 중'), when: lostNote() };
+  if (eta == null || el < 90) return { big: L('남은 시간을 계산하고 있어요'), when: L('조금 지나면 알려 드려요') + (el ? L(' · 시작한 지 ') + fmtDur(el) : '') };
+  return { big: etaWords(eta), when: clockAfter(eta) + L(' 끝나요 · 시작한 지 ') + fmtDur(el) + (extra ? ' · ' + extra : '') };
 }
 function renderJob() {
   const j = S.job; if (!j) return;
@@ -1668,27 +1688,27 @@ function renderJob() {
   if (p.rate_mb_s) S.rate = p.rate_mb_s;
   const speed = stale ? '-' : (p.rate_mb_s || 0) + ' MB/s';
   if (j.kind === 'scan' && S.screen === 'scan' && run) {
-    const sampling = j.phase === 'sampling'; const t = sampling ? { big: '디스크 위치를 확인하는 중이에요', when: stale ? lostNote() : '곧 파일 찾기를 시작해요' } : timeLine(j, p.eta_s);
-    paint('scan', { now: 0, pct, ring: sampling ? '위치 확인' : '파일 찾기', stale, big: t.big, when: t.when,
-      stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [speed, '읽는 속도']] });
-    off('#scancancel'); setStatus('검사 중 · 원본은 읽기만 해요', num(p.found || 0) + '개 찾음');
+    const sampling = j.phase === 'sampling'; const t = sampling ? { big: L('디스크 위치를 확인하는 중이에요'), when: stale ? lostNote() : L('곧 파일 찾기를 시작해요') } : timeLine(j, p.eta_s);
+    paint('scan', { now: 0, pct, ring: sampling ? L('위치 확인') : L('파일 찾기'), stale, big: t.big, when: t.when,
+      stats: [[num(p.found || 0) + L('개'), L('지금까지 찾은 파일')], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', L('읽은 양')], [speed, L('읽는 속도')]] });
+    off('#scancancel'); setStatus(L('검사 중 · 원본은 읽기만 해요'), num(p.found || 0) + L('개 찾음'));
     if (!stale && !sampling) refreshScanStrip(j);
   }
   if (j.kind === 'extract' && S.screen === 'run' && run) {
     const t = timeLine(j, p.eta_s);
-    paint('run', { now: 1, pct, ring: '꺼내기', stale, big: t.big, when: t.when,
-      stats: [[num(p.files) + ' / ' + num(p.total_files), '꺼낸 파일'], [fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), '저장된 용량'], [speed, '속도']] });
+    paint('run', { now: 1, pct, ring: L('꺼내기'), stale, big: t.big, when: t.when,
+      stats: [[num(p.files) + ' / ' + num(p.total_files), L('꺼낸 파일')], [fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), L('저장된 용량')], [speed, L('속도')]] });
     renderKinds(p.by_kind);
     $('#cur').textContent = p.current || '-';
     if (!stale) refreshStrip();
-    off('#pause'); off('#stop'); setStatus('꺼내는 중 · 원본에는 쓰지 않아요', num(p.files) + ' / ' + num(p.total_files) + '개');
+    off('#pause'); off('#stop'); setStatus(L('꺼내는 중 · 원본에는 쓰지 않아요'), num(p.files) + ' / ' + num(p.total_files) + L('개'));
   }
   if (j.kind === 'verify' && S.screen === 'run' && run) {
     const el = j.elapsed_s || 0; const eta = p.done > 0 && el >= 30 ? el * (p.total - p.done) / p.done : null;
-    const t = timeLine(j, eta, '꺼내기는 모두 끝났어요');
-    paint('run', { now: 2, pct, ring: '열림 확인', stale, big: t.big, when: t.when,
-      stats: [[num(p.done) + ' / ' + num(p.total), '확인한 파일'], [num(p.ok), '잘 열림'], [num(p.fail), '확인 필요']] });
-    off('#stop'); setStatus('열림 확인 중 · 저장 폴더만 읽어요', num(p.done) + ' / ' + num(p.total) + '개');
+    const t = timeLine(j, eta, L('꺼내기는 모두 끝났어요'));
+    paint('run', { now: 2, pct, ring: L('열림 확인'), stale, big: t.big, when: t.when,
+      stats: [[num(p.done) + ' / ' + num(p.total), L('확인한 파일')], [num(p.ok), L('잘 열림')], [num(p.fail), L('확인 필요')]] });
+    off('#stop'); setStatus(L('열림 확인 중 · 저장 폴더만 읽어요'), num(p.done) + ' / ' + num(p.total) + L('개'));
   }
 }
 // 검사 중 "방금 찾은 사진": 검사가 저장한 내장 미리보기를 3초마다 최근 8장(최신이 왼쪽). 원본 장치는 더 읽지 않는다
@@ -1705,7 +1725,7 @@ async function refreshScanStrip(j) {
       img.onerror = () => img.remove(); el.append(img); return el; });
     while (els.length < 8) els.push(h('div', { class: 'th skel' }));
     clear($('#scan-strip')).append(...els);
-    $('#scan-strip-n').textContent = items.length ? '' : '사진을 찾으면 여기에 보여요';
+    $('#scan-strip-n').textContent = items.length ? '' : L('사진을 찾으면 여기에 보여요');
   } catch (e) { } finally { S.scanStripBusy = false; }
 }
 function renderKinds(by, mod) {
@@ -1724,15 +1744,15 @@ async function refreshStrip() {
   } catch (e) { }
 }
 function thumbEl(it) {  // 칸 크기는 CSS 가 고정(96x72 / 128x96)
-  if (it.kind === 'jpeg') { const el = h('div', { class: 'th' }, h('img', { src: thumbUrl(it.path), alt: '' })); el.querySelector('img').onerror = e => { e.target.remove(); el.append(h('span', { class: 'lab' }, '사진')); }; return el; }
+  if (it.kind === 'jpeg') { const el = h('div', { class: 'th' }, h('img', { src: thumbUrl(it.path), alt: '' })); el.querySelector('img').onerror = e => { e.target.remove(); el.append(h('span', { class: 'lab' }, L('사진'))); }; return el; }
   if (it.kind && it.kind.startsWith('video')) {  // 첫 장면(ffmpeg 가 있을 때). 없으면 영상 표시만
     const el = h('div', { class: 'th v' }); if (!it.path) return el;
     const img = h('img', { src: thumbUrl(it.path), alt: '' }); img.onerror = () => img.remove(); el.append(img); return el; }
-  return h('div', { class: 'th' }, h('span', { class: 'lab' }, it.kind === 'raw-cr3' ? 'RAW' : '파일'));
+  return h('div', { class: 'th' }, h('span', { class: 'lab' }, it.kind === 'raw-cr3' ? 'RAW' : L('파일')));
 }
 const cancelJob = () => api('/api/job/cancel', {}).catch(() => { });
 function pauseJob() { S.pausing = true; cancelJob(); }
-async function stopJob() { if (await ask('중단할까요?', '꺼낸 파일은 그대로 남고, 나중에 이어서 할 수 있습니다.', '중단')) { S.pausing = false; cancelJob(); } }
+async function stopJob() { if (await ask(L('중단할까요?'), L('꺼낸 파일은 그대로 남고, 나중에 이어서 할 수 있습니다.'), L('중단'))) { S.pausing = false; cancelJob(); } }
 
 async function poll() {
   let j;
@@ -1740,7 +1760,7 @@ async function poll() {
   catch (e) {
     if (e.network) {
       if (!S.lost) S.lastOk = S.lastOk || Date.now();
-      S.lost = true; banner('bad', '화면이 프로그램과 연결되지 않아요. 다시 연결하는 중입니다. 프로그램이 꺼졌다면 다시 실행하세요. 이미 꺼낸 파일과 원본 디스크는 안전합니다.', 'conn');
+      S.lost = true; banner('bad', L('화면이 프로그램과 연결되지 않아요. 다시 연결하는 중입니다. 프로그램이 꺼졌다면 다시 실행하세요. 이미 꺼낸 파일과 원본 디스크는 안전합니다.'), 'conn');
       renderJob(); setTimeout(poll, 3000);
     }
     return;
@@ -1760,7 +1780,7 @@ function sit(cls, icon, title, ...kids) {
   const detail = parts.join(' ');
   return h('div', { class: 'sit ' + cls, role: 'status' }, h('div', { class: 'ic' }, ico(icon)),
     h('div', { class: 'tx' }, h('div', { class: 't', title }, title), h('div', { class: 's', title: detail }, detail)),
-    waiting ? h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결 기다리는 중') : null);
+    waiting ? h('div', { class: 'wait' }, h('span', { class: 'spin' }), L('연결 기다리는 중')) : null);
 }
 const para = t => h('p', {}, t);
 function heading(pre, title, lead) { const t = $('#' + pre + '-title'), l = $('#' + pre + '-lead'); t.textContent = title; t.title = title; l.textContent = lead; l.title = lead; setStatus(title, ''); }
@@ -1777,41 +1797,41 @@ function watchReconnect(onMatch) {
   }, 3000);
 }
 function resumeActions(first, resume, enabled, hint) {
-  setActions(...first, '|', hint || '', btn('이어서 하기', 'primary', resume, { disabled: !enabled, id: 'resume' }));
+  setActions(...first, '|', hint || '', btn(L('이어서 하기'), 'primary', resume, { disabled: !enabled, id: 'resume' }));
 }
 
 async function onFinished(j) {
   loadUnits(true);
-  if (!jobMine(j)) { const u = S.units.find(x => x.sid && x.sid === j.session); toast((u ? u.name + ': ' : '') + (KIND_TXT[j.kind] || '작업') + '이(가) 끝났어요'); setStatus('대기 중', ''); return; }
+  if (!jobMine(j)) { const u = S.units.find(x => x.sid && x.sid === j.session); toast((u ? u.name + ': ' : '') + (KIND_TXT[j.kind] || L('작업')) + L('이(가) 끝났어요')); setStatus(L('대기 중'), ''); return; }
   try { S.session = await api('/api/session'); } catch (e) { }
   const p = j.progress || {}; const r = j.result || {};
   if (j.state === 'done' && (j.kind === 'scan' || j.kind === 'extract')) S.dur[j.kind] = j.elapsed_s;
   if (j.kind === 'scan') {
     if (j.state === 'done' && !(j.result && j.result.found === 0)) { S.hold = null; go('over'); try { await loadSummary(); } catch (e) { }
-      banner('ok', '검사를 마쳤어요. [추출] 탭에서 찾은 파일을 보고 꺼낼 것을 고르세요.', 'msg', { label: '추출로', fn: () => { banner('', '', 'msg'); go('settings'); } }); return; }
+      banner('ok', L('검사를 마쳤어요. [추출] 탭에서 찾은 파일을 보고 꺼낼 것을 고르세요.'), 'msg', { label: L('추출로'), fn: () => { banner('', '', 'msg'); go('settings'); } }); return; }
     S.hold = 'scan';
     const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : 0;
-    const base = { now: 0, pct, ring: '멈춤', stale: false, stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], ['멈춤', '상태']] };
-    const m = clear($('#scanmsg')); const first = [btn('검사 종류로', '', () => { S.hold = null; go('scanops'); })];
+    const base = { now: 0, pct, ring: L('멈춤'), stale: false, stats: [[num(p.found || 0) + L('개'), L('지금까지 찾은 파일')], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', L('읽은 양')], [L('멈춤'), L('상태')]] };
+    const m = clear($('#scanmsg')); const first = [btn(L('검사 종류로'), '', () => { S.hold = null; go('scanops'); })];
     if (j.state === 'disconnected') {
-      heading('scan', '하드디스크 연결이 끊겼어요', '걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.');
-      paint('scan', { ...base, mod: 'alert', big: num(p.found || 0) + '개 찾았어요', when: '검사를 멈췄어요' });
-      m.append(sit('warn', 'plug', '원본은 안전해요. 지금까지 찾은 기록도 남아 있어요.', h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
-      resumeActions(first, () => startScan(true), false, '다시 연결되면 버튼이 켜져요');
+      heading('scan', L('하드디스크 연결이 끊겼어요'), L('걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.'));
+      paint('scan', { ...base, mod: 'alert', big: num(p.found || 0) + L('개 찾았어요'), when: L('검사를 멈췄어요') });
+      m.append(sit('warn', 'plug', L('원본은 안전해요. 지금까지 찾은 기록도 남아 있어요.'), h('ol', {}, h('li', {}, L('하드디스크의 케이블과 전원을 확인하세요.')), h('li', {}, L('다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.'))), h('div', { class: 'wait' }, h('span', { class: 'spin' }), L('연결을 기다리는 중…'))));
+      resumeActions(first, () => startScan(true), false, L('다시 연결되면 버튼이 켜져요'));
       watchReconnect(() => {
-        heading('scan', '다시 연결됐어요', '처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.');
-        paint('scan', { ...base, mod: 'paused', big: num(p.found || 0) + '개 찾았어요', when: '검사를 멈췄어요' });
-        clear(m).append(sit('ok', 'check', '같은 하드디스크를 확인했어요', para('이미 읽은 부분은 건너뛰고 남은 부분만 읽습니다.')));
+        heading('scan', L('다시 연결됐어요'), L('처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.'));
+        paint('scan', { ...base, mod: 'paused', big: num(p.found || 0) + L('개 찾았어요'), when: L('검사를 멈췄어요') });
+        clear(m).append(sit('ok', 'check', L('같은 하드디스크를 확인했어요'), para(L('이미 읽은 부분은 건너뛰고 남은 부분만 읽습니다.'))));
         resumeActions(first, () => startScan(true), true);
       });
     } else if (j.state === 'cancelled') {
-      heading('scan', '검사를 멈췄어요', '읽은 곳까지 기억해 두었어요. 이어서 하면 남은 부분만 찾습니다.');
-      paint('scan', { ...base, mod: 'paused', big: num(p.found || 0) + '개 찾았어요', when: '디스크에는 영향이 없어요' });
+      heading('scan', L('검사를 멈췄어요'), L('읽은 곳까지 기억해 두었어요. 이어서 하면 남은 부분만 찾습니다.'));
+      paint('scan', { ...base, mod: 'paused', big: num(p.found || 0) + L('개 찾았어요'), when: L('디스크에는 영향이 없어요') });
       resumeActions(first, () => startScan(true), true);
     } else {
-      heading('scan', j.state === 'done' ? '사진이나 영상을 찾지 못했어요' : '검사가 멈췄어요', '원본 디스크는 읽기만 했으므로 그대로예요.');
-      paint('scan', { ...base, mod: 'alert', big: '찾은 파일 ' + num(p.found || 0) + '개', when: '' });
-      m.append(sit(j.state === 'done' ? 'info' : 'bad', 'alert', j.state === 'done' ? (j.error || '이 디스크에서는 찾지 못했어요') : stateMsg(j), para('원본 디스크는 읽기만 했으므로 그대로예요.')));
+      heading('scan', j.state === 'done' ? L('사진이나 영상을 찾지 못했어요') : L('검사가 멈췄어요'), L('원본 디스크는 읽기만 했으므로 그대로예요.'));
+      paint('scan', { ...base, mod: 'alert', big: L('찾은 파일 ') + num(p.found || 0) + L('개'), when: '' });
+      m.append(sit(j.state === 'done' ? 'info' : 'bad', 'alert', j.state === 'done' ? (j.error || L('이 디스크에서는 찾지 못했어요')) : stateMsg(j), para(L('원본 디스크는 읽기만 했으므로 그대로예요.'))));
       setActions(...first, '|');
     }
     return;
@@ -1825,32 +1845,32 @@ async function onFinished(j) {
     }
     const got = p.files != null ? p.files : (r.files || 0), left = Math.max(0, (p.total_files || 0) - got);
     const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : 0;
-    const stats = [[fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), '저장된 용량'], [fmtDur(j.elapsed_s), '이번에 걸린 시간'], ['멈춤', '상태']];
-    const hero = mod => paint('run', { now: 1, pct, ring: '멈춤', mod, stale: false, big: num(got) + ' / ' + num(p.total_files) + '개 꺼냄', when: mod === 'alert' ? '꺼낸 파일은 저장 폴더에 그대로 있어요' : left ? '이어서 하면 남은 ' + num(left) + '개를 꺼내요' : '', stats });
+    const stats = [[fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes || 0), L('저장된 용량')], [fmtDur(j.elapsed_s), L('이번에 걸린 시간')], [L('멈춤'), L('상태')]];
+    const hero = mod => paint('run', { now: 1, pct, ring: L('멈춤'), mod, stale: false, big: num(got) + ' / ' + num(p.total_files) + L('개 꺼냄'), when: mod === 'alert' ? L('꺼낸 파일은 저장 폴더에 그대로 있어요') : left ? L('이어서 하면 남은 ') + num(left) + L('개를 꺼내요') : '', stats });
     renderKinds(p.by_kind, 'paused'); $('#runbox').classList.toggle('hide', false); $('#cur').textContent = p.current || '-';
-    S.hold = 'run'; const first = [btn('개요로', '', () => { S.hold = null; go('over'); }), btn('설정 바꾸기', '', () => { S.hold = null; go('settings'); })];
+    S.hold = 'run'; const first = [btn(L('개요로'), '', () => { S.hold = null; go('over'); }), btn(L('설정 바꾸기'), '', () => { S.hold = null; go('settings'); })];
     if (j.state === 'disconnected') {
-      heading('run', '하드디스크 연결이 끊겼어요', '걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.'); hero('alert');
-      m.append(sit('warn', 'plug', '원본은 안전해요. 꺼낸 ' + num(got) + '개도 그대로 있어요.', h('ol', {}, h('li', {}, '하드디스크의 케이블과 전원을 확인하세요.'), h('li', {}, '다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.')), h('div', { class: 'wait' }, h('span', { class: 'spin' }), '연결을 기다리는 중…')));
-      resumeActions(first.slice(0, 1), startRun, false, '다시 연결되면 버튼이 켜져요');
+      heading('run', L('하드디스크 연결이 끊겼어요'), L('걱정하지 마세요. 아래 순서대로 하면 멈춘 곳부터 이어서 할 수 있어요.')); hero('alert');
+      m.append(sit('warn', 'plug', L('원본은 안전해요. 꺼낸 ') + num(got) + L('개도 그대로 있어요.'), h('ol', {}, h('li', {}, L('하드디스크의 케이블과 전원을 확인하세요.')), h('li', {}, L('다시 꽂으세요. 같은 디스크인지 자동으로 확인해요.'))), h('div', { class: 'wait' }, h('span', { class: 'spin' }), L('연결을 기다리는 중…'))));
+      resumeActions(first.slice(0, 1), startRun, false, L('다시 연결되면 버튼이 켜져요'));
       watchReconnect(() => {
-        heading('run', '다시 연결됐어요', '처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.'); hero('paused');
-        clear(m).append(sit('ok', 'check', '같은 하드디스크를 확인했어요', para('이미 꺼낸 ' + num(got) + '개는 건너뛰고 남은 ' + num(left) + '개만 꺼냅니다.')));
+        heading('run', L('다시 연결됐어요'), L('처음에 검사한 디스크와 같은 디스크예요. [이어서 하기]를 누르면 멈춘 곳부터 계속합니다.')); hero('paused');
+        clear(m).append(sit('ok', 'check', L('같은 하드디스크를 확인했어요'), para(L('이미 꺼낸 ') + num(got) + L('개는 건너뛰고 남은 ') + num(left) + L('개만 꺼냅니다.'))));
         resumeActions(first.slice(0, 1), startRun, true);
       });
     } else if (j.state === 'cancelled') {
-      heading('run', S.pausing ? '잠시 멈췄어요' : '중단했어요', '이미 꺼낸 ' + num(got) + '개는 저장 폴더에 그대로 있어요. 이어서 하면 남은 ' + num(left) + '개만 꺼냅니다.'); hero('paused');
+      heading('run', S.pausing ? L('잠시 멈췄어요') : L('중단했어요'), L('이미 꺼낸 ') + num(got) + L('개는 저장 폴더에 그대로 있어요. 이어서 하면 남은 ') + num(left) + L('개만 꺼냅니다.')); hero('paused');
       resumeActions(first, startRun, true);
     } else {
-      const T = { unstable: '디스크 읽기가 불안정해서 멈췄어요', nospace: '저장 공간이 부족해서 멈췄어요', refused: '시작할 수 없었어요' };
-      heading('run', T[j.state] || '문제가 생겨 멈췄어요', '꺼낸 ' + num(got) + '개는 저장 폴더에 그대로 있어요.'); hero('alert');
-      m.append(sit('bad', 'alert', stateMsg(j), para('원본 디스크는 읽기만 했으므로 안전해요. 꺼낸 파일은 그대로 있어요.')));
-      if (j.state === 'unstable') resumeActions(first, startRun, true); else setActions(...first, '|', j.state === 'nospace' ? btn('저장 폴더 바꾸기', 'primary', () => { BX.openAfter = true; go('settings'); }) : '');
+      const T = { unstable: L('디스크 읽기가 불안정해서 멈췄어요'), nospace: L('저장 공간이 부족해서 멈췄어요'), refused: L('시작할 수 없었어요') };
+      heading('run', T[j.state] || L('문제가 생겨 멈췄어요'), L('꺼낸 ') + num(got) + L('개는 저장 폴더에 그대로 있어요.')); hero('alert');
+      m.append(sit('bad', 'alert', stateMsg(j), para(L('원본 디스크는 읽기만 했으므로 안전해요. 꺼낸 파일은 그대로 있어요.'))));
+      if (j.state === 'unstable') resumeActions(first, startRun, true); else setActions(...first, '|', j.state === 'nospace' ? btn(L('저장 폴더 바꾸기'), 'primary', () => { BX.openAfter = true; go('settings'); }) : '');
     }
     S.pausing = false; return;
   }
   if (j.kind === 'verify') {
-    if (j.state === 'cancelled') toast('확인을 건너뛰었어요. 꺼낸 파일은 그대로 있어요.');
+    if (j.state === 'cancelled') toast(L('확인을 건너뛰었어요. 꺼낸 파일은 그대로 있어요.'));
     S.hold = null; go('result');
   }
 }
@@ -1918,23 +1938,23 @@ async function bxLoad() {
 async function initSettings() {
   if (BX.sid !== S.curSid) bxReset();
   if (!S.dest && S.session && S.session.dest) S.dest = S.session.dest;
-  setActions(btn('모두 선택', '', () => bxSetAll(true), { id: 'bx-all' }), btn('모두 해제', '', () => bxSetAll(false), { id: 'bx-none' }),
-    '|', ' ', btn('꺼내기…', 'primary', openEx, { id: 'bx-go', disabled: true }));
+  setActions(btn(L('모두 선택'), '', () => bxSetAll(true), { id: 'bx-all' }), btn(L('모두 해제'), '', () => bxSetAll(false), { id: 'bx-none' }),
+    '|', ' ', btn(L('꺼내기…'), 'primary', openEx, { id: 'bx-go', disabled: true }));
   if (!BX.items) { BX.loading = true; bxRender(); }
   try { await loadSummary(); await bxLoad(); }
-  catch (e) { BX.loading = false; banner('bad', '검사 결과가 없습니다. 장치를 먼저 검사하세요.', 'msg'); go('scanops'); return; }
+  catch (e) { BX.loading = false; banner('bad', L('검사 결과가 없습니다. 장치를 먼저 검사하세요.'), 'msg'); go('scanops'); return; }
   BX.loading = false;
   const known = BX.items.filter(r => r.g).length, sk = S.summary.skipped || 0;
   const unk = BX.items.length - known;  // 이 화면이 모르는 종류 / 읽지 못한 줄: 조용히 사라지지 않게 알린다
-  banner(unk > 0 ? 'warn' : '', unk > 0 ? '이 검사 기록에는 이 화면이 모르는 종류의 파일이 ' + num(unk) + '개 있어요. 꺼내지 않고 그대로 둡니다.' : '', 'unk');
-  banner(sk > 0 ? 'warn' : '', sk > 0 ? '검사 기록 ' + num(sk) + '줄을 읽지 못해 건너뛰었어요.' : '', 'skip');
+  banner(unk > 0 ? 'warn' : '', unk > 0 ? L('이 검사 기록에는 이 화면이 모르는 종류의 파일이 ') + num(unk) + L('개 있어요. 꺼내지 않고 그대로 둡니다.') : '', 'unk');
+  banner(sk > 0 ? 'warn' : '', sk > 0 ? L('검사 기록 ') + num(sk) + L('줄을 읽지 못해 건너뛰었어요.') : '', 'skip');
   const cnt = {}; BX.items.forEach(r => { if (r.g) cnt[r.g] = (cnt[r.g] || 0) + 1; });
   for (const k of Object.keys(GROUPS)) if (!cnt[k]) S.kinds[k] = false;
   // 미리보기가 하나도 없는데 사진은 많다 = 이전 버전으로 검사한 기록
   const photos = BX.items.filter(r => (r.kind === 'jpeg' || r.kind === 'raw-cr3') && r.taken).length;
   const legacy = photos >= 20 && !BX.items.some(r => r.thumb);
-  banner(legacy ? 'warn' : '', legacy ? '이전 버전으로 검사한 기록이라 사진 미리보기가 없어요. 다시 검사하면 생겨요(이전 결과를 활용하면 빨라요).' : '', 'bxold',
-    legacy ? { label: '다시 검사', fn: () => go('scanops') } : null);
+  banner(legacy ? 'warn' : '', legacy ? L('이전 버전으로 검사한 기록이라 사진 미리보기가 없어요. 다시 검사하면 생겨요(이전 결과를 활용하면 빨라요).') : '', 'bxold',
+    legacy ? { label: L('다시 검사'), fn: () => go('scanops') } : null);
   bxWatchScan();
   if (BX.cur == null || !BX.byId.has(BX.cur)) BX.cur = null;
   bxRender();
@@ -1944,8 +1964,8 @@ async function initSettings() {
 // 검사 중에도 이 화면을 볼 수 있다: 찾는 대로 5초마다 더한다. 꺼내기는 검사가 끝나야 켜진다
 function bxWatchScan() {
   clearInterval(BX.timer); BX.timer = null;
-  banner(scanningHere() ? 'info' : '', scanningHere() ? '검사 중이에요. 찾는 대로 여기에 더해져요. 꺼내기는 검사가 끝난 뒤에 할 수 있어요.' : '', 'bxscan',
-    scanningHere() ? { label: '검사 보기', fn: () => go('scan') } : null);
+  banner(scanningHere() ? 'info' : '', scanningHere() ? L('검사 중이에요. 찾는 대로 여기에 더해져요. 꺼내기는 검사가 끝난 뒤에 할 수 있어요.') : '', 'bxscan',
+    scanningHere() ? { label: L('검사 보기'), fn: () => go('scan') } : null);
   if (!scanningHere()) return;
   BX.timer = setInterval(async () => {
     if (S.screen !== 'settings') { clearInterval(BX.timer); BX.timer = null; return; }
@@ -1985,19 +2005,19 @@ function bxRenderTl() {
   const cnt = {}; d.forEach(r => { if (r.month) cnt[r.month] = (cnt[r.month] || 0) + 1; });
   const undated = d.filter(r => !r.month).length;
   const max = Math.max(1, ...Object.values(cnt));
-  const range = BX.from ? (BX.from === BX.to ? BX.from.replace('-', '년 ') + '월' : BX.from.replace('-', '.') + ' ~ ' + BX.to.replace('-', '.')) : '전체 기간';
-  const models = h('select', { class: 'bx-dd', 'aria-label': '카메라' }, h('option', { value: '' }, '카메라: 모두'), BX.models.map(m => h('option', { value: m }, m)));
+  const range = BX.from ? (BX.from === BX.to ? BX.from.replace('-', L('년 ')) + L('월') : BX.from.replace('-', '.') + ' ~ ' + BX.to.replace('-', '.')) : L('전체 기간');
+  const models = h('select', { class: 'bx-dd', 'aria-label': L('카메라') }, h('option', { value: '' }, L('카메라: 모두')), BX.models.map(m => h('option', { value: m }, m)));
   models.value = BX.model; models.onchange = e => { BX.model = e.target.value; bxRender(); };
-  const ver = h('select', { class: 'bx-dd narrow', 'aria-label': '판정' }, h('option', { value: 'all' }, '판정: 모두'), h('option', { value: 'ok' }, '확인됨만'), h('option', { value: 'suspect' }, '의심만'));
+  const ver = h('select', { class: 'bx-dd narrow', 'aria-label': L('판정') }, h('option', { value: 'all' }, L('판정: 모두')), h('option', { value: 'ok' }, L('확인됨만')), h('option', { value: 'suspect' }, L('의심만')));
   ver.value = BX.verdict; ver.onchange = e => { BX.verdict = e.target.value; bxRender(); };
-  const note = BX.from ? ' · 날짜 없는 파일은 빠져요' : undated ? ' · 날짜 없음 ' + num(undated) + '개 포함' : '';
-  box.append(h('div', { class: 'hd' }, h('b', {}, '촬영 월'), h('span', { class: 'r ell', title: range + note }, range + note),
-    BX.from ? h('button', { class: 'linkish', type: 'button', onclick: () => { BX.from = BX.to = null; bxRender(); } }, '기간 해제') : null, models, ver));
-  if (!ms.length) { box.append(h('div', { class: 'none' }, '촬영 날짜를 읽은 파일이 없어요.')); return; }
+  const note = BX.from ? L(' · 날짜 없는 파일은 빠져요') : undated ? L(' · 날짜 없음 ') + num(undated) + L('개 포함') : '';
+  box.append(h('div', { class: 'hd' }, h('b', {}, L('촬영 월')), h('span', { class: 'r ell', title: range + note }, range + note),
+    BX.from ? h('button', { class: 'linkish', type: 'button', onclick: () => { BX.from = BX.to = null; bxRender(); } }, L('기간 해제')) : null, models, ver));
+  if (!ms.length) { box.append(h('div', { class: 'none' }, L('촬영 날짜를 읽은 파일이 없어요.'))); return; }
   const bars = h('div', { class: 'bx-bars' }), ax = h('div', { class: 'ax' });
   ms.forEach((m, i) => {
     const n = cnt[m] || 0, inR = BX.from && m >= BX.from && m <= BX.to;
-    const b = h('div', { class: 'bx-bar' + (n ? '' : ' zero') + (inR ? ' in' : ''), title: m.replace('-', '년 ') + '월 · ' + num(n) + '개', style: 'height:' + Math.max(4, Math.round(36 * Math.sqrt(n / max))) + 'px' });
+    const b = h('div', { class: 'bx-bar' + (n ? '' : ' zero') + (inR ? ' in' : ''), title: m.replace('-', L('년 ')) + L('월 · ') + num(n) + L('개'), style: 'height:' + Math.max(4, Math.round(36 * Math.sqrt(n / max))) + 'px' });
     b.onclick = e => {
       if (!n) return;
       if (e.shiftKey && BX.from) { BX.from = m < BX.from ? m : BX.from; BX.to = m > BX.to ? m : BX.to; }
@@ -2026,8 +2046,8 @@ function bxLayout() {
   $('#bx-gin').style.height = (y + 8) + 'px';
 }
 function bxDay(d) {
-  if (d === '-') return '날짜 없음';
-  const t = new Date(d + 'T00:00:00'); return d.replace(/-/g, '.') + ' (' + '일월화수목금토'[t.getDay()] + ')';
+  if (d === '-') return L('날짜 없음');
+  const t = new Date(d + 'T00:00:00'); return d.replace(/-/g, '.') + ' (' + (LANG === 'en' ? t.toLocaleDateString('en-US', { weekday: 'short' }) : '일월화수목금토'[t.getDay()]) + ')';
 }
 const bxOrient = r => ({ 3: 'o3', 6: 'o6', 8: 'o8' })[r.orient] || '';  // 내장 미리보기는 돌려 저장돼 있지 않다(EXIF 방향대로 화면에서 돌린다)
 const bxThumbUrl = r => '/api/catalog/thumb?token=' + encodeURIComponent(T) + '&id=' + r.id + '&v=' + encodeURIComponent(BX.version);
@@ -2043,7 +2063,7 @@ function bxTile(r) {  // 칸은 만든 뒤 다시 쓴다(스크롤할 때 그림
       t.append(img);
     } else if (!vid) t.append(bxTileLabel(r));
     if ((r.g === 'raw' && r.thumb) || vid) t.append(h('span', { class: 'bd' }, kindLabel(r.kind)));  // 그림이 없으면 가운데에 이미 종류가 있다
-    if (r.suspect) t.append(h('span', { class: 'bd sus' }, '의심'));
+    if (r.suspect) t.append(h('span', { class: 'bd sus' }, L('의심')));
     const cb = h('span', { class: 'bx-cb', 'aria-hidden': 'true' }); cb.append(ico('check')); t.append(cb);
     t.onclick = e => bxOnTile(e, r);
     if (BX.tiles.size > 4000) BX.tiles.clear();
@@ -2057,7 +2077,7 @@ function bxTileState(t, r) {
   t.classList.toggle('off', !sel); t.classList.toggle('cur', BX.cur === r.id);
   t.querySelector('.bx-cb').classList.toggle('on', sel);
   t.setAttribute('aria-pressed', String(sel));
-  t.setAttribute('aria-label', (r.taken ? r.taken.replace('T', ' ') : '날짜 없음') + ' ' + kindLabel(r.kind) + ' ' + fmtSize(r.length) + (r.suspect ? ' 의심' : '') + (sel ? ' 선택됨' : ' 선택 안 됨'));
+  t.setAttribute('aria-label', (r.taken ? r.taken.replace('T', ' ') : L('날짜 없음')) + ' ' + kindLabel(r.kind) + ' ' + fmtSize(r.length) + (r.suspect ? L(' 의심') : '') + (sel ? L(' 선택됨') : L(' 선택 안 됨')));
 }
 function bxGroupState(items) { const n = items.filter(bxSel).length; return n === 0 ? '' : n === items.length ? 'on' : 'part'; }
 function bxPaint() {
@@ -2072,9 +2092,9 @@ function bxPaint() {
     gin.style.height = 'auto';
     const none = !BX.items.some(r => r.g);
     clear(gin).append(none
-      ? h('div', { class: 'bx-empty' }, h('b', {}, scanningHere() ? '아직 찾은 파일이 없어요' : '찾은 파일이 없어요'), scanningHere() ? '찾는 대로 여기에 나타나요.' : '데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 ‘고급 검사’로 더 찾아볼 수 있어요.')
-      : h('div', { class: 'bx-empty' }, h('b', {}, '조건에 맞는 파일이 없어요'), '종류·기간·카메라·판정 조건을 바꿔 보세요. ',
-        h('button', { class: 'linkish', type: 'button', onclick: bxResetFilters }, '조건 모두 해제')));
+      ? h('div', { class: 'bx-empty' }, h('b', {}, scanningHere() ? L('아직 찾은 파일이 없어요') : L('찾은 파일이 없어요')), scanningHere() ? L('찾는 대로 여기에 나타나요.') : L('데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 ‘고급 검사’로 더 찾아볼 수 있어요.'))
+      : h('div', { class: 'bx-empty' }, h('b', {}, L('조건에 맞는 파일이 없어요')), L('종류·기간·카메라·판정 조건을 바꿔 보세요. '),
+        h('button', { class: 'linkish', type: 'button', onclick: bxResetFilters }, L('조건 모두 해제'))));
     return;
   }
   const top = gw.scrollTop - 300, bot = gw.scrollTop + gw.clientHeight + 300;
@@ -2083,12 +2103,12 @@ function bxPaint() {
     if (row.y + row.h < top || row.y > bot) continue;
     if (row.head) {
       const gs = bxGroupState(row.items);
-      const cb = h('button', { class: 'bx-cb' + (gs ? ' ' + gs : ''), type: 'button', 'aria-label': bxDay(row.head) + ' 모두 ' + (gs === 'on' ? '해제' : '선택') });
+      const cb = h('button', { class: 'bx-cb' + (gs ? ' ' + gs : ''), type: 'button', 'aria-label': bxDay(row.head) + L(' 모두 ') + (gs === 'on' ? L('해제') : L('선택')) });
       if (gs === 'on') cb.append(ico('check'));
       cb.onclick = () => { const all = gs === 'on'; row.items.forEach(r => all ? BX.exclude.add(r.id) : BX.exclude.delete(r.id)); bxRefresh(); };
       const bytes = row.items.reduce((a, r) => a + r.length, 0);
       kids.push(h('div', { class: 'bx-head' + (row.head === '-' ? ' undated' : ''), style: 'top:' + row.y + 'px' }, cb, h('span', { class: 'd' }, bxDay(row.head)),
-        h('span', { class: 'n ell' }, num(row.items.length) + '개 · ' + fmtSize(bytes) + (row.head === '-' ? ' · 촬영 정보가 없는 파일' : ''))));
+        h('span', { class: 'n ell' }, num(row.items.length) + L('개 · ') + fmtSize(bytes) + (row.head === '-' ? L(' · 촬영 정보가 없는 파일') : ''))));
     } else {
       const el = h('div', { class: 'bx-row', style: 'top:' + row.y + 'px' }); el.append(...row.items.map(bxTile)); kids.push(el);
     }
@@ -2134,45 +2154,45 @@ function bxRenderPv() {
   const pv = $('#bx-pv'); const r = BX.cur != null ? BX.byId.get(BX.cur) : null;
   if (!r || !bxMatch(r)) {
     pv.className = 'card bx-pv blank';
-    clear(pv).append(h('div', {}, BX.items && BX.visible.length ? '파일을 누르면 여기에서 자세히 봐요.' : '', h('br'),
-      h('span', { class: 'hint' }, BX.items && BX.visible.length ? '다시 누르거나 Space 로 선택을 바꿔요. Shift 로 범위를 골라요.' : '')));
+    clear(pv).append(h('div', {}, BX.items && BX.visible.length ? L('파일을 누르면 여기에서 자세히 봐요.') : '', h('br'),
+      h('span', { class: 'hint' }, BX.items && BX.visible.length ? L('다시 누르거나 Space 로 선택을 바꿔요. Shift 로 범위를 골라요.') : '')));
     return;
   }
   pv.className = 'card bx-pv';
   const big = h('div', { class: 'big' });
   if (r.thumb) big.append(h('img', { alt: '', src: bxThumbUrl(r), class: bxOrient(r) }));
-  else big.append(h('div', { class: 'lab' }, r.g === 'video' ? '영상은 미리보기가 없어요' : '파일 안에 미리보기가 없어요'));
+  else big.append(h('div', { class: 'lab' }, r.g === 'video' ? L('영상은 미리보기가 없어요') : L('파일 안에 미리보기가 없어요')));
   const sel = bxSel(r);
   const canBig = PREVIEWABLE.has(r.kind) && !jobRunning() && !!S.sel;
-  const why = !PREVIEWABLE.has(r.kind) ? '이 종류는 꺼낸 뒤 열어 보세요' : jobRunning() ? '작업 중에는 원본을 읽지 않아요(작업이 느려져요)' : !S.sel ? '장치가 연결돼 있어야 해요' : '원본에서 이 파일만 읽어요(쓰지 않아요)';
-  const zoom = btn('원본으로 크게 보기', '', () => bxView(r)); zoom.prepend(ico('zoom')); zoom.disabled = !canBig;
-  const tog = btn(sel ? '이 파일 빼기' : '이 파일 넣기', sel ? '' : 'primary', () => { sel ? BX.exclude.add(r.id) : BX.exclude.delete(r.id); bxRefresh(); bxRenderPv(); });
+  const why = !PREVIEWABLE.has(r.kind) ? L('이 종류는 꺼낸 뒤 열어 보세요') : jobRunning() ? L('작업 중에는 원본을 읽지 않아요(작업이 느려져요)') : !S.sel ? L('장치가 연결돼 있어야 해요') : L('원본에서 이 파일만 읽어요(쓰지 않아요)');
+  const zoom = btn(L('원본으로 크게 보기'), '', () => bxView(r)); zoom.prepend(ico('zoom')); zoom.disabled = !canBig;
+  const tog = btn(sel ? L('이 파일 빼기') : L('이 파일 넣기'), sel ? '' : 'primary', () => { sel ? BX.exclude.add(r.id) : BX.exclude.delete(r.id); bxRefresh(); bxRenderPv(); });
   clear(pv).append(big,
-    h('div', { class: 'note2 ell' }, r.thumb ? '파일 안에 든 작은 미리보기를 키운 것이에요(흐릴 수 있어요)' : ''),
-    h('h3', { class: 'ell' }, r.taken ? r.taken.slice(0, 10).replace(/-/g, '.') + ' ' + r.taken.slice(11, 19) : '촬영 시각 없음'),
+    h('div', { class: 'note2 ell' }, r.thumb ? L('파일 안에 든 작은 미리보기를 키운 것이에요(흐릴 수 있어요)') : ''),
+    h('h3', { class: 'ell' }, r.taken ? r.taken.slice(0, 10).replace(/-/g, '.') + ' ' + r.taken.slice(11, 19) : L('촬영 시각 없음')),
     h('dl', {},
-      h('dt', {}, '종류'), h('dd', {}, kindLabel(r.kind) + ' · ' + fmtSize(r.length)),
-      h('dt', {}, '카메라'), h('dd', {}, r.model || '알 수 없음'),
-      h('dt', {}, '판정'), h('dd', {}, r.suspect ? '의심 (구조 일부가 맞지 않음, 열리지 않을 수 있음)' : '확인됨 (구조가 끝까지 맞음)'),
-      h('dt', {}, '꺼낼 이름'), h('dd', { class: 'mono' }, bxDestName(r))),
+      h('dt', {}, L('종류')), h('dd', {}, kindLabel(r.kind) + ' · ' + fmtSize(r.length)),
+      h('dt', {}, L('카메라')), h('dd', {}, r.model || L('알 수 없음')),
+      h('dt', {}, L('판정')), h('dd', {}, r.suspect ? L('의심 (구조 일부가 맞지 않음, 열리지 않을 수 있음)') : L('확인됨 (구조가 끝까지 맞음)')),
+      h('dt', {}, L('꺼낼 이름')), h('dd', { class: 'mono' }, bxDestName(r))),
     h('div', { class: 'acts2' }, zoom, h('div', { class: 'hint ell', title: why }, why), tog));
 }
 // 원본으로 크게 보기: 원본 장치에서 이 파일만 읽어 줄인 그림(서버 /api/preview)
 async function bxView(r) {
   const d = $('#bxview'), body = clear($('#bxv-body'));
-  $('#bxv-title').textContent = r.taken ? r.taken.replace('T', ' ') : '촬영 시각 없음';
-  $('#bxv-sub').textContent = kindLabel(r.kind) + ' · ' + fmtSize(r.length) + (r.model ? ' · ' + r.model : '') + ' · 원본에서 읽은 그림(읽기만 해요)';
-  body.append(h('div', { class: 'msg' }, h('span', { class: 'spin' }), '원본에서 읽는 중…'));
+  $('#bxv-title').textContent = r.taken ? r.taken.replace('T', ' ') : L('촬영 시각 없음');
+  $('#bxv-sub').textContent = kindLabel(r.kind) + ' · ' + fmtSize(r.length) + (r.model ? ' · ' + r.model : '') + L(' · 원본에서 읽은 그림(읽기만 해요)');
+  body.append(h('div', { class: 'msg' }, h('span', { class: 'spin' }), L('원본에서 읽는 중…')));
   d.showModal();
   try {
     const res = await fetch('/api/preview?device_id=' + encodeURIComponent(S.sel) + '&id=' + r.id, { headers: { 'X-Token': T } });
     if (!res.ok) { let m = res.statusText; try { m = (await res.json()).error || m; } catch (e) { } throw new Error(m); }
     const url = URL.createObjectURL(await res.blob());
     const img = h('img', { alt: '' }); img.onload = () => URL.revokeObjectURL(url);
-    img.onerror = () => { URL.revokeObjectURL(url); if (d.open) clear(body).append(h('div', { class: 'msg' }, '그림을 보여 주지 못했어요.')); };
+    img.onerror = () => { URL.revokeObjectURL(url); if (d.open) clear(body).append(h('div', { class: 'msg' }, L('그림을 보여 주지 못했어요.'))); };
     img.src = url;
     if (d.open) clear(body).append(img);
-  } catch (e) { if (d.open) clear(body).append(h('div', { class: 'msg' }, e.network ? '도구와 통신하지 못했어요.' : e.message)); }
+  } catch (e) { if (d.open) clear(body).append(h('div', { class: 'msg' }, e.network ? L('도구와 통신하지 못했어요.') : e.message)); }
 }
 $('#bxv-close').onclick = () => $('#bxview').close();
 $('#bxview').onclick = e => { if (e.target === $('#bxview')) $('#bxview').close(); };
@@ -2183,12 +2203,12 @@ function bxRenderSel() {
   if (!go2) return;
   const n = BX.visible.filter(bxSel), bytes = n.reduce((a, r) => a + r.length, 0), sus = n.filter(r => r.suspect).length;
   const off = BX.visible.length - n.length;
-  const t = !BX.items ? '' : !BX.visible.length ? '꺼낼 파일 없음'
-    : num(n.length) + '개 · ' + fmtSize(bytes) + ' 꺼낼 예정 — 조건에 맞는 ' + num(BX.visible.length) + '개 중 ' + (off ? num(off) + '개 뺌' : '모두') + (sus ? ' · 의심 ' + num(sus) + '개 포함' : '');
+  const t = !BX.items ? '' : !BX.visible.length ? L('꺼낼 파일 없음')
+    : num(n.length) + L('개 · ') + fmtSize(bytes) + L(' 꺼낼 예정 — 조건에 맞는 ') + num(BX.visible.length) + L('개 중 ') + (off ? num(off) + L('개 뺌') : L('모두')) + (sus ? L(' · 의심 ') + num(sus) + L('개 포함') : '');
   if (hint) { hint.textContent = t; hint.title = t; }
   all.disabled = !off; none.disabled = !n.length;
   go2.disabled = !n.length || scanningHere() || BX.loading;
-  go2.title = scanningHere() ? '검사가 끝난 뒤에 꺼낼 수 있어요' : '꺼내기…';
+  go2.title = scanningHere() ? L('검사가 끝난 뒤에 꺼낼 수 있어요') : L('꺼내기…');
 }
 function bxRefresh() { bxPaint(); bxRenderSel(); }
 function bxSetAll(on) { BX.visible.forEach(r => on ? BX.exclude.delete(r.id) : BX.exclude.add(r.id)); bxRefresh(); bxRenderPv(); }
@@ -2199,18 +2219,18 @@ function openEx() {
   const n = BX.visible.filter(bxSel); const by = {};
   if (!n.length) return;
   n.forEach(r => by[r.g] = (by[r.g] || 0) + 1);
-  const what = Object.entries(by).map(([g, c]) => GROUPS[g].label + ' ' + num(c)).join(' · ') + ' — 모두 ' + num(n.length) + '개';
+  const what = Object.entries(by).map(([g, c]) => GROUPS[g].label + ' ' + num(c)).join(' · ') + L(' — 모두 ') + num(n.length) + L('개');
   $('#ex-what').textContent = what; $('#ex-what').title = what;
   const sus = n.filter(r => r.suspect).length, ex = n.find(r => r.taken && r.model) || n.find(r => r.taken);
   clear($('#ex-notes')).append(...[  // DOM append 는 null 을 "null" 글자로 넣으므로 걸러 낸다
-    h('li', {}, '파일 이름은 촬영 시각으로 지어요', ex ? h('span', {}, ': ', h('span', { class: 'mono' }, bxDestName(ex).split('/').pop())) : null),
-    sus ? h('li', {}, '의심 ' + num(sus) + '개는 ‘_의심’ 폴더에 따로 둬요. 열리지 않을 수 있어요.') : null,
-    h('li', {}, '원본 장치에는 아무것도 쓰지 않아요')].filter(Boolean));
+    h('li', {}, L('파일 이름은 촬영 시각으로 지어요'), ex ? h('span', {}, ': ', h('span', { class: 'mono' }, bxDestName(ex).split('/').pop())) : null),
+    sus ? h('li', {}, L('의심 ') + num(sus) + L('개는 ‘_의심’ 폴더에 따로 둬요. 열리지 않을 수 있어요.')) : null,
+    h('li', {}, L('원본 장치에는 아무것도 쓰지 않아요'))].filter(Boolean));
   renderDest(); $('#batch').value = S.batchGb;
   $('#exdlg').showModal(); schedCheck();
 }
 $('#ex-cancel').onclick = () => $('#exdlg').close();
-function renderDest() { const p = $('#destpath'); p.textContent = S.dest || '폴더를 선택하세요'; p.classList.toggle('empty', !S.dest); }
+function renderDest() { const p = $('#destpath'); p.textContent = S.dest || L('폴더를 선택하세요'); p.classList.toggle('empty', !S.dest); }
 let ct = null, seq = 0;
 function schedCheck() { clearTimeout(ct); S.check = null; renderSummary(); ct = setTimeout(checkPlan, 250); }
 async function checkPlan() {
@@ -2223,24 +2243,24 @@ async function checkPlan() {
 function renderSummary() {
   const free = clear($('#free')), sum = $('#summary'), tx = clear($('#sumtx')); const start = $('#start');
   const plan = buildPlan(); const r = S.check;
-  sum.classList.remove('warn'); if (start) { start.disabled = true; start.textContent = '꺼내기 시작'; start.onclick = startRun; }
-  if (!plan.kinds.length) { tx.append('꺼낼 종류를 하나 이상 고르세요.'); return; }
-  if (!plan.dest) { tx.append('저장할 폴더를 먼저 고르세요.'); return; }
-  if (!r) { tx.append('확인하는 중입니다…'); return; }
-  if (r.free != null) { free.append('여유 공간 ' + fmtSize(r.free)); if (r.ok) free.append(chip('', '충분합니다')); }
+  sum.classList.remove('warn'); if (start) { start.disabled = true; start.textContent = L('꺼내기 시작'); start.onclick = startRun; }
+  if (!plan.kinds.length) { tx.append(L('꺼낼 종류를 하나 이상 고르세요.')); return; }
+  if (!plan.dest) { tx.append(L('저장할 폴더를 먼저 고르세요.')); return; }
+  if (!r) { tx.append(L('확인하는 중입니다…')); return; }
+  if (r.free != null) { free.append(L('여유 공간 ') + fmtSize(r.free)); if (r.ok) free.append(chip('', L('충분합니다'))); }
   const ov = r.overview || {};
   const allDone = (r.reasons || []).some(x => x.includes('모두 꺼냈습니다'));
-  if (allDone) { tx.append('이 설정의 파일은 이미 모두 꺼냈습니다.'); if (start) { start.disabled = false; start.textContent = '결과 보기'; start.onclick = () => { S.plan = buildPlan(); S.partial = false; $('#exdlg').close(); go('result'); }; } return; }
+  if (allDone) { tx.append(L('이 설정의 파일은 이미 모두 꺼냈습니다.')); if (start) { start.disabled = false; start.textContent = L('결과 보기'); start.onclick = () => { S.plan = buildPlan(); S.partial = false; $('#exdlg').close(); go('result'); }; } return; }
   if (!r.ok) {
-    sum.classList.add('warn'); free.append(chip('warn', '확인이 필요합니다'));
-    tx.append(h('b', {}, '지금은 시작할 수 없습니다.'), h('ul', {}, (r.reasons || []).map(x => h('li', {}, x))));
+    sum.classList.add('warn'); free.append(chip('warn', L('확인이 필요합니다')));
+    tx.append(h('b', {}, L('지금은 시작할 수 없습니다.')), h('ul', {}, (r.reasons || []).map(x => h('li', {}, x))));
     return;
   }
   const secs = S.rate && ov.pending_bytes ? ov.pending_bytes / 1e6 / S.rate : null;
-  const sentence = [h('b', {}, num(ov.pending_files) + '개'), ', ', h('b', {}, fmtSize(ov.pending_bytes || 0)), '를 ', h('b', {}, S.dest), euro(S.dest) + ' 꺼냅니다.'];
-  if (ov.batches_remaining > 1) sentence.push(' 저장 공간에 맞춰 ' + ov.batches_remaining + '번에 나눠 꺼냅니다.');
-  if (secs) sentence.push(' 예상 소요 시간 ', h('b', {}, fmtEta(secs)));
-  if (ov.done_files) sentence.push(' (이미 꺼낸 ' + num(ov.done_files) + '개는 건너뜁니다)');
+  const sentence = [h('b', {}, num(ov.pending_files) + L('개')), ', ', h('b', {}, fmtSize(ov.pending_bytes || 0)), L('를 '), h('b', {}, S.dest), euro(S.dest) + L(' 꺼냅니다.')];
+  if (ov.batches_remaining > 1) sentence.push(L(' 저장 공간에 맞춰 ') + ov.batches_remaining + L('번에 나눠 꺼냅니다.'));
+  if (secs) sentence.push(L(' 예상 소요 시간 '), h('b', {}, fmtEta(secs)));
+  if (ov.done_files) sentence.push(L(' (이미 꺼낸 ') + num(ov.done_files) + L('개는 건너뜁니다)'));
   tx.append(...sentence);
   if (start) start.disabled = !(ov.next_files > 0);
 }
@@ -2248,14 +2268,14 @@ $('#batch').oninput = e => { S.batchGb = e.target.value; schedCheck(); };
 
 // ---- 3. 복구 실행 ----
 async function startRun() {
-  if (!S.sel) { banner('bad', '장치가 연결돼 있지 않거나 읽을 수 없어요. 장치를 연결한 뒤 다시 하세요.', 'msg'); return; }
+  if (!S.sel) { banner('bad', L('장치가 연결돼 있지 않거나 읽을 수 없어요. 장치를 연결한 뒤 다시 하세요.'), 'msg'); return; }
   clearInterval(S.watch); S.hold = null; S.plan = buildPlan(); S.pausing = false;
   try {
     await api('/api/extract/start', { device_id: S.sel, plan: S.plan });
     if ($('#exdlg').open) $('#exdlg').close();
     S.flow = 'extract'; S.seen = null; S.stripKey = ''; banner('', '', 'msg');
-    S.job = null; S.lost = false; clear($('#runmsg')); clear($('#runmsg-top')); fillStrip([]); $('#runbox').classList.toggle('hide', false); $('#strip-title').textContent = '방금 꺼낸 사진';
-    heading('run', '사진을 꺼내고 있어요', '창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.');
+    S.job = null; S.lost = false; clear($('#runmsg')); clear($('#runmsg-top')); fillStrip([]); $('#runbox').classList.toggle('hide', false); $('#strip-title').textContent = L('방금 꺼낸 사진');
+    heading('run', L('사진을 꺼내고 있어요'), L('창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.'));
     go('run'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
 }
@@ -2263,79 +2283,79 @@ async function startVerify() {
   try {
     await api('/api/verify/start', { deep: true });
     S.flow = 'verify'; S.seen = null; S.job = null; clear($('#runmsg')); clear($('#runmsg-top')); $('#runbox').classList.toggle('hide', true);
-    heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.');
+    heading('run', L('마지막 단계: 잘 열리는지 확인하고 있어요'), L('꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 디스크는 더 이상 읽지 않아요.'));
     go('run'); $('#runbox').classList.toggle('hide', true); poll();
   } catch (e) { banner('bad', e.message, 'msg'); go('result'); }
 }
 
 // ---- 4. 결과 ----
 async function loadResult() {
-  setActions(btn('열림 다시 확인', '', startVerify), '|', btn('보고서 저장', '', saveReport));
+  setActions(btn(L('열림 다시 확인'), '', startVerify), '|', btn(L('보고서 저장'), '', saveReport));
   const box = clear($('#resbox'));
   box.append(h('div', { class: 'resskel skel' }));  // 불러오는 동안 같은 크기의 빈 틀
   let r, v, rem = 0;
-  try { [r, v] = await Promise.all([api('/api/result'), api('/api/verify/summary')]); } catch (e) { clear(box).append(h('p', { class: 'hint' }, '결과를 불러오지 못했습니다: ' + e.message)); return; }
+  try { [r, v] = await Promise.all([api('/api/result'), api('/api/verify/summary')]); } catch (e) { clear(box).append(h('p', { class: 'hint' }, L('결과를 불러오지 못했습니다: ') + e.message)); return; }
   if (S.partial && S.plan) { try { const c = await api('/api/plan/check', { device_id: S.sel, plan: S.plan }); rem = c.ok ? (c.overview.pending_files || 0) : 0; } catch (e) { } }
   const vs = v.summary, fail = vs ? vs.fail : 0, fixed = vs ? (vs.fixed || 0) : 0, verified = !!vs && !rem;
   const bk = r.by_kind || {};
   const parts = Object.values(GROUPS).filter(g => bk[g.dir]).map(g => g.label + ' ' + num(bk[g.dir]) + g.unit);
   const good = verified && !fail && !fixed; clear(box);
-  $('#res-title').textContent = rem ? '일부를 꺼냈습니다' : '복구를 마쳤습니다';
+  $('#res-title').textContent = rem ? L('일부를 꺼냈습니다') : L('복구를 마쳤습니다');
   box.append(h('div', { class: 'okbanner' + (good ? '' : ' warn') },
     h('div', { class: 'big' }, ico(good ? 'check' : 'alert')),
-    h('div', {}, h('div', { class: 't' }, rem ? '지금까지 ' + num(r.files) + '개를 꺼냈습니다. 아직 ' + num(rem) + '개가 남았습니다'
-        : !vs ? num(r.files) + '개를 꺼냈습니다'
-        : fail ? num(r.files) + '개를 꺼냈고, ' + num(fail) + '개는 확인이 필요합니다' + (fixed ? ' · ZIP ' + num(fixed) + '개는 복원본으로 열 수 있어요' : '')
-        : fixed ? num(r.files) + '개를 꺼냈고, ZIP ' + num(fixed) + '개는 목차를 다시 만든 복원본으로 열 수 있어요' : num(r.files) + '개를 꺼냈고, 모두 정상으로 확인했습니다'),
-      h('div', { class: 's' }, (parts.join(' · ') || '꺼낸 파일 없음') + ' — 총 ' + fmtSize(r.bytes))),
+    h('div', {}, h('div', { class: 't' }, rem ? L('지금까지 ') + num(r.files) + L('개를 꺼냈습니다. 아직 ') + num(rem) + L('개가 남았습니다')
+        : !vs ? num(r.files) + L('개를 꺼냈습니다')
+        : fail ? num(r.files) + L('개를 꺼냈고, ') + num(fail) + L('개는 확인이 필요합니다') + (fixed ? ' · ZIP ' + num(fixed) + L('개는 복원본으로 열 수 있어요') : '')
+        : fixed ? num(r.files) + L('개를 꺼냈고, ZIP ') + num(fixed) + L('개는 목차를 다시 만든 복원본으로 열 수 있어요') : num(r.files) + L('개를 꺼냈고, 모두 정상으로 확인했습니다')),
+      h('div', { class: 's' }, (parts.join(' · ') || L('꺼낸 파일 없음')) + L(' — 총 ') + fmtSize(r.bytes))),
     h('span', { class: 'sp' }),
-    rem ? btn('다음 묶음 꺼내기', 'primary', () => { S.partial = false; startRun(); }) : null,
-    btn('폴더 열기', rem ? '' : 'primary', () => api('/api/open-folder', {}).catch(e => banner('bad', e.message, 'msg')))));
+    rem ? btn(L('다음 묶음 꺼내기'), 'primary', () => { S.partial = false; startRun(); }) : null,
+    btn(L('폴더 열기'), rem ? '' : 'primary', () => api('/api/open-folder', {}).catch(e => banner('bad', e.message, 'msg')))));
   if ((v.failures || []).length) box.append(failCard(v));
   if (r.samples.length) box.append(h('div', { class: 'grid' }, r.samples.slice(0, 6).map(thumbEl)));
-  const range = r.first_day ? ' · 촬영일 ' + r.first_day.slice(0, 7) + (r.last_day && r.last_day.slice(0, 7) !== r.first_day.slice(0, 7) ? ' ~ ' + r.last_day.slice(0, 7) : '') : '';
-  box.append(h('div', { class: 'more' }, h('span', {}, (r.dest || '') + range), h('button', { class: 'linkish', onclick: () => api('/api/open-folder', {}).catch(() => { }) }, '전체 보기')));
+  const range = r.first_day ? L(' · 촬영일 ') + r.first_day.slice(0, 7) + (r.last_day && r.last_day.slice(0, 7) !== r.first_day.slice(0, 7) ? ' ~ ' + r.last_day.slice(0, 7) : '') : '';
+  box.append(h('div', { class: 'more' }, h('span', {}, (r.dest || '') + range), h('button', { class: 'linkish', onclick: () => api('/api/open-folder', {}).catch(() => { }) }, L('전체 보기'))));
   loadNames(box);
   // 자세히: 문제 파일, 참고 사항, 검증 방법
   const fails = v.failures || [];
-  const det = h('details', { class: 'd' }, h('summary', {}, fail || fixed ? chip('warn', '확인 필요') : chip('', '자세히'),
-    fail ? num(fail) + '개는 열리지 않거나 일부만 열렸습니다' : fixed ? 'ZIP ' + num(fixed) + '개는 복원본을 만들었어요' : '검증 방법과 참고 사항'));
+  const det = h('details', { class: 'd' }, h('summary', {}, fail || fixed ? chip('warn', L('확인 필요')) : chip('', L('자세히')),
+    fail ? num(fail) + L('개는 열리지 않거나 일부만 열렸습니다') : fixed ? 'ZIP ' + num(fixed) + L('개는 복원본을 만들었어요') : L('검증 방법과 참고 사항')));
   (v.fixed || []).slice(0, 20).forEach(f => { const sv = f.salvage || {};
-    det.append(h('p', {}, h('span', { class: 'mono' }, f.path), ' → 복원본 ', h('span', { class: 'mono' }, sv.path || ''), ' (온전한 항목 ' + num(sv.entries || 0) + '개' + (sv.lost ? ', 마지막 항목 하나는 잘려서 뺐어요' : '') + ')')); });
-  if (r.suspect) det.append(h('p', {}, '깨졌을 수 있는 파일 ' + num(r.suspect) + '개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.'));
-  if (r.duplicates) det.append(h('p', {}, '내용이 같은 파일 ' + num(r.duplicates) + '개는 하나만 저장했습니다.'));
-  if (vs) det.append(h('p', {}, '검증 수준: ' + Object.entries(vs.levels).map(([k, n]) => ({ structure: '구조 확인', decode: '사진 끝까지 열기', probe: '영상 정보 읽기', play: '영상 끝부분 재생' }[k] || k) + ' ' + num(n)).join(', ')
-    + (vs.levels.play ? '. 영상은 끝부분을 실제로 재생해 봤습니다(처음부터 끝까지 본 것은 아닙니다). RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.'
-      : '. 재생 프로그램이나 RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.' + (vs.levels.probe || vs.levels.structure ? ' ffmpeg 가 있으면 영상도 재생까지 확인해요.' : ''))));
-  else det.append(h('p', {}, '아직 열림 확인을 하지 않았습니다.'));
-  det.append(h('p', {}, '원래 파일명과 폴더 구조는 복구할 수 없습니다. 지워진 옛 파일이 섞여 있을 수 있습니다.'));
+    det.append(h('p', {}, h('span', { class: 'mono' }, f.path), L(' → 복원본 '), h('span', { class: 'mono' }, sv.path || ''), L(' (온전한 항목 ') + num(sv.entries || 0) + L('개') + (sv.lost ? L(', 마지막 항목 하나는 잘려서 뺐어요') : '') + ')')); });
+  if (r.suspect) det.append(h('p', {}, L('깨졌을 수 있는 파일 ') + num(r.suspect) + L('개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.')));
+  if (r.duplicates) det.append(h('p', {}, L('내용이 같은 파일 ') + num(r.duplicates) + L('개는 하나만 저장했습니다.')));
+  if (vs) det.append(h('p', {}, L('검증 수준: ') + Object.entries(vs.levels).map(([k, n]) => ({ structure: L('구조 확인'), decode: L('사진 끝까지 열기'), probe: L('영상 정보 읽기'), play: L('영상 끝부분 재생') }[k] || k) + ' ' + num(n)).join(', ')
+    + (vs.levels.play ? L('. 영상은 끝부분을 실제로 재생해 봤습니다(처음부터 끝까지 본 것은 아닙니다). RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.')
+      : L('. 재생 프로그램이나 RAW 현상 프로그램에서의 열림은 확인하지 못했습니다.') + (vs.levels.probe || vs.levels.structure ? L(' ffmpeg 가 있으면 영상도 재생까지 확인해요.') : ''))));
+  else det.append(h('p', {}, L('아직 열림 확인을 하지 않았습니다.')));
+  det.append(h('p', {}, L('원래 파일명과 폴더 구조는 복구할 수 없습니다. 지워진 옛 파일이 섞여 있을 수 있습니다.')));
   box.append(det);
 }
 // 확인 필요 파일: 직접 열어 보고 괜찮으면 '문제없음'으로 표시(기록에만 남기고 파일은 건드리지 않는다)
 function failCard(v) {
   const fails = v.failures || [], left = fails.filter(f => !f.ack);
   const ack = async (paths, on) => {
-    try { await api('/api/verify/ack', { paths, ack: on }); toast(on ? '문제없음으로 표시했어요' : '확인 필요로 되돌렸어요'); loadUnits(); loadResult(); }
+    try { await api('/api/verify/ack', { paths, ack: on }); toast(on ? L('문제없음으로 표시했어요') : L('확인 필요로 되돌렸어요')); loadUnits(); loadResult(); }
     catch (e) { banner('bad', e.message, 'msg'); }
   };
   const card = h('div', { class: 'card fails' },
-    h('div', { class: 'fh' }, h('b', {}, left.length ? '확인 필요 ' + num(left.length) + '개' : '확인 필요한 파일을 모두 확인했어요'),
-      h('span', { class: 'hint ell' }, left.length ? '직접 열어 보고 괜찮으면 [문제없음]을 누르세요. 파일은 바뀌지 않아요.' : '되돌리려면 [되돌리기]를 누르세요.'),
-      left.length > 1 ? btn('모두 문제없음', 'small', () => ack(left.map(f => f.path), true)) : null));
+    h('div', { class: 'fh' }, h('b', {}, left.length ? L('확인 필요 ') + num(left.length) + L('개') : L('확인 필요한 파일을 모두 확인했어요')),
+      h('span', { class: 'hint ell' }, left.length ? L('직접 열어 보고 괜찮으면 [문제없음]을 누르세요. 파일은 바뀌지 않아요.') : L('되돌리려면 [되돌리기]를 누르세요.')),
+      left.length > 1 ? btn(L('모두 문제없음'), 'small', () => ack(left.map(f => f.path), true)) : null));
   const list = h('div', { class: 'fl' });
   fails.forEach(f => {
     const missing = /파일이 없음/.test(f.reason || '');
     list.append(h('div', { class: 'fr' + (f.ack ? ' done' : '') },
-      h('div', { class: 'fx' }, h('div', { class: 'mono ell', title: f.path }, f.path), h('div', { class: 'r ell', title: f.reason }, f.ack ? '문제없음으로 표시함 · ' + f.ack : f.reason)),
-      f.ack ? chip('ok', '문제없음') : chip('alert', '확인 필요'),
-      btn('열어 보기', 'small', () => api('/api/open-file', { path: f.path }).catch(e => banner('bad', e.message, 'msg')), { disabled: missing, title: missing ? '저장 폴더에 이 파일이 없어요' : '' }),
-      f.ack ? btn('되돌리기', 'small', () => ack([f.path], false)) : btn('문제없음', 'small primary', () => ack([f.path], true))));
+      h('div', { class: 'fx' }, h('div', { class: 'mono ell', title: f.path }, f.path), h('div', { class: 'r ell', title: f.reason }, f.ack ? L('문제없음으로 표시함 · ') + f.ack : f.reason)),
+      f.ack ? chip('ok', L('문제없음')) : chip('alert', L('확인 필요')),
+      btn(L('열어 보기'), 'small', () => api('/api/open-file', { path: f.path }).catch(e => banner('bad', e.message, 'msg')), { disabled: missing, title: missing ? L('저장 폴더에 이 파일이 없어요') : '' }),
+      f.ack ? btn(L('되돌리기'), 'small', () => ack([f.path], false)) : btn(L('문제없음'), 'small primary', () => ack([f.path], true))));
   });
   card.append(list);
   return card;
 }
 async function saveReport() {
-  try { const r = await api('/api/report/save', {}); toast('저장했습니다: ' + r.path); } catch (e) { banner('bad', e.message, 'msg'); }
+  try { const r = await api('/api/report/save', {}); toast(L('저장했습니다: ') + r.path); } catch (e) { banner('bad', e.message, 'msg'); }
 }
 
 // ---- 저장 폴더 찾아보기 ----
@@ -2346,7 +2366,7 @@ async function pkLoadPlaces() {
   try {
     const r = await api('/api/fs/places?' + dq().slice(1));
     r.places.forEach(p => box.append(h('button', { class: 'btn small', type: 'button', onclick: () => pkGo(p.path), title: p.path },
-      p.external ? ico('disk') : null, p.name + (p.free != null ? ' (' + fmtSize(p.free) + ' 여유)' : ''))));
+      p.external ? ico('disk') : null, p.name + (p.free != null ? ' (' + fmtSize(p.free) + L(' 여유)') : ''))));
   } catch (e) { }
 }
 async function pkGo(path) {
@@ -2358,11 +2378,11 @@ async function pkGo(path) {
   if (!r) return;
   PK.path = r.path; PK.parent = r.parent;
   $('#pk-path').textContent = r.path;
-  $('#pk-info').textContent = (r.free != null ? '여유 공간 ' + fmtSize(r.free) : '') + (r.writable ? '' : ' · 쓸 수 없는 폴더');
+  $('#pk-info').textContent = (r.free != null ? L('여유 공간 ') + fmtSize(r.free) : '') + (r.writable ? '' : L(' · 쓸 수 없는 폴더'));
   const box = clear($('#pk-dirs'));
-  if (!r.entries.length) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, '(하위 폴더 없음)'));
+  if (!r.entries.length) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, L('(하위 폴더 없음)')));
   r.entries.forEach(e => box.append(h('button', { class: 'dirbtn', type: 'button', onclick: () => pkGo(e.path) }, ico('folder'), e.name)));
-  if (r.truncated) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, '폴더가 너무 많아 일부만 보여 줍니다.'));
+  if (r.truncated) box.append(h('div', { class: 'hint', style: 'padding:10px 12px' }, L('폴더가 너무 많아 일부만 보여 줍니다.')));
   const pr = clear($('#pk-problems')); PK.ok = !r.problems.length && r.writable;
   if (r.problems.length) pr.append(h('div', { class: 'notice bad' }, h('span', { class: 't' }, r.problems.join(' / '))));
   $('#pk-ok').disabled = !PK.ok; $('#pk-up').disabled = !r.parent; $('#pk-new').disabled = !!r.problems.length;
@@ -2375,7 +2395,7 @@ $('#pickdest').onclick = async () => {
     if (!r.path) return;  // 취소
     const dq2 = S.sel ? '&device_id=' + encodeURIComponent(S.sel) : '';
     const info = await api('/api/fs/list?path=' + encodeURIComponent(r.path) + dq2);
-    if (info.problems.length || !info.writable) { toast('이 폴더는 쓸 수 없어요: ' + (info.problems.join(' / ') || '쓸 수 없는 폴더입니다.')); return; }
+    if (info.problems.length || !info.writable) { toast(L('이 폴더는 쓸 수 없어요: ') + (info.problems.join(' / ') || L('쓸 수 없는 폴더입니다.'))); return; }
     S.dest = info.path; renderDest(); schedCheck();
   } catch (e) {
     if (e.status === 501) { $('#pk-newrow').hidden = true; $('#picker').showModal(); await pkLoadPlaces(); await pkGo(S.dest); }
@@ -2404,7 +2424,7 @@ $('#pk-name').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $(
       S.job = j; S.flow = j.kind;
       await openUnit(u.key, 'over'); await loadDevices(); try { await loadSummary(); } catch (e) { }
       if (SIDE[j.kind]) { go(SIDE[j.kind].screen); return sidePoll(); }
-      if (j.kind === 'verify') heading('run', '마지막 단계: 잘 열리는지 확인하고 있어요', '꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 장치는 더 이상 읽지 않아요.');
+      if (j.kind === 'verify') heading('run', L('마지막 단계: 잘 열리는지 확인하고 있어요'), L('꺼낸 파일을 하나씩 열어 봅니다. 저장 폴더만 읽고, 원본 장치는 더 이상 읽지 않아요.'));
       go(j.kind === 'scan' ? 'scan' : 'run'); if (j.kind === 'verify') $('#runbox').classList.toggle('hide', true); poll(); return;
     }
     if (j && j.state === 'running') { S.job = j; poll(); }
