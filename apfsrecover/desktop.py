@@ -10,7 +10,7 @@ import sys
 import threading
 import webbrowser
 
-TITLE = "사진 복구 도구"
+TITLE = "RecoveryHDD"
 BUSY_MSG = "작업이 실행 중입니다. 끝나거나 [중단]한 뒤에 닫으세요. (원본 디스크는 읽기만 하므로 안전합니다)"
 
 

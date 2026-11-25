@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RecoveryHDD</title>
+<!-- 시안 v5: 하드 중심 구조. 실제 기능은 없고 화면만 있다. 숫자 중 Seagate 의 찾음/꺼냄/확인 필요/검사 범위는 실제 기록, 종류별 개수와 다른 하드는 예시. -->
+<style>
+:root {
+  --win: #fbfbfb; --side: #f3f3f3; --card: #ffffff; --line: #e5e5e5; --line2: #d4d4d4;
+  --text: #1b1b1b; --sub: #5f5f5f; --faint: #8a8a8a;
+  --accent: #0067c0; --accent-ink: #ffffff; --accent-soft: #e6f0fa;
+  --ok: #107c10; --ok-soft: #e7f4e7; --warn: #9d5d00; --warn-soft: #fdf3e1; --bad: #c42b1c; --bad-soft: #fde7e9;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --win: #272727; --side: #202020; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+    --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+    --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+    --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --win: #272727; --side: #202020; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a;
+  --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+  --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+  --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--win); color: var(--text); font: 15px/1.5 "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; min-width: 960px; min-height: 620px; overflow: hidden; }
+.ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* 틀: 왼쪽 하드 목록 | 오른쪽 하드 화면, 맨 아래 상태 바 */
+.shell { display: grid; grid-template-columns: 272px 1fr; grid-template-rows: 1fr 36px; height: 100vh; }
+.side { grid-row: 1; background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.side .head { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 18px; font-size: 13px; color: var(--sub); flex: none; }
+.side .head b { color: var(--text); font-size: 14px; }
+.iconbtn { width: 28px; height: 28px; border-radius: 6px; border: 0; background: transparent; color: var(--sub); cursor: pointer; display: grid; place-items: center; font-size: 15px; }
+.iconbtn:hover { background: var(--line); }
+.disks { flex: 1; overflow-y: auto; padding: 0 10px; min-height: 0; }
+.dk { display: flex; gap: 12px; align-items: center; height: 68px; padding: 0 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; margin-bottom: 6px; }
+.dk:hover { background: var(--line); }
+.dk.on { background: var(--card); border-color: var(--line2); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.dk .ic { width: 38px; height: 38px; border-radius: 9px; flex: none; background: linear-gradient(160deg, #3a4a63, #1d2636); display: grid; place-items: center; color: #fff; font-size: 17px; position: relative; }
+.dk .ic i { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--side); background: var(--faint); }
+.dk .ic i.ok { background: var(--ok); } .dk .ic i.run { background: var(--accent); } .dk .ic i.warn { background: var(--warn); }
+.dk.off .ic { background: linear-gradient(160deg, #8a8a8a, #5b5b5b); }
+.dk .tx { flex: 1; min-width: 0; }
+.dk .n { font-weight: 600; font-size: 14px; height: 21px; line-height: 21px; }
+.dk .s { font-size: 12.5px; color: var(--sub); height: 19px; line-height: 19px; }
+.dk.off .n, .dk.off .s { color: var(--faint); }
+.grp { flex: none; padding: 8px 10px; }
+.grp.sys { padding-top: 0; padding-bottom: 12px; }
+.nv { width: 100%; height: 38px; border: 0; background: transparent; color: var(--text); border-radius: 8px; text-align: left; padding: 0 12px; font: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; position: relative; }
+.nv:hover { background: var(--line); }
+.nv.on { background: var(--card); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.nv.on::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
+.nv .gi { width: 20px; text-align: center; color: var(--sub); flex: none; }
+.sep { flex: none; height: 1px; background: var(--line); margin: 0 16px; }
+.side .head { height: 40px; }
+.side .head b { font-size: 12px; color: var(--sub); font-weight: 600; letter-spacing: .2px; }
+.dk.on { position: relative; }
+.dk.on::before { content: ""; position: absolute; left: -1px; top: 18px; bottom: 18px; width: 3px; border-radius: 3px; background: var(--accent); }
+.list.home-dev .row { height: 64px; }
+.home-dev .ic2 { width: 34px; height: 34px; border-radius: 8px; flex: none; background: linear-gradient(160deg, #3a4a63, #1d2636); display: grid; place-items: center; color: #fff; font-size: 15px; }
+.home-dev .row.off .ic2 { background: linear-gradient(160deg, #8a8a8a, #5b5b5b); }
+.home-dev .nm { width: 230px; flex: none; } .home-dev .nm b { display: block; height: 22px; } .home-dev .nm span { display: block; font-size: 12.5px; color: var(--sub); height: 18px; }
+.home-dev .row.off .nm b { color: var(--faint); }
+.list.pref .row { height: 60px; } .pref .row .w b { display: block; font-weight: 600; height: 22px; } .pref .row .w span { display: block; font-size: 12.5px; color: var(--sub); height: 18px; }
+.sw { width: 40px; height: 22px; border-radius: 11px; background: var(--line2); position: relative; flex: none; cursor: pointer; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+.sw.on { background: var(--accent); } .sw.on::after { left: 21px; }
+.seg { display: flex; border: 1px solid var(--line2); border-radius: 6px; overflow: hidden; flex: none; }
+.seg span { height: 30px; line-height: 30px; padding: 0 12px; font-size: 13px; cursor: pointer; }
+.seg span.on { background: var(--accent); color: var(--accent-ink); }
+.helpcard { padding: 6px 20px; } .helpcard li { margin: 10px 0; color: var(--text); } .helpcard ul { margin: 0; padding-left: 18px; }
+
+.main { grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.top { flex: none; padding: 18px 32px 0; border-bottom: 1px solid var(--line); background: var(--win); }
+.top .t1 { display: flex; align-items: center; gap: 12px; height: 34px; }
+.top h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.2px; }
+.top .meta { font-size: 13px; color: var(--sub); height: 20px; line-height: 20px; }
+.tabs { display: flex; gap: 4px; margin-top: 10px; height: 42px; }
+.tab { height: 42px; padding: 0 14px; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--sub); cursor: pointer; position: relative; display: flex; align-items: center; gap: 6px; flex: none; }
+.tab:hover { color: var(--text); }
+.tab.on { color: var(--text); font-weight: 600; }
+.tab.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px; background: var(--accent); }
+.tab .b { min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; font-size: 11.5px; line-height: 18px; text-align: center; background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+.tab:disabled { color: var(--faint); cursor: default; }
+.body { flex: 1; overflow-y: auto; padding: 22px 32px 28px; min-height: 0; }
+
+.status { grid-column: 1 / 3; grid-row: 2; border-top: 1px solid var(--line); background: var(--side); display: flex; align-items: center; gap: 14px; padding: 0 16px; font-size: 13px; color: var(--sub); }
+.status .who { width: 200px; flex: none; }
+.status .what { flex: 1; }
+.status .pb { width: 220px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; flex: none; }
+.status .pb i { display: block; height: 100%; background: var(--accent); }
+.status .pc { width: 150px; text-align: right; flex: none; }
+.status.idle .pb { visibility: hidden; }
+
+/* 공통 부품 */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.btn { height: 34px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; flex: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.w { width: 132px; }
+.chip { display: inline-block; width: 92px; height: 24px; line-height: 24px; text-align: center; border-radius: 99px; font-size: 12.5px; flex: none; background: var(--line); color: var(--sub); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); } .chip.warn { background: var(--warn-soft); color: var(--warn); } .chip.bad { background: var(--bad-soft); color: var(--bad); } .chip.run { background: var(--accent-soft); color: var(--accent); }
+.sec { font-size: 13px; color: var(--sub); margin: 22px 0 8px; font-weight: 600; }
+.sec:first-child { margin-top: 0; }
+.hint { font-size: 13px; color: var(--sub); }
+
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tile { height: 92px; padding: 14px 18px; }
+.tile .v { font-size: 26px; font-weight: 600; height: 36px; line-height: 36px; }
+.tile .l { font-size: 13px; color: var(--sub); height: 20px; }
+.tile.warn .v { color: var(--warn); }
+
+.next { display: flex; align-items: center; gap: 16px; height: 76px; padding: 0 20px; background: var(--accent-soft); border-color: transparent; }
+.next .tx { flex: 1; min-width: 0; } .next .a { font-weight: 600; height: 22px; } .next .b { font-size: 13px; color: var(--sub); height: 20px; }
+
+.list .row { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 16px; border-top: 1px solid var(--line); font-size: 14px; }
+.list .row:first-child { border-top: 0; }
+.list .row .d { width: 120px; color: var(--sub); flex: none; }
+.list .row .w { flex: 1; min-width: 0; }
+
+.op { display: flex; align-items: center; gap: 18px; height: 112px; padding: 0 20px; margin-bottom: 10px; }
+.op .tx { flex: 1; min-width: 0; }
+.op .a { display: flex; align-items: center; gap: 10px; height: 26px; font-weight: 600; font-size: 15px; }
+.op .b { font-size: 13px; color: var(--sub); height: 20px; margin-top: 2px; }
+.op .pbar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 10px; }
+.op .pbar i { display: block; height: 100%; background: var(--accent); }
+.op .c { font-size: 12.5px; color: var(--sub); height: 18px; margin-top: 4px; }
+.op .act { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 140px; flex: none; }
+.op .act .hint { width: 140px; height: 18px; line-height: 18px; text-align: right; font-size: 12px; }
+
+.kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.kind { height: 74px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; cursor: pointer; }
+.kind .box { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--line2); flex: none; display: grid; place-items: center; font-size: 12px; color: var(--accent-ink); }
+.kind.on { border-color: var(--accent); } .kind.on .box { background: var(--accent); border-color: var(--accent); }
+.kind .tx { flex: 1; min-width: 0; } .kind .n { font-weight: 600; height: 22px; } .kind .s { font-size: 12.5px; color: var(--sub); height: 18px; }
+.dest { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; }
+.dest .p { flex: 1; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+.sum { display: flex; align-items: center; gap: 16px; height: 64px; padding: 0 18px; margin-top: 16px; }
+.sum .tx { flex: 1; min-width: 0; }
+
+.res { display: flex; align-items: center; gap: 16px; height: 80px; padding: 0 20px; }
+.res .big { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--warn-soft); color: var(--warn); flex: none; }
+.res .tx { flex: 1; min-width: 0; } .res .a { font-weight: 600; height: 24px; } .res .b { font-size: 13px; color: var(--sub); height: 20px; }
+.thumbs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.thumbs div { aspect-ratio: 4/3; border-radius: 6px; background: linear-gradient(135deg, var(--line), var(--line2)); }
+.btnrow { display: flex; gap: 8px; margin-top: 14px; }
+
+.fmt { padding: 6px 18px 10px; }
+.fmt li { list-style: none; display: flex; align-items: center; gap: 10px; height: 32px; font-size: 14px; }
+.fmt ul { margin: 0; padding: 0; }
+.fmt .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--line2); }
+.fmt .ok .dot { background: var(--ok); } .fmt .warn .dot { background: var(--warn); } .fmt .bad .dot { background: var(--bad); }
+.fmt .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fmthead { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 18px; border-bottom: 1px solid var(--line); }
+.fmthead .tx { flex: 1; min-width: 0; }
+
+.empty { height: 220px; display: grid; place-items: center; text-align: center; }
+.empty p { color: var(--sub); margin: 6px 0 14px; }
+
+/* 시안 전용 조작판 */
+.demo { position: fixed; right: 16px; bottom: 48px; background: #222; color: #eee; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; display: flex; gap: 8px; align-items: center; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.demo button { background: #444; color: #fff; border: 0; border-radius: 6px; height: 26px; padding: 0 10px; font: inherit; cursor: pointer; }
+.demo button.on { background: #0a84ff; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="grp"><button class="nv" data-v="home"><span class="gi">⌂</span>홈</button></div>
+    <div class="sep"></div>
+    <div class="head"><b>장치 목록</b><button class="iconbtn" title="목록 새로 고침">⟳</button></div>
+    <div class="disks" id="disks"></div>
+    <div class="sep"></div>
+    <div class="head"><b>시스템</b></div>
+    <div class="grp sys"><button class="nv" data-v="prefs"><span class="gi">⚙</span>설정</button><button class="nv" data-v="help"><span class="gi">?</span>도움말</button></div>
+  </aside>
+  <section class="main">
+    <div class="top">
+      <div class="t1"><h1 class="ell" id="dname"></h1><span class="chip" id="dchip"></span></div>
+      <div class="meta ell" id="dmeta"></div>
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div class="body" id="body"></div>
+  </section>
+  <footer class="status idle" id="status">
+    <span class="who ell" id="st-who"></span><span class="what ell" id="st-what"></span>
+    <span class="pb"><i id="st-pb" style="width:0%"></i></span><span class="pc num ell" id="st-pc"></span>
+  </footer>
+</div>
+<div class="demo">시안 전용 · 상태 바꾸기 <button id="d-idle" class="on">대기</button><button id="d-run">끝부분 검사 중</button><button id="d-theme">다크</button></div>
+
+<script>
+const $ = s => document.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e[k] = v; else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); }
+  kids.flat().forEach(k => k != null && e.append(k)); return e;
+}
+const D = [
+  { id: 'sg', name: 'Seagate Expansion 5TB', size: '5.00 TB', conn: true, rec: true, found: '17,241', got: '16,078', need: 6, scanned: '앞쪽 372 GB / 5.00 TB', last: '2026-11-24' },
+  { id: 'usb', name: 'USB 디스크', size: '64 GB', conn: true, rec: false },
+  { id: 'wd', name: 'WD Elements 2TB (예시)', size: '2.00 TB', conn: false, rec: true, found: '3,410', got: '3,402', need: 0, scanned: '전체 2.00 TB', last: '2026-10-02' },
+];
+const S = { view: 'home', disk: 'sg', tab: 'over', run: false, pct: 52 };
+const TABS = [['over', '개요'], ['scan', '검사'], ['ext', '추출'], ['res', '결과'], ['fmt', '포맷 점검']];
+
+function diskLine(d) {
+  if (S.run && d.id === 'sg') return '끝부분 검사 중 · ' + S.pct + '%';
+  if (!d.rec) return d.conn ? d.size + ' · 검사 안 함' : '';
+  return (d.conn ? '' : '연결 안 됨 · ') + d.got + '개 꺼냄' + (d.need ? ' · 확인 ' + d.need : '');
+}
+function dot(d) { return S.run && d.id === 'sg' ? 'run' : !d.rec ? '' : d.need ? 'warn' : 'ok'; }
+function renderDisks() {
+  const box = $('#disks'); box.replaceChildren();
+  document.querySelectorAll('.nv').forEach(n => n.classList.toggle('on', n.dataset.v === S.view));
+  D.forEach(d => box.append(h('div', { class: 'dk' + (S.view === 'disk' && d.id === S.disk ? ' on' : '') + (d.conn ? '' : ' off'), onclick: () => openDisk(d.id) },
+    h('div', { class: 'ic' }, '🖴', h('i', { class: dot(d) })),
+    h('div', { class: 'tx' }, h('div', { class: 'n ell', title: d.name }, d.name), h('div', { class: 's ell', title: diskLine(d) }, diskLine(d))))));
+}
+const cur = () => D.find(d => d.id === S.disk);
+function avail(t) { const d = cur(); if (t === 'over' || t === 'scan') return true; return d.rec; }
+
+function openDisk(id, tab) { S.view = 'disk'; S.disk = id; S.tab = tab || (avail(S.tab) ? S.tab : 'over'); if (!avail(S.tab)) S.tab = 'over'; render(); }
+const PAGE = {
+  home: ['홈', '연결된 장치 2개 · 기록이 있는 장치 2개'],
+  prefs: ['설정', '기록 폴더, 목록에 보일 장치, 화면 테마'],
+  help: ['도움말', 'RecoveryHDD · 원본 장치는 읽기만 합니다'],
+};
+function renderStatus(d) {
+  const st = $('#status'); st.classList.toggle('idle', !S.run);
+  $('#st-who').textContent = S.run ? 'Seagate Expansion 5TB' : S.view === 'disk' ? d.name : '';
+  $('#st-what').textContent = S.run ? '끝부분 촘촘 검사 중 · 원본은 읽기만 해요' : '대기 중';
+  $('#st-pb').style.width = S.pct + '%';
+  $('#st-pc').textContent = S.run ? S.pct + '% · 남은 시간 9분' : '';
+}
+function render(tick) {
+  renderDisks();
+  const d = cur();
+  if (S.view !== 'disk') {
+    const p = PAGE[S.view];
+    $('#dname').textContent = p[0]; const c = $('#dchip'); c.className = 'chip'; c.style.visibility = 'hidden';
+    $('#dmeta').textContent = S.view === 'home' && S.run ? '작업 1개 진행 중 · ' + p[1] : p[1];
+    $('#tabs').replaceChildren();  // 탭 줄 자리는 그대로 둔다(높이 고정)
+    const body = $('#body'), y = body.scrollTop; body.replaceChildren(PAGES[S.view]()); body.scrollTop = tick ? y : 0;
+    return renderStatus(d);
+  }
+  $('#dchip').style.visibility = '';
+  $('#dname').textContent = d.name;
+  const c = $('#dchip');
+  if (S.run && d.id === 'sg') { c.className = 'chip run'; c.textContent = '작업 중'; }
+  else if (!d.conn) { c.className = 'chip'; c.textContent = '연결 안 됨'; }
+  else if (!d.rec) { c.className = 'chip'; c.textContent = '검사 전'; }
+  else { c.className = 'chip ' + (d.need ? 'warn' : 'ok'); c.textContent = d.need ? '확인 필요' : '정상'; }
+  $('#dmeta').textContent = d.size + ' · ' + (d.rec ? '검사 범위 ' + d.scanned + ' · 마지막 작업 ' + d.last : d.conn ? '이 하드는 아직 검사하지 않았어요' : '');
+  const tabs = $('#tabs'); tabs.replaceChildren();
+  TABS.forEach(([k, l]) => tabs.append(h('button', { class: 'tab' + (S.tab === k ? ' on' : ''), disabled: !avail(k), onclick: () => { S.tab = k; render(); } },
+    l, k === 'res' && d.need ? h('span', { class: 'b' }, String(d.need)) : null)));
+  const body = $('#body'), y = body.scrollTop; body.replaceChildren(VIEW[S.tab](d)); body.scrollTop = tick ? y : 0;
+  renderStatus(d);
+}
+const PAGES = {
+  home() {
+    const state = d => S.run && d.id === 'sg' ? ['run', '작업 중'] : !d.conn ? ['', '연결 안 됨'] : !d.rec ? ['', '검사 전'] : d.need ? ['warn', '확인 필요'] : ['ok', '정상'];
+    return h('div', {},
+      h('div', { class: 'sec' }, '진행 중인 작업'),
+      S.run
+        ? h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, 'Seagate Expansion 5TB — 끝부분 촘촘 검사 ' + S.pct + '%'), h('div', { class: 'b ell' }, '남은 시간 9분 · 원본은 읽기만 해요')),
+            h('button', { class: 'btn primary w', onclick: () => openDisk('sg', 'scan') }, '보러 가기'))
+        : h('div', { class: 'card next', style: 'background:var(--card);border-color:var(--line)' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, '진행 중인 작업이 없어요'), h('div', { class: 'b ell' }, '왼쪽 장치 목록에서 장치를 골라 검사·추출을 시작하세요.')), h('span', {})),
+      h('div', { class: 'sec' }, '장치'),
+      h('div', { class: 'card list home-dev' }, D.map(d => { const s = state(d);
+        return h('div', { class: 'row' + (d.conn ? '' : ' off') }, h('span', { class: 'ic2' }, '🖴'),
+          h('span', { class: 'nm ell' }, h('b', { class: 'ell' }, d.name), h('span', { class: 'ell' }, d.size + (d.conn ? '' : ' · 연결 안 됨'))),
+          h('span', { class: 'w ell num' }, d.rec ? '찾음 ' + d.found + ' · 꺼냄 ' + d.got + (d.need ? ' · 확인 필요 ' + d.need : '') : d.conn ? '아직 검사하지 않았어요' : ''),
+          h('span', { class: 'chip ' + s[0] }, s[1]), h('button', { class: 'btn', onclick: () => openDisk(d.id) }, '열기')); })),
+      h('div', { class: 'sec' }, '최근 작업 (모든 장치)'),
+      h('div', { class: 'card list' },
+        h('div', { class: 'row' }, h('span', { class: 'd num' }, '11-24 16:08'), h('span', { class: 'w ell' }, 'Seagate Expansion 5TB — 열림 확인, 확인 필요 6'), h('span', { class: 'chip warn' }, '확인 필요')),
+        h('div', { class: 'row' }, h('span', { class: 'd num' }, '11-24 16:07'), h('span', { class: 'w ell' }, 'Seagate Expansion 5TB — 추출, 문서·압축 11개'), h('span', { class: 'chip ok' }, '완료')),
+        h('div', { class: 'row' }, h('span', { class: 'd num' }, '10-02 21:40'), h('span', { class: 'w ell' }, 'WD Elements 2TB (예시) — 열림 확인, 모두 정상'), h('span', { class: 'chip ok' }, '완료'))));
+  },
+  prefs() {
+    return h('div', { class: 'card list pref' },
+      h('div', { class: 'row' }, h('span', { class: 'w ell' }, h('b', {}, '기록 폴더'), h('span', { class: 'ell' }, 'C:\\Users\\…\\Documents\\recovered — 장치별 검사·추출 기록을 여기에 둬요')), h('button', { class: 'btn' }, '폴더 열기')),
+      h('div', { class: 'row' }, h('span', { class: 'w ell' }, h('b', {}, '내장 디스크도 장치 목록에 보이기'), h('span', { class: 'ell' }, '평소에는 컴퓨터 안의 시스템·내장 디스크를 숨겨요')), h('span', { class: 'sw' })),
+      h('div', { class: 'row' }, h('span', { class: 'w ell' }, h('b', {}, '화면 테마'), h('span', { class: 'ell' }, '윈도우 설정을 따르거나 직접 고를 수 있어요')),
+        h('span', { class: 'seg' }, h('span', { class: 'on' }, '시스템'), h('span', {}, '밝게'), h('span', {}, '어둡게'))));
+  },
+  help() {
+    return h('div', { class: 'card helpcard' }, h('ul', {},
+      h('li', {}, '이 프로그램은 원본 장치에 아무것도 쓰지 않고 읽기만 해요. 검사·추출 중에 장치가 바뀌지 않아요.'),
+      h('li', {}, '윈도우가 "디스크를 초기화/포맷해야 합니다"라고 물어도 복구가 끝나기 전에는 누르지 마세요.'),
+      h('li', {}, '다 꺼낸 뒤 장치를 다시 쓰려면 장치 화면의 [포맷 점검]을 먼저 확인하고, 포맷은 윈도우 디스크 관리에서 하세요.'),
+      h('li', {}, '장치가 목록에 안 보이면 케이블·전원을 확인하고, 프로그램을 관리자 권한으로 다시 실행하세요.'),
+      h('li', {}, '창을 닫으면 프로그램이 끝나요. 작업 중에는 닫기를 막아요(멈춘 뒤 닫으면 나중에 이어서 할 수 있어요).')));
+  },
+};
+document.querySelectorAll('.nv').forEach(n => n.onclick = () => { S.view = n.dataset.v; render(); });
+const busy = () => S.run;
+const busyHint = '다른 작업이 실행 중이에요';
+
+const VIEW = {
+  over(d) {
+    if (!d.rec) return h('div', { class: 'card empty' }, h('div', {}, h('b', {}, '아직 검사하지 않은 하드예요'), h('p', {}, '검사는 하드를 읽기만 하고, 사진·영상·문서·압축 파일을 찾아요.'),
+      h('button', { class: 'btn primary', disabled: busy() || !d.conn, onclick: () => { S.tab = 'scan'; render(); } }, '검사하러 가기')));
+    return h('div', {},
+      h('div', { class: 'tiles' },
+        h('div', { class: 'card tile' }, h('div', { class: 'v num' }, d.found), h('div', { class: 'l' }, '찾은 파일')),
+        h('div', { class: 'card tile' }, h('div', { class: 'v num' }, d.got), h('div', { class: 'l' }, '꺼낸 파일')),
+        h('div', { class: 'card tile' + (d.need ? ' warn' : '') }, h('div', { class: 'v num' }, String(d.need)), h('div', { class: 'l' }, '확인 필요'))),
+      h('div', { class: 'sec' }, '다음에 할 일'),
+      d.id === 'sg'
+        ? h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, S.run ? '끝부분 촘촘 검사가 진행 중이에요' : '끝부분 촘촘 검사를 아직 안 했어요'),
+            h('div', { class: 'b ell' }, '검사하지 않은 뒤쪽 4.6 TB 에 놓친 파일이 있는지 32MB마다 찍어 봐요. 20분 안팎(추정).')),
+            h('button', { class: 'btn primary w', disabled: busy(), onclick: () => { S.tab = 'scan'; render(); } }, S.run ? '진행 중' : '검사 탭으로'))
+        : h('div', { class: 'card next' }, h('div', { class: 'tx' }, h('div', { class: 'a ell' }, '할 일이 없어요'), h('div', { class: 'b ell' }, '꺼낸 파일은 모두 정상으로 열렸어요.')), h('span', {})),
+      h('div', { class: 'sec' }, '최근 작업'),
+      h('div', { class: 'card list' },
+        h('div', { class: 'row' }, h('span', { class: 'd num' }, '11-24 16:08'), h('span', { class: 'w ell' }, '열림 확인 — 정상 16,072 · 확인 필요 6'), h('span', { class: 'chip warn' }, '확인 필요')),
+        h('div', { class: 'row' }, h('span', { class: 'd num' }, '11-24 16:07'), h('span', { class: 'w ell' }, '추출 — 문서·압축 11개'), h('span', { class: 'chip ok' }, '완료')),
+        h('div', { class: 'row' }, h('span', { class: 'd num' }, '11-24 16:05'), h('span', { class: 'w ell' }, '검사 — 이전 결과 활용, 17,241개 찾음'), h('span', { class: 'chip ok' }, '완료'))));
+  },
+  scan(d) {
+    const off = !d.conn, dis = off || busy();
+    const why = off ? '하드가 연결돼 있지 않아요' : busy() && !(S.run && d.id === 'sg') ? busyHint : '';
+    const run = S.run && d.id === 'sg';
+    return h('div', {},
+      off ? h('p', { class: 'hint' }, '이 하드를 연결하면 검사할 수 있어요. 지난 결과는 [결과] 탭에서 볼 수 있어요.') : null,
+      h('div', { class: 'card op' }, h('div', { class: 'tx' },
+        h('div', { class: 'a' }, '기본 검사', h('span', { class: 'chip ' + (d.rec ? 'ok' : '') }, d.rec ? '완료' : '안 함')),
+        h('div', { class: 'b ell' }, '데이터가 있는 구간까지 읽어서 파일을 찾아요. 이전 검사 결과가 있으면 그 구간은 건너뛰어요.'),
+        h('div', { class: 'c ell num' }, d.rec ? '검사 범위 ' + d.scanned + ' · ' + d.found + '개 찾음 · ' + d.last : '')),
+        h('div', { class: 'act' }, h('button', { class: 'btn w' + (d.rec ? '' : ' primary'), disabled: dis }, d.rec ? '다시 검사' : '검사 시작'), h('span', { class: 'hint ell' }, why))),
+      h('div', { class: 'card op' }, h('div', { class: 'tx' },
+        h('div', { class: 'a' }, '끝부분 촘촘 검사', h('span', { class: 'chip ' + (run ? 'run' : '') }, run ? '진행 중' : d.rec && d.id === 'sg' ? '안 해 봄' : '-')),
+        h('div', { class: 'b ell' }, '기본 검사가 읽지 않은 뒤쪽 구간을 32MB마다 찍어 봐서 놓친 파일의 흔적을 찾아요.'),
+        run ? h('div', { class: 'pbar' }, h('i', { style: 'width:' + S.pct + '%' })) : h('div', { class: 'pbar' }, h('i', { style: 'width:0%' })),
+        h('div', { class: 'c ell num' }, run ? '2.41 TB / 4.63 TB · 내용 있는 곳 0 · 파일 시작 표시 0' : d.id === 'sg' ? '대상 372 GB ~ 5.00 TB' : '기본 검사를 마치면 할 수 있어요')),
+        h('div', { class: 'act' }, run ? h('button', { class: 'btn w' }, '멈추기') : h('button', { class: 'btn w primary', disabled: dis || !d.rec || d.id !== 'sg' }, '시작'), h('span', { class: 'hint ell' }, run ? '이어서 할 수 있어요' : why))),
+      h('div', { class: 'card op' }, h('div', { class: 'tx' },
+        h('div', { class: 'a' }, '전체 검사', h('span', { class: 'chip' }, '느림')),
+        h('div', { class: 'b ell' }, '하드 처음부터 끝까지 모두 읽어요. 가장 확실하지만 5TB 기준 10시간 안팎(추정).'),
+        h('div', { class: 'c ell' }, '')),
+        h('div', { class: 'act' }, h('button', { class: 'btn w', disabled: dis }, '전체 검사'), h('span', { class: 'hint ell' }, why))));
+  },
+  ext(d) {
+    const G = [['사진', 'JPEG · HEIC · PNG …', '13,412장', true], ['RAW', 'CR3', '1,204장', true], ['영상', 'MP4 · MOV …', '1,451개', true],
+               ['문서', 'PDF · HWP · 오피스 …', '6개', true], ['압축', 'ZIP · 7z', '5개', true], ['기타', 'SQLite · RTF …', '0개', false]];
+    return h('div', {},
+      h('div', { class: 'sec' }, '꺼낼 종류 (개수는 예시)'),
+      h('div', { class: 'kinds' }, G.map(g => h('div', { class: 'card kind' + (g[3] ? ' on' : '') }, h('span', { class: 'box' }, g[3] ? '✓' : ''),
+        h('div', { class: 'tx' }, h('div', { class: 'n ell' }, g[0]), h('div', { class: 's ell' }, g[1])), h('span', { class: 'num' }, g[2])))),
+      h('div', { class: 'sec' }, '저장 폴더'),
+      h('div', { class: 'card dest' }, h('span', { class: 'p ell' }, 'E:\\99. 개인자료\\사진복구'), h('span', { class: 'chip ok' }, '다른 하드'), h('button', { class: 'btn' }, '폴더 선택')),
+      h('div', { class: 'card sum' }, h('div', { class: 'tx' }, h('div', { class: 'ell' }, d.id === 'sg' ? '고른 종류는 모두 꺼냈어요. 새로 꺼낼 파일이 없어요.' : '모두 꺼냈어요.'),
+        h('div', { class: 'hint ell' }, '이미 꺼낸 파일은 건너뛰어요. 여유 공간 1.2 TB')),
+        h('button', { class: 'btn primary w', disabled: true }, '꺼내기 시작')));
+  },
+  res(d) {
+    return h('div', {},
+      h('div', { class: 'card res' }, h('div', { class: 'big' }, d.need ? '!' : '✓'),
+        h('div', { class: 'tx' }, h('div', { class: 'a ell' }, d.got + '개를 꺼냈고, ' + (d.need ? d.need + '개는 확인이 필요해요' : '모두 정상으로 열렸어요')),
+          h('div', { class: 'b ell' }, d.need ? 'ZIP 5개는 [열림 다시 확인]을 누르면 복원본을 만들 수 있어요 · CR3 1개는 손상' : 'E:\\99. 개인자료\\…')),
+        h('button', { class: 'btn primary w' }, '폴더 열기')),
+      h('div', { class: 'thumbs' }, Array.from({ length: 16 }, () => h('div', {}))),
+      h('div', { class: 'btnrow' }, h('button', { class: 'btn' }, '열림 다시 확인'), h('button', { class: 'btn' }, '보고서 저장'), h('span', { style: 'flex:1' }), h('span', { class: 'hint' }, '열림 확인은 저장 폴더만 읽어요(하드 연결 없이 가능)')),
+      h('div', { class: 'sec' }, '확인 필요'),
+      h('div', { class: 'card list' },
+        h('div', { class: 'row' }, h('span', { class: 'w ell' }, '압축\\_의심\\날짜불명\\zip_… 외 4개 — ZIP 목차 없음'), h('span', { class: 'chip warn' }, '복원 가능')),
+        h('div', { class: 'row' }, h('span', { class: 'w ell' }, 'RAW\\_의심\\2024-05-25\\cr3_006976….cr3 — 손상'), h('span', { class: 'chip bad' }, '복구 불가'))));
+  },
+  fmt(d) {
+    const rows = d.id === 'sg' ? [
+      ['warn', '검사했던 하드가 연결돼 있지 않아, 저장 위치가 다른 하드인지 확인하지 못했어요.'],
+      ['ok', '고른 종류는 모두 꺼냈어요 (꺼낸 파일 16,078개, 같은 내용이라 하나만 둔 것 1,163개).'],
+      ['warn', '꺼낸 파일 중 5개가 저장 폴더에 없어요. 옮기거나 지웠는지 확인하세요.'],
+      ['warn', '열림 확인: 정상 16,072 · 복원본 0 · 확인 필요 6 · 미확인 0.'],
+      ['ok', '검사에서 찾은 파일은 모두 꺼냈어요.'],
+      ['info', '검사한 범위: 앞쪽 372 GB / 전체 5001 GB. 뒤쪽은 샘플로 보고 비어 있다고 추정했어요.'],
+      ['warn', '끝부분 촘촘 검사를 아직 안 했어요. 포맷 전에 한 번 해 보길 권해요.']]
+      : [['ok', '꺼낸 파일은 원본과 다른 하드에 있어요.'], ['ok', '고른 종류는 모두 꺼냈어요.'], ['ok', '꺼낸 파일이 저장 폴더에 모두 있어요.'], ['ok', '열림 확인: 모두 정상.'],
+         ['ok', '검사에서 찾은 파일은 모두 꺼냈어요.'], ['ok', '디스크 전체를 검사했어요.'], ['ok', '끝부분 검사는 필요 없어요(전체 검사함).']];
+    const bad = rows.some(r => r[0] === 'bad'), warn = rows.some(r => r[0] === 'warn');
+    return h('div', { class: 'card' },
+      h('div', { class: 'fmthead' }, h('div', { class: 'tx' }, h('b', {}, '이 하드를 포맷해도 될까요?'), h('div', { class: 'hint ell' }, '기록과 저장 폴더만 보고 판단해요. 포맷은 윈도우 디스크 관리에서 직접 하세요.')),
+        h('span', { class: 'chip ' + (bad ? 'bad' : warn ? 'warn' : 'ok') }, bad ? '아직 안 됨' : warn ? '확인 필요' : '포맷 가능')),
+      h('div', { class: 'fmt' }, h('ul', {}, rows.map(r => h('li', { class: r[0] }, h('span', { class: 'dot' }), h('span', { class: 't', title: r[1] }, r[1]))))));
+  },
+};
+let timer;
+$('#d-idle').onclick = () => { S.run = false; clearInterval(timer); $('#d-idle').classList.add('on'); $('#d-run').classList.remove('on'); render(); };
+$('#d-run').onclick = () => { S.run = true; $('#d-run').classList.add('on'); $('#d-idle').classList.remove('on'); clearInterval(timer); timer = setInterval(() => { S.pct = S.pct >= 99 ? 52 : S.pct + 1; render(true); }, 1500); render(); };
+$('#d-theme').onclick = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'; };
+render();
+</script>
+</body>
+</html>

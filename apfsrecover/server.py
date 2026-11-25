@@ -3,6 +3,7 @@
 디스크에 쓰는 엔드포인트는 존재하지 않는다. 장치는 목록(/api/devices)에 있는 것만 선택할 수 있고,
 임의 경로를 장치로 받지 않는다. 저장 폴더는 guards.check_dest 를 통과해야 한다.
 """
+import copy
 import errno
 import io
 import json
@@ -107,6 +108,7 @@ class Job:
     def __init__(self, kind):
         self.id = uuid.uuid4().hex[:8]
         self.kind = kind
+        self.sid = None  # 이 작업이 쓰는 기록 폴더 이름(장치 목록에서 어느 장치의 작업인지 알려 준다)
         self.state = "running"
         self.phase = ""
         self.error = None
@@ -142,7 +144,7 @@ class Job:
                 p["rate_mb_s"] = round(rate / 1e6, 1)
                 rest = p["total_bytes"] - p["done_bytes"]
                 p["eta_s"] = int(rest / rate) if rate > 0 and self.state == "running" else None
-            return {"id": self.id, "kind": self.kind, "state": self.state, "phase": self.phase,
+            return {"id": self.id, "kind": self.kind, "session": self.sid, "state": self.state, "phase": self.phase,
                     "progress": p, "error": self.error, "result": self.result,
                     "elapsed_s": int((self.finished or time.time()) - self.started)}
 
@@ -154,10 +156,144 @@ class App:
         self.sample_step = sample_step
         self.tail_step = tail_step
         self.token = token or secrets.token_urlsafe(24)
-        self.job = None
+        self._shared = {"job": None, "fp": {}, "counts": {}}  # view() 로 만든 사본과 함께 쓰는 상태(작업은 한 번에 하나)
         self.lock = threading.Lock()
         self.port = None
         self.all_disks = False  # 윈도우: 내장 버스(NVMe/SATA) 디스크도 목록에 표시
+        self.root = os.path.dirname(self.session)  # 장치별 기록 폴더(session*)가 모이는 곳
+
+    @property
+    def job(self):
+        return self._shared["job"]
+
+    @job.setter
+    def job(self, v):
+        self._shared["job"] = v
+
+    def view(self, session=None):
+        """같은 상태(작업·잠금)를 쓰되 기록 폴더가 고정된 사본. 작업은 시작할 때의 기록 폴더에만 쓴다
+        (작업 중에 화면에서 다른 장치를 골라도 작업 대상이 바뀌지 않게)."""
+        v = copy.copy(self)
+        if session:
+            v.session = os.path.realpath(session)
+        return v
+
+    # ---- 장치별 기록 ----
+    def _fp_cached(self, dev, ttl=60):
+        key = (dev["id"], dev["size"])
+        hit = self._shared["fp"].get(key)
+        if hit and time.time() - hit[1] < ttl:
+            return hit[0]
+        fp = self.fingerprint(dev) if dev.get("readable") else None
+        if fp:
+            self._shared["fp"][key] = (fp, time.time())
+        return fp
+
+    def _count_lines(self, path):
+        try:
+            st = os.stat(path)
+        except OSError:
+            return 0
+        key = (path, st.st_mtime, st.st_size)
+        hit = self._shared["counts"].get(path)
+        if hit and hit[0] == key:
+            return hit[1]
+        n = 0
+        with open(path, "rb") as f:
+            for _ in f:
+                n += 1
+        self._shared["counts"][path] = (key, n)
+        return n
+
+    def _records(self):
+        """기록 폴더 목록: [{"path","sid","fp","size","label","mtime","dj"}]"""
+        out = []
+        try:
+            names = sorted(os.listdir(self.root))
+        except OSError:
+            return out
+        for name in names:
+            p = os.path.join(self.root, name)
+            dj = compat.read_json(os.path.join(p, "device.json"), None) if name.startswith("session") else None
+            if not dj or not dj.get("fingerprint"):
+                continue
+            mt = max((os.path.getmtime(os.path.join(p, f)) for f in ("device.json", "catalog.jsonl", "extracted.jsonl", "verify_summary.json", "tail_check.json")
+                      if os.path.exists(os.path.join(p, f))), default=0)
+            out.append({"path": p, "sid": name, "fp": dj["fingerprint"], "size": dj.get("size"), "label": dj.get("label"), "mtime": mt, "dj": dj})
+        return out
+
+    def _unit_stats(self, path):
+        chain = self.view(path).related_sessions()
+        found = self._count_lines(os.path.join(path, "catalog.jsonl"))
+        got = sum(self._count_lines(os.path.join(s, "extracted.jsonl")) for s in chain)
+        need = fixed = 0
+        for s in chain:
+            vs = vf.load_summary(s) or {}
+            need += vs.get("fail", 0)
+            fixed += vs.get("fixed", 0)
+        return found, got, need, fixed
+
+    def _devices_cached(self, fresh=False, ttl=8):
+        """장치 목록(윈도우는 PowerShell 로 1~2초 걸린다)을 잠깐 기억해 둔다. 새로 고침 버튼은 fresh=True."""
+        hit = self._shared.get("devs")
+        if not fresh and hit and time.time() - hit[0] < ttl:
+            return [dict(d) for d in hit[1]]
+        devs = self.devices()
+        self._shared["devs"] = (time.time(), devs)
+        return [dict(d) for d in devs]
+
+    def units(self, fresh=False):
+        """장치 목록: 연결된 장치(기록이 있으면 함께) + 연결 안 됐지만 기록이 있는 장치."""
+        recs = self._records()
+        groups = {}
+        for r in recs:
+            groups.setdefault((r["fp"], r["size"]), []).append(r)
+        prim = {k: max(v, key=lambda r: r["mtime"]) for k, v in groups.items()}
+        job = self.job
+        running_sid = job.sid if job and job.state == "running" else None
+        out, used = [], set()
+        for d in self._devices_cached(fresh):
+            fp = self._fp_cached(d)
+            k = (fp, d["size"]) if fp else None
+            if not fp:  # 읽을 수 없을 때(관리자 권한 아님 등): 장치 번호와 크기가 같은 기록으로 대신 맞춘다
+                k = next((kk for kk, r in prim.items() if r["dj"].get("device") == d["id"] and r["size"] == d["size"]), None)
+            r = prim.get(k) if k else None
+            if r:
+                used.add(k)
+            out.append(self._unit(d, r, running_sid))
+        for k, r in sorted(prim.items(), key=lambda kv: -kv[1]["mtime"]):
+            if k not in used:
+                out.append(self._unit(None, r, running_sid))
+        return out
+
+    def _unit(self, d, r, running_sid):
+        u = {"key": ("dev:" + d["id"]) if d else ("rec:" + r["sid"]), "device_id": d["id"] if d else None,
+             "connected": bool(d), "readable": bool(d and d.get("readable")),
+             "name": (d.get("label") if d else None) or (r and r.get("label")) or ("기록만 있는 장치" if r else "외장 디스크"),
+             "size": d["size"] if d else (r or {}).get("size"), "sid": r["sid"] if r else None,
+             "bus": d.get("bus") if d else None, "content": d.get("content") if d else None,
+             "found": 0, "extracted": 0, "need": 0, "fixed": 0, "scanned": None, "finished": False, "last": None, "running": False}
+        if r:
+            found, got, need, fixed = self._unit_stats(r["path"])
+            u.update(found=found, extracted=got, need=need, fixed=fixed, scanned=r["dj"].get("scanned_bytes"),
+                     finished=bool(r["dj"].get("finished")), last=time.strftime("%Y-%m-%d %H:%M", time.localtime(r["mtime"])) if r["mtime"] else None,
+                     running=r["sid"] == running_sid)
+        return u
+
+    def unit_session(self, key):
+        """장치 목록의 key 에 해당하는 기록 폴더 경로(없으면 새로 쓸 폴더 이름). 모르는 key 면 None."""
+        for u in self.units():
+            if u["key"] != key:
+                continue
+            if u["sid"]:
+                return os.path.join(self.root, u["sid"])
+            slug = re.sub(r"[^0-9A-Za-z가-힣]+", "_", u["name"] or "disk").strip("_")[:24] or "disk"
+            base = "session_" + slug
+            p, i = os.path.join(self.root, base), 2
+            while os.path.exists(p):
+                p, i = os.path.join(self.root, "%s_%d" % (base, i)), i + 1
+            return p
+        return None
 
     # ---- 장치 ----
     def devices(self):
@@ -239,7 +375,9 @@ class App:
             except OSError:
                 pass
             job = Job(kind)
+            job.sid = os.path.basename(self.session)
             self.job = job
+        session = self.session
 
         def run():
             try:
@@ -255,7 +393,7 @@ class App:
             except Exception as e:  # 작업 스레드가 조용히 죽지 않게 한다
                 job.finish("error", "%s: %s" % (type(e).__name__, e))
             finally:
-                chown_tree(self.session)
+                chown_tree(session)
                 if job.result.get("dest"):
                     chown_tree(job.result["dest"])
         threading.Thread(target=run, daemon=True).start()
@@ -284,7 +422,7 @@ class App:
         if prev is None:  # 처음부터 시작할 때: 어느 단계에서 끊겨도 같은 디스크인지 알아볼 수 있게 먼저 기록한다
             os.makedirs(self.session, exist_ok=True)
             with open(djp, "w", encoding="utf-8") as f:
-                json.dump({"device": dev["id"], "size": size, "fingerprint": fp, "finished": False,
+                json.dump({"device": dev["id"], "label": dev.get("label"), "size": size, "fingerprint": fp, "finished": False,
                            "scanned_bytes": None, "full": bool(full)}, f)
         if not full:
             job.set_phase("sampling")
@@ -313,7 +451,7 @@ class App:
                      on_progress=lambda p: job.update(done_bytes=p["pos"], total_bytes=p["total"], found=p["found"]),
                      should_cancel=job.cancel.is_set, fresh=not resume, known=known)
         with open(os.path.join(self.session, "device.json"), "w", encoding="utf-8") as f:
-            json.dump({"device": dev["id"], "size": size, "scanned_bytes": end_bytes, "fingerprint": fp,
+            json.dump({"device": dev["id"], "label": dev.get("label"), "size": size, "scanned_bytes": end_bytes, "fingerprint": fp,
                        "full": bool(full) and prev is None, "finished": rc == 0}, f)
         return {0: "done", 3: "cancelled"}.get(rc, "disconnected"), {"end_bytes": end_bytes}
 
@@ -559,9 +697,28 @@ class App:
     def saved_dest(self):
         return compat.read_json(os.path.join(self.session, "plan.json"), {}).get("dest")
 
+    def verify_overview(self):
+        """열림 확인 결과. 이어진 옛 기록(같은 장치에서 먼저 꺼낸 것)의 결과도 합친다."""
+        out, fails, fixed = None, [], []
+        for c in self.related_sessions():
+            vs = vf.load_summary(c)
+            if vs:
+                if out is None:
+                    out = dict(vs, levels=dict(vs["levels"]), reasons=dict(vs["reasons"]), tools=dict(vs["tools"]))
+                else:
+                    for k in ("total", "ok", "fail", "fixed", "unchecked"):
+                        out[k] += vs[k]
+                    for k in ("levels", "reasons"):
+                        for kk, n in vs[k].items():
+                            out[k][kk] = out[k].get(kk, 0) + n
+            fails += vf.load_failures(c)
+            fixed += vf.load_fixed(c)
+        return {"summary": out, "failures": fails[:200], "fixed": fixed[:200]}
+
     def result_summary(self, n_samples=12):
         """결과 화면용: 꺼낸 파일의 종류별 개수, 용량, 촬영일 범위, 미리보기 후보."""
-        done = sorted(ex.load_extracted(self.session).values(), key=lambda r: r["id"])
+        chain = [c for c in self.related_sessions() if os.path.isfile(os.path.join(c, "extracted.jsonl"))]
+        done = [r for c in chain for r in sorted(ex.load_extracted(c).values(), key=lambda r: r["id"])]  # 이어진 옛 기록에서 꺼낸 것도 합친다
         by_kind, total, suspect, days = {}, 0, 0, []
         for r in done:
             k = r["path"].replace("\\", "/").split("/")
@@ -577,7 +734,7 @@ class App:
         step = max(1, len(pool) // n_samples)
         samples = [{"path": r["path"], "kind": r.get("kind")} for r in pool[::step][:n_samples]]
         return {"files": len(done), "bytes": total, "by_kind": by_kind, "suspect": suspect,
-                "duplicates": len(ex.load_dups(self.session)), "dest": self.saved_dest(),
+                "duplicates": sum(len(ex.load_dups(c)) for c in chain), "dest": self.saved_dest(),
                 "first_day": min(days) if days else None, "last_day": max(days) if days else None,
                 "samples": samples}
 
@@ -599,8 +756,11 @@ class App:
                     k, s["kinds"][k], s["bytes"][k] / 1e9, st.get("ok", 0), st.get("suspect", 0)))
             lines.append("  촬영일 없음: %d개" % s["undated"])
         done = ex.load_extracted(self.session)
-        lines += ["", "[복구] 꺼낸 파일 %d개 (%.2f GB)" % (len(done), sum(r.get("bytes", 0) for r in done.values()) / 1e9)]
-        vs = vf.load_summary(self.session)
+        rs = self.result_summary()
+        lines += ["", "[복구] 꺼낸 파일 %d개 (%.2f GB)%s" % (rs["files"], rs["bytes"] / 1e9,
+                  " — 같은 장치의 이전 기록 %d개 포함" % (len(self.related_sessions()) - 1) if len(self.related_sessions()) > 1 else "")]
+        vo = self.verify_overview()
+        vs = vo["summary"]
         if vs:
             lines += ["", "[검증] 전체 %d · 열림 확인 %d · 복원본 %d · 실패 %d · 미검사 %d" % (
                 vs["total"], vs["ok"], vs.get("fixed", 0), vs["fail"], vs["unchecked"]),
@@ -608,11 +768,11 @@ class App:
                 "  사용한 도구: " + (", ".join(k for k, v in vs["tools"].items() if v) or "없음(구조 확인만)")]
             if vs.get("fixed"):
                 lines.append("  복원본: %d개 (목차가 없거나 끝이 잘린 ZIP 에서 온전한 항목만 모아 만든 새 파일, 원본은 그대로)" % vs["fixed"])
-            for r in vf.load_fixed(self.session, 50):
+            for r in vo["fixed"][:50]:
                 sv = r.get("salvage") or {}
                 lines.append("  복원본: %s — 온전한 항목 %s개%s → %s" % (r.get("path", ""), sv.get("entries", "?"),
                                                                  ", 마지막 항목 하나는 잘려서 뺌" if sv.get("lost") else "", sv.get("path", "")))
-            for r in vf.load_failures(self.session, 50):
+            for r in vo["failures"][:50]:
                 lines.append("  실패: %s — %s" % (r.get("path", ""), r.get("reason", "")))
         tc = tailcheck.load(self.session)
         if tc:
@@ -731,8 +891,11 @@ def make_handler(app):
                         return self._err(404, "검사 결과가 없습니다.")
                     return self._send(200, summarize(app.session))
                 if u.path == "/api/verify/summary":
-                    return self._send(200, {"summary": vf.load_summary(app.session),
-                                            "failures": vf.load_failures(app.session), "fixed": vf.load_fixed(app.session)})
+                    return self._send(200, app.verify_overview())
+                if u.path == "/api/units":
+                    return self._send(200, {"units": app.units(fresh=(q.get("fresh") or ["0"])[0] == "1"), "images": bool(app.images), "is_root": is_admin(),
+                                            "current": os.path.basename(app.session),
+                                            "root": app.root.replace(real_home(), "~"), "all_disks": app.all_disks})
                 if u.path == "/api/format-check":
                     dev = app.find_device((q.get("device_id") or [""])[0]) if q.get("device_id") else None
                     return self._send(200, app.format_check(dev))
@@ -794,7 +957,7 @@ def make_handler(app):
                     reuse = next((c["path"] for c in app.reusable(dev) if c["name"] == body["reuse"]), None)
                     if reuse is None:
                         return self._err(400, "선택한 이전 검사 기록을 쓸 수 없습니다(같은 디스크가 아니거나 없어졌습니다).")
-                job = app.start_job("scan", app.scan_target(dev, bool(body.get("full")), bool(body.get("resume")), reuse))
+                job = app.start_job("scan", app.view().scan_target(dev, bool(body.get("full")), bool(body.get("resume")), reuse))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/auto/start":
                 dev = self._device(body)
@@ -808,7 +971,7 @@ def make_handler(app):
                 early = guards.check_dest(plan.get("dest"), app.forbidden_mounts(dev), 0)
                 if not early["ok"]:
                     return self._err(400, " / ".join(early["reasons"]))
-                job = app.start_job("auto", app.auto_target(dev, plan, bool(body.get("full")), bool(body.get("resume"))))
+                job = app.start_job("auto", app.view().auto_target(dev, plan, bool(body.get("full")), bool(body.get("resume"))))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/open-folder":
                 dest = app.saved_dest()
@@ -865,8 +1028,18 @@ def make_handler(app):
                 chk = ex.check_plan(app.session, plan, app.forbidden_mounts(dev))
                 if not chk["ok"]:
                     return self._err(400, " / ".join(chk["reasons"]))
-                job = app.start_job("extract", app.extract_target(dev, plan))
+                job = app.start_job("extract", app.view().extract_target(dev, plan))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
+            if path == "/api/select":  # 장치 목록에서 고른 장치의 기록 폴더로 바꾼다(실행 중인 작업은 자기 기록 폴더를 그대로 쓴다)
+                p = app.unit_session(body.get("key") or "")
+                if not p:
+                    return self._err(404, "목록에 없는 장치입니다. 목록을 새로 고친 뒤 다시 고르세요.")
+                app.session = os.path.realpath(p)
+                return self._send(200, {"session": os.path.basename(app.session)})
+            if path == "/api/prefs":
+                if "all_disks" in body:
+                    app.all_disks = bool(body["all_disks"])
+                return self._send(200, {"all_disks": app.all_disks})
             if path == "/api/tail/start":
                 dev = self._device(body)
                 if not dev:
@@ -879,13 +1052,13 @@ def make_handler(app):
                 bad = app.disk_mismatch(dev)
                 if bad:
                     return self._err(400, bad)
-                job = app.start_job("tail", app.tail_target(dev, bool(body.get("resume"))))
+                job = app.start_job("tail", app.view().tail_target(dev, bool(body.get("resume"))))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/verify/start":
                 dest = body.get("dest") or app.saved_dest()
                 if not dest:
                     return self._err(400, "검증할 저장 폴더를 알 수 없습니다. 먼저 복구를 실행하세요.")
-                job = app.start_job("verify", app.verify_target(os.path.realpath(expand(dest)),
+                job = app.start_job("verify", app.view().verify_target(os.path.realpath(expand(dest)),
                                                                 body.get("deep", True)))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             return self._err(404, "없는 경로")

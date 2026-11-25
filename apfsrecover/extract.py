@@ -143,9 +143,30 @@ def overview(records, plan, done, failed=frozenset(), dups=frozenset()):
             "batches_remaining": batches}
 
 
+def linked_done(session, limit=6):
+    """'이전 검사 결과 재사용'으로 이어진 옛 기록(known_from.json)에서 이미 꺼낸 파일과 같은 위치의 항목 id.
+    같은 파일을 다시 꺼내지 않게 건너뛰는 데 쓴다(옛 기록은 읽기만 한다)."""
+    chain, seen = [], {os.path.realpath(session)}
+    p = compat.read_json(os.path.join(session, "known_from.json"), {}).get("path")
+    while p and os.path.isdir(p) and len(chain) < limit and os.path.realpath(p) not in seen:
+        chain.append(p)
+        seen.add(os.path.realpath(p))
+        p = compat.read_json(os.path.join(p, "known_from.json"), {}).get("path")
+    offs = set()
+    for c in chain:
+        if not os.path.isfile(os.path.join(c, "catalog.jsonl")):
+            continue
+        recs = {r["id"]: r["offset"] for r in load_catalog(c)}
+        offs |= {recs[i] for i in load_extracted(c) if i in recs}
+        offs |= {recs[i] for i in load_dups(c) if i in recs}
+    if not offs:
+        return set()
+    return {r["id"] for r in load_catalog(session) if r["offset"] in offs}
+
+
 def check_plan(session, plan, forbidden=()):
     records = load_catalog(session)
-    done = load_extracted(session)
+    done = set(load_extracted(session)) | linked_done(session)
     ov = overview(records, plan, done, load_failed(session), load_dups(session))
     res = check_dest(plan.get("dest"), forbidden, ov["next_bytes"])
     if not plan.get("kinds"):
@@ -275,7 +296,7 @@ def extract_batch(device_path, session, plan, forbidden=(), on_progress=None, sh
             open(os.path.join(session, "extracted.jsonl"), "a", encoding="utf-8") as log, \
             open(os.path.join(session, "failed.jsonl"), "a", encoding="utf-8") as flog, \
             open(os.path.join(session, "duplicates.jsonl"), "a", encoding="utf-8") as dlog:
-        batch = next_batch(select(records, plan), set(done) | failed_ids | set(dup_ids),
+        batch = next_batch(select(records, plan), set(done) | failed_ids | set(dup_ids) | linked_done(session),
                            plan.get("batch", {"unit": "gb", "size": 50}))
         total_bytes = sum(r["length"] for r in batch)
         kind_total, kind_done = {}, {}  # 화면에 "사진 1,350 / 3,214" 처럼 보여 주기 위한 종류별 개수

@@ -178,7 +178,7 @@ class UiApiTest(unittest.TestCase):
         html = body.decode("utf-8")
         for stale in ("RecoveryTool.bat", "RecoveryTool.command", "APFS 복구 도구", "~/Documents"):
             self.assertNotIn(stale, html, stale)
-        self.assertIn("사진 복구 도구", html)
+        self.assertIn("<title>RecoveryHDD</title>", html)
 
 
 if __name__ == "__main__":
