@@ -22,6 +22,7 @@ from . import compat
 from . import devices as devmod
 from . import extract as ex
 from . import fsbrowse, guards, tailcheck, imaging, partfind, apfsmeta
+from . import organize as orgmod
 from . import health as healthmod
 from . import verify as vf
 from .blockdev import ReadOnlyDevice, device_gone, split_device_path
@@ -967,6 +968,79 @@ class App:
             job.finish("cancelled" if job.cancel.is_set() else "done", matched=out["matched"], linked=out["linked"], total=out["total"], dest=dest)
         return target
 
+    # ---- 정리해서 복사 ----
+    def _org_pairs(self):
+        out = []
+        for c in self.related_sessions():
+            d = compat.read_json(os.path.join(c, "plan.json"), {}).get("dest")
+            if d:
+                out.append((c, os.path.realpath(expand(d))))
+        return out
+
+    def _org_items(self, fresh=False):
+        """꺼낸 파일 목록(파일이 있는지 확인하느라 수천 개면 1~2초) 을 잠깐 기억해 둔다."""
+        key = ("org", self.session)
+        hit = self._shared.get(key)
+        if not fresh and hit and time.time() - hit[0] < 60:
+            return hit[1]
+        items = orgmod.collect(self._org_pairs())
+        self._shared[key] = (time.time(), items)
+        return items
+
+    def organize_check(self, out, opts, dev=None, fresh=False):
+        """미리보기와 시작 전 확인. 반환: {ok, reasons, files, bytes, counts, samples, free, src, last}"""
+        pairs = self._org_pairs()
+        last = compat.read_json(os.path.join(self.session, "organize.json"), None)
+        res = {"ok": False, "reasons": [], "files": 0, "bytes": 0, "counts": {}, "samples": [], "free": None,
+               "src": [p for _, p in pairs], "last": last, "out": None}
+        if not pairs:
+            res["reasons"].append("먼저 파일을 꺼내야 해요.")
+            return res
+        items = self._org_items(fresh)
+        o = orgmod.opts_of(opts)
+        outp = os.path.realpath(expand(out)) if out else None
+        rows, cnt = orgmod.plan(items, outp or "<저장할 곳>", o)
+        res.update(files=len(rows), bytes=sum(r[2] for r in rows), counts=dict(cnt), out=outp,
+                   samples=[[a, b] for a, b in orgmod.samples(rows, outp or "<저장할 곳>")])
+        if not o["groups"]:
+            res["reasons"].append("복사할 종류를 하나 이상 고르세요.")
+        if not rows and o["groups"]:
+            res["reasons"].append("복사할 파일이 없어요(꺼낸 폴더에 파일이 없을 수 있어요).")
+        if not outp:
+            res["reasons"].append("저장할 곳을 고르세요.")
+            return res
+        for _, p in pairs:
+            if guards._under(outp, p):
+                res["reasons"].append("꺼낸 폴더(%s) 안에는 저장할 수 없어요. 다른 곳을 고르세요." % p)
+                break
+        have = orgmod.present_bytes(rows, outp)
+        chk = guards.check_dest(outp, self.forbidden_mounts(dev) if dev else [], res["bytes"] - have)
+        res["free"], res["present"] = chk["free"], have
+        res["reasons"] += [x.replace(" 묶음 크기를 줄이세요.", " 다른 곳을 고르거나 종류를 줄이세요.") for x in chk["reasons"]]
+        res["ok"] = not res["reasons"]
+        return res
+
+    def organize_target(self, out, opts):
+        def target(job):
+            outp = os.path.realpath(expand(out))
+            rows, cnt = orgmod.plan(self._org_items(True), outp, orgmod.opts_of(opts))
+            job.set_phase("copy")
+
+            def prog(p):
+                if p["phase"] != job.phase:
+                    job.set_phase(p["phase"])
+                job.update(done=p["done"], total=p["total"], done_bytes=p["done_bytes"], total_bytes=p["total_bytes"])
+            r = orgmod.run(rows, outp, on_progress=prog, should_cancel=job.cancel.is_set)
+            chown_tree(outp)
+            info = {k: r[k] for k in ("files", "bytes", "copied", "skipped", "checked", "finished")}
+            info.update(mismatch=len(r["mismatch"]), mismatch_list=r["mismatch"][:50], dir=outp, opts=orgmod.opts_of(opts),
+                        at=time.strftime("%Y-%m-%d %H:%M"))
+            os.makedirs(self.session, exist_ok=True)
+            with open(os.path.join(self.session, "organize.json"), "w", encoding="utf-8") as f:
+                json.dump(info, f, ensure_ascii=False)
+            job.finish("done" if r["finished"] else "cancelled", **{k: info[k] for k in ("files", "copied", "checked", "mismatch", "dir")})
+        return target
+
     def add_image(self, path):
         p = os.path.realpath(expand(path))
         if not os.path.isfile(p):
@@ -1213,6 +1287,8 @@ def make_handler(app):
                     return self._send(200, app.backup_info())
                 if u.path == "/api/partitions":
                     return self._send(200, {"result": compat.read_json(os.path.join(app.session, "partitions.json"), None)})
+                if u.path == "/api/organize":
+                    return self._send(200, {"last": compat.read_json(os.path.join(app.session, "organize.json"), None)})
                 if u.path == "/api/names":
                     return self._send(200, {"result": compat.read_json(os.path.join(app.session, "names.json"), None)})
                 if u.path == "/api/tail":
@@ -1408,6 +1484,21 @@ def make_handler(app):
                     if bad:
                         return self._err(400, bad)
                     job = app.start_job("names", v.names_target(dev))
+                return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
+            if path == "/api/organize/open":
+                last = compat.read_json(os.path.join(app.session, "organize.json"), None)
+                if not last or not os.path.isdir(last.get("dir") or ""):
+                    return self._err(404, "정리한 폴더를 찾을 수 없어요.")
+                open_folder(last["dir"])
+                return self._send(200, {"ok": True})
+            if path in ("/api/organize/check", "/api/organize/start"):  # 꺼낸 파일을 정리해서 복사(원본 장치는 읽지 않는다)
+                dev = app.find_device(body["device_id"]) if body.get("device_id") else None
+                chk = app.organize_check(body.get("out") or "", body.get("opts") or {}, dev, fresh=path.endswith("start"))
+                if path.endswith("check"):
+                    return self._send(200, chk)
+                if not chk["ok"]:
+                    return self._err(400, " / ".join(chk["reasons"]))
+                job = app.start_job("organize", app.view().organize_target(body["out"], body.get("opts") or {}))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
             if path == "/api/images/open":
                 try:
