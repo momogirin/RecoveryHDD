@@ -358,6 +358,34 @@ def browse_items(session):
     return out
 
 
+def recent_thumbs(session, n=8, tail_bytes=256 << 10):
+    """검사 중 화면의 "방금 찾은 사진" 줄: 기록 파일의 끝부분만 읽어 미리보기가 있는 최근 항목 n개(최신 먼저).
+    검사가 쓰고 있는 파일이라 마지막 줄이 덜 써졌을 수 있다(읽지 못한 줄은 건너뛴다). 반환: [{id, kind, orient}]"""
+    path = os.path.join(os.path.realpath(expand(session)), "catalog.jsonl")
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            f.seek(max(0, size - tail_bytes))
+            chunk = f.read()
+    except OSError:
+        return []
+    lines = chunk.split(b"\n")
+    if size > tail_bytes:
+        lines = lines[1:]  # 잘려서 시작한 첫 줄
+    out = []
+    for line in reversed(lines):
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(r, dict) and r.get("thumb") and isinstance(r.get("id"), int):
+            out.append({"id": r["id"], "kind": r.get("kind"), "orient": r.get("orient") if r.get("orient") in (3, 6, 8) else 0})
+            if len(out) >= n:
+                break
+    return out
+
+
 def item_location(session, rid):
     """항목 번호 → (위치, 길이, 종류, EXIF 방향). 없으면 None. browse_items 와 같은 캐시를 쓴다."""
     if browse_items(session) is None:

@@ -29,7 +29,7 @@ from .blockdev import ReadOnlyDevice, device_gone, split_device_path
 from .identity import fingerprint
 from .privilege import is_admin
 from .power import on_battery
-from .catalog import BS, browse_items, catalog, item_location, summarize, thumb_path
+from .catalog import BS, browse_items, catalog, item_location, recent_thumbs, summarize, thumb_path
 from .ownership import chown_tree, expand, real_home
 from .survey import estimate_extent
 
@@ -1254,6 +1254,8 @@ def make_handler(app):
                     if not os.path.exists(os.path.join(app.session, "catalog.jsonl")):
                         return self._err(404, "검사 결과가 없습니다.")
                     return self._send(200, summarize(app.session))
+                if u.path == "/api/catalog/recent":  # 검사 중 "방금 찾은 사진" 줄
+                    return self._send(200, {"items": recent_thumbs(app.session)})
                 if u.path == "/api/catalog/items":  # 꺼내기 전 탐색 화면: 찾은 파일 전체(짧은 형태)
                     items = browse_items(app.session)
                     if items is None:

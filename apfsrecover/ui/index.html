@@ -600,6 +600,8 @@ main h1 { font-size: 18px; line-height: 28px; }
 .bxt img.o3, .bx-pv .big img.o3 { transform: rotate(180deg); }
 .bxt img.o6, .bxt img.o8 { width: 96px; height: 128px; left: 16px; top: -16px; } .bxt img.o6 { transform: rotate(90deg); } .bxt img.o8 { transform: rotate(-90deg); }
 .bx-pv .big img.o6, .bx-pv .big img.o8 { position: absolute; width: 200px; height: 266px; left: 33px; top: -33px; } .bx-pv .big img.o6 { transform: rotate(90deg); } .bx-pv .big img.o8 { transform: rotate(-90deg); }
+.th img.o3 { transform: rotate(180deg); }
+.th img.o6, .th img.o8 { position: absolute; width: 72px; height: 96px; left: 12px; top: -12px; object-fit: cover; } .th img.o6 { transform: rotate(90deg); } .th img.o8 { transform: rotate(-90deg); }
 .bxt .lab { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--sub); font-size: 12px; }
 .bxt .lab b { font-size: 14px; color: var(--text); letter-spacing: .5px; }
 .bxt.vid { background: linear-gradient(160deg, #3d3a5c, #1d1b30); }
@@ -739,6 +741,8 @@ main h1 { font-size: 18px; line-height: 28px; }
         <div class="ring" id="scan-ring"><div><div class="pc">0%</div><div class="pl ell" id="scan-pl">진행</div></div></div>
         <div class="main"><div class="big ell" id="scan-big">계산 중이에요</div><div class="when" id="scan-when"></div><div class="stats" id="scan-stats"></div></div>
       </div>
+      <div class="strip-h"><span>방금 찾은 사진</span><span class="ell hint" id="scan-strip-n"></span></div>
+      <div class="strip" id="scan-strip"></div>
     </section>
 
     <!-- 장치 > 추출: 설정 -->
@@ -1592,6 +1596,7 @@ async function startScan(resume, full) {
   try {
     await api('/api/scan/start', { device_id: S.sel, full: !!full, resume: !!resume, reuse });
     if (!resume) S.dur = {}; S.flow = 'scan'; S.seen = null; S.job = null; S.lost = false; clear($('#scanmsg'));
+    S.scanStripKey = ''; S.scanStripT = 0; clear($('#scan-strip')).append(...Array.from({ length: 8 }, () => h('div', { class: 'th skel' }))); $('#scan-strip-n').textContent = '';
     heading('scan', '파일을 찾고 있어요', reuse ? '이전 검사 결과를 활용하고 있어요. 이미 찾은 파일 구간은 읽지 않고 건너뜁니다.' : SCAN_LEAD);
     banner('', '', 'msg'); go('scan'); poll();
   } catch (e) { banner('bad', e.message, 'msg'); }
@@ -1667,6 +1672,7 @@ function renderJob() {
     paint('scan', { now: 0, pct, ring: sampling ? '위치 확인' : '파일 찾기', stale, big: t.big, when: t.when,
       stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], [speed, '읽는 속도']] });
     off('#scancancel'); setStatus('검사 중 · 원본은 읽기만 해요', num(p.found || 0) + '개 찾음');
+    if (!stale && !sampling) refreshScanStrip(j);
   }
   if (j.kind === 'extract' && S.screen === 'run' && run) {
     const t = timeLine(j, p.eta_s);
@@ -1684,6 +1690,23 @@ function renderJob() {
       stats: [[num(p.done) + ' / ' + num(p.total), '확인한 파일'], [num(p.ok), '잘 열림'], [num(p.fail), '확인 필요']] });
     off('#stop'); setStatus('열림 확인 중 · 저장 폴더만 읽어요', num(p.done) + ' / ' + num(p.total) + '개');
   }
+}
+// 검사 중 "방금 찾은 사진": 검사가 저장한 내장 미리보기를 3초마다 최근 8장(최신이 왼쪽). 원본 장치는 더 읽지 않는다
+async function refreshScanStrip(j) {
+  const now = Date.now(); if (S.scanStripBusy || now - (S.scanStripT || 0) < 3000) return;
+  S.scanStripBusy = true; S.scanStripT = now;
+  try {
+    const items = (await api('/api/catalog/recent')).items || [];
+    const key = j.id + ':' + items.map(r => r.id).join(',');
+    if (key === S.scanStripKey) return; S.scanStripKey = key;
+    // 주소에 작업 번호를 붙인다: 다시 검사하면 같은 번호에 다른 사진이 붙으므로 옛 캐시를 쓰지 않게
+    const els = items.map(r => { const el = h('div', { class: 'th', title: kindLabel(r.kind) });
+      const img = h('img', { alt: '', src: '/api/catalog/thumb?token=' + encodeURIComponent(T) + '&id=' + r.id + '&v=' + encodeURIComponent(j.id), class: bxOrient(r) });
+      img.onerror = () => img.remove(); el.append(img); return el; });
+    while (els.length < 8) els.push(h('div', { class: 'th skel' }));
+    clear($('#scan-strip')).append(...els);
+    $('#scan-strip-n').textContent = items.length ? '' : '사진을 찾으면 여기에 보여요';
+  } catch (e) { } finally { S.scanStripBusy = false; }
 }
 function renderKinds(by, mod) {
   const bk = by || {};
