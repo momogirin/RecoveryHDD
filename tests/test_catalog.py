@@ -282,3 +282,11 @@ class ThumbTest(unittest.TestCase):
         self.assertIsNone(tiff_thumbnail(b"II*\0\xff\xff\xff\xff"))   # IFD 위치가 엉터리
         self.assertIsNone(tiff_thumbnail(b""))
         self.assertIsNone(clean_thumb(b"\xff\xd8\xff" + b"\0" * 200))  # JPEG 처럼 시작하지만 깨짐
+
+
+class OrientTest(unittest.TestCase):
+    def test_orientation_is_read_only_when_not_normal(self):
+        for v, want in ((6, 6), (8, 8), (3, 3), (1, None), (9, None)):
+            t = synth.make_tiff("Canon", "Canon EOS R8", "2024:03:06 09:38:35", orient=v)
+            self.assertEqual(parse_tiff(t).get("orient"), want, v)
+            self.assertEqual(parse_tiff(t)["taken"], "2024-03-06T09:38:35")  # 다른 값은 그대로 읽힌다

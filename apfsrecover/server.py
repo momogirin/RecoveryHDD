@@ -28,7 +28,7 @@ from .blockdev import ReadOnlyDevice, device_gone, split_device_path
 from .identity import fingerprint
 from .privilege import is_admin
 from .power import on_battery
-from .catalog import BS, catalog, summarize, thumb_path
+from .catalog import BS, browse_items, catalog, item_location, summarize, thumb_path
 from .ownership import chown_tree, expand, real_home
 from .survey import estimate_extent
 
@@ -94,6 +94,52 @@ def thumbnail(path):
         _thumbs.clear()
     _thumbs[key] = data
     return data
+
+
+PREVIEW_PX = 1200
+PREVIEW_MAX_READ = 64 << 20   # 이보다 큰 사진은 크게 보기를 하지 않는다(디스크를 오래 붙잡지 않게)
+PREVIEW_KINDS = ("jpeg", "png", "gif", "webp", "bmp", "raw-cr3")
+
+
+class PreviewError(Exception):
+    def __init__(self, code, msg):
+        super().__init__(msg)
+        self.code = code
+
+
+ORIENT_ROTATE = {3: 180, 6: 270, 8: 90}  # EXIF 방향 → Pillow rotate 각도(반시계). 거울상(2·4·5·7)은 돌리지 않는다
+
+
+def preview_bytes(kind, data, orient=0):
+    """원본에서 읽은 파일 바이트 → 화면에 보일 JPEG 바이트. 만들 수 없으면 None.
+    CR3 는 파일 안의 PRVW(1620x1080 JPEG)를 쓴다. PRVW 에는 방향 정보가 없어 검사 기록의 방향(orient)으로 돌린다.
+    Pillow 가 없으면 JPEG 를 그대로 돌려준다(브라우저가 줄인다)."""
+    raw = kind == "raw-cr3"
+    from .formats import jpeg_parse
+    if kind == "raw-cr3":
+        i = data.find(b"PRVW")
+        j = data.find(b"\xff\xd8\xff", i, i + 64) if i >= 0 else -1
+        if j < 0:
+            return None
+        status, length, _ = jpeg_parse(data[j:])
+        if status != "ok":
+            return None
+        data, kind = data[j:j + length], "jpeg"
+    try:
+        from PIL import Image, ImageOps
+        with Image.open(io.BytesIO(data)) as im:
+            im.draft("RGB", (PREVIEW_PX, PREVIEW_PX))
+            im = ImageOps.exif_transpose(im)
+            if raw and orient in ORIENT_ROTATE:
+                im = im.rotate(ORIENT_ROTATE[orient], expand=True)
+            im.thumbnail((PREVIEW_PX, PREVIEW_PX))
+            buf = io.BytesIO()
+            im.convert("RGB").save(buf, "JPEG", quality=85)
+            return buf.getvalue()
+    except ImportError:
+        return data if kind == "jpeg" and len(data) <= 16 << 20 else None
+    except Exception:  # 깨진 그림
+        return None
 
 
 def open_folder(path):
@@ -394,6 +440,31 @@ class App:
         if fp is None:
             return "디스크를 읽지 못해 검사했던 디스크인지 확인할 수 없습니다. 연결과 권한을 확인하세요."
         return None if fp == dj["fingerprint"] else self.WRONG_DISK
+
+    def preview(self, dev, rid):
+        """찾은 파일 하나를 원본에서 읽어 크게 보기용 JPEG 를 만든다(읽기만 한다). 실패하면 PreviewError."""
+        if self.job and self.job.state == "running":
+            raise PreviewError(409, "작업 중에는 원본을 읽지 않아요(작업이 느려져요). 끝난 뒤에 다시 눌러 주세요.")
+        loc = item_location(self.session, rid)
+        if not loc:
+            raise PreviewError(404, "검사 기록에 없는 파일입니다.")
+        off, length, kind, orient = loc
+        if kind not in PREVIEW_KINDS:
+            raise PreviewError(415, "이 종류는 크게 볼 수 없어요. 꺼낸 뒤 열어 보세요.")
+        if kind != "raw-cr3" and length > PREVIEW_MAX_READ:
+            raise PreviewError(413, "파일이 너무 커서 크게 보기를 하지 않아요. 꺼낸 뒤 열어 보세요.")
+        bad = self.disk_mismatch(dev)
+        if bad:
+            raise PreviewError(400, bad)
+        try:
+            with ReadOnlyDevice(dev["path"]) as d:
+                data = d.read_at(off, min(length, 4 << 20) if kind == "raw-cr3" else length)
+        except OSError as e:
+            raise PreviewError(503, "원본을 읽지 못했어요(연결을 확인하세요): %s" % e)
+        out = preview_bytes(kind, data, orient)
+        if out is None:
+            raise PreviewError(422, "그림을 만들 수 없어요. 파일이 깨졌을 수 있어요.")
+        return out
 
     def interrupted(self):
         """작업이 실행 중이 아닌데 디스크에 '실행 중/연결 끊김'으로 남아 있으면 비정상 종료로 본다."""
@@ -1022,16 +1093,16 @@ def make_handler(app):
             pass
 
         # ---- 공통 ----
-        def _send(self, code, body, ctype="application/json; charset=utf-8"):
+        def _send(self, code, body, ctype="application/json; charset=utf-8", cache="no-store"):
             if not isinstance(body, (bytes, bytearray)):
                 body = json.dumps(body, ensure_ascii=False).encode("utf-8")
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            self.send_header("Cache-Control", cache)
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Content-Security-Policy",
-                             "default-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'")
+                             "default-src 'self' 'unsafe-inline'; img-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'")  # blob: 크게 보기 그림(오류 문구를 읽으려고 fetch 로 받는다)
             self.end_headers()
             self.wfile.write(body)
 
@@ -1109,6 +1180,23 @@ def make_handler(app):
                     if not os.path.exists(os.path.join(app.session, "catalog.jsonl")):
                         return self._err(404, "검사 결과가 없습니다.")
                     return self._send(200, summarize(app.session))
+                if u.path == "/api/catalog/items":  # 꺼내기 전 탐색 화면: 찾은 파일 전체(짧은 형태)
+                    items = browse_items(app.session)
+                    if items is None:
+                        return self._err(404, "검사 결과가 없습니다.")
+                    return self._send(200, items)
+                if u.path == "/api/preview":  # 찾은 파일 하나를 원본에서 읽어 크게 보기(읽기만)
+                    dev = app.find_device((q.get("device_id") or [""])[0])
+                    if not dev:
+                        return self._err(400, "목록에 없는 장치입니다. 장치를 연결한 뒤 다시 하세요.")
+                    try:
+                        rid = int((q.get("id") or [""])[0])
+                    except ValueError:
+                        return self._err(404, "검사 기록에 없는 파일입니다.")
+                    try:
+                        return self._send(200, app.preview(dev, rid), "image/jpeg")
+                    except PreviewError as e:
+                        return self._err(e.code, str(e))
                 if u.path == "/api/verify/summary":
                     return self._send(200, app.verify_overview())
                 if u.path == "/api/units":
@@ -1146,8 +1234,8 @@ def make_handler(app):
                     p = thumb_path(app.session, rid) if rid >= 0 and app.session else None
                     if not p or not os.path.isfile(p):
                         return self._err(404, "없는 미리보기")
-                    with open(p, "rb") as f:
-                        return self._send(200, f.read(), "image/jpeg")
+                    with open(p, "rb") as f:  # 주소에 기록 버전(v)이 붙으므로 잠깐 캐시해도 옛 그림이 나오지 않는다
+                        return self._send(200, f.read(), "image/jpeg", cache="private, max-age=3600")
                 if u.path == "/api/thumb":
                     dest = app.saved_dest()
                     rel = (q.get("p") or [""])[0]

@@ -11,17 +11,20 @@ def _entry(tag, typ, cnt, val):
     return struct.pack("<HHII", tag, typ, cnt, val)
 
 
-def make_tiff(make, model, dto, thumb=None, thumb_off_delta=0):
-    """thumb: IFD1 에 넣을 내장 미리보기(JPEG 바이트). thumb_off_delta: 미리보기 위치를 일부러 틀리게(시험용)."""
+def make_tiff(make, model, dto, thumb=None, thumb_off_delta=0, orient=None):
+    """thumb: IFD1 에 넣을 내장 미리보기(JPEG 바이트). thumb_off_delta: 미리보기 위치를 일부러 틀리게(시험용).
+    orient: IFD0 의 방향(0x0112) 값."""
     mk, md, dt = (s.encode() + b"\0" for s in (make, model, dto))
     assert len(mk) > 4 and len(md) > 4, "4바이트 이하 문자열은 TIFF 에서 인라인 저장이라 이 생성기가 처리하지 않는다"
+    n0 = 4 if orient else 3
     ifd0_off = 8
-    exif_off = ifd0_off + 2 + 12 * 3 + 4
+    exif_off = ifd0_off + 2 + 12 * n0 + 4
     data_off = exif_off + 2 + 12 + 4
     o_mk, o_md = data_off, data_off + len(mk)
     o_dt = o_md + len(md)
     ifd1_off = o_dt + len(dt)
-    ifd0 = (struct.pack("<H", 3) + _entry(0x010F, 2, len(mk), o_mk) + _entry(0x0110, 2, len(md), o_md)
+    ifd0 = (struct.pack("<H", n0) + _entry(0x010F, 2, len(mk), o_mk) + _entry(0x0110, 2, len(md), o_md)
+            + (struct.pack("<HHIHH", 0x0112, 3, 1, orient, 0) if orient else b"")
             + _entry(0x8769, 4, 1, exif_off) + struct.pack("<I", ifd1_off if thumb else 0))
     exif = struct.pack("<H", 1) + _entry(0x9003, 2, len(dt), o_dt) + struct.pack("<I", 0)
     out = b"II*\0" + struct.pack("<I", 8) + ifd0 + exif + mk + md + dt
@@ -78,12 +81,15 @@ def make_mp4(rng, mdat_len, when, brand=b"mp42", moov=True, mdat=True):
     return out
 
 
-def make_cr3(rng, mdat_len, tiff1, tiff2, thumb=None):
+def make_cr3(rng, mdat_len, tiff1, tiff2, thumb=None, prvw=None):
     thmb = b""
     if thumb:  # THMB: 버전(1)+플래그(3)+폭(2)+높이(2)+JPEG 길이(4)+알 수 없음(4) 뒤에 JPEG
         thmb = box(b"THMB", b"\0\0\0\0" + struct.pack(">HHI", 160, 120, len(thumb)) + b"\0" * 4 + thumb)
     uuid = box(b"uuid", b"\0" * 16 + box(b"CMT1", tiff1) + box(b"CMT2", tiff2) + thmb)
-    return ftyp(b"crx ") + box(b"moov", uuid) + box(b"mdat", rng.randbytes(mdat_len))
+    extra = b""
+    if prvw:  # 실제 CR3 처럼 moov 뒤의 uuid 상자 안에 PRVW(큰 미리보기 JPEG)
+        extra = box(b"uuid", b"\0" * 16 + b"\0" * 8 + box(b"PRVW", b"\0" * 4 + struct.pack(">HHHI", 0, 1620, 1080, len(prvw)) + prvw))
+    return ftyp(b"crx ") + box(b"moov", uuid) + extra + box(b"mdat", rng.randbytes(mdat_len))
 
 
 def build_image(path, items, total_blocks):

@@ -31,6 +31,7 @@ python3 -m apfsrecover gui [--session 폴더] [--image 이름=경로]  # P2~P5 �
 - `kind`: `jpeg | raw-cr3 | raw-other | video-mp4 | video-mov | heic | unknown-bmff`
 - `structure`: `ok`(구조가 끝까지 맞음) / `suspect`(구조가 어긋나거나 길이가 비정상) / `unknown`
 - `taken`, `model`은 EXIF/박스에서 읽을 수 있을 때만 채운다. 못 읽으면 `null`
+- `orient`: EXIF 방향(2~8, 1=그대로는 적지 않음). 미리보기를 돌려 보일 때 쓴다
 - `thumb`: `true` 면 세션 폴더 `thumbs/<id>.jpg` 에 내장 미리보기가 있다(JPEG 의 EXIF 미리보기, CR3 의 THMB). 없으면 미리보기 없음. `GET /api/catalog/thumb?id=` 로 받는다
 - 이 값들은 **서명과 구조로 추정한 것**이며 파일이 실제로 열린다는 보증은 아니다. 열림은 verify가 판정한다
 
@@ -44,6 +45,16 @@ python3 -m apfsrecover gui [--session 폴더] [--image 이름=경로]  # P2~P5 �
  "layout": "kind/date/taken"}
 ```
 - `layout`: `kind/date/taken`(촬영 시각 이름, 2026-11-25부터 기본) 또는 `kind/date/kind_seq_blk`(이전 이름). 없으면 이미 꺼낸 파일이 있을 때 이전 방식으로 본다(`07-roadmap.md` D).
+- 탐색 화면(`07-roadmap.md` C)이 더하는 항목. 없으면 거르지 않는다(이전 plan 과 같게 동작):
+  `models`(카메라 이름 목록, 빈 목록=모두), `only_suspect`(의심만), `exclude_ids`(화면에서 체크를 끈 항목 번호),
+  `include_undated`(기간을 고르면 화면이 false 로 보낸다).
+
+### 탐색 화면용 API (2026-11-25)
+| 메서드 경로 | 설명 |
+|---|---|
+| `GET /api/catalog/items` | 찾은 파일 전체(짧은 형태). `{fields, rows, models, skipped, version}`. rows 의 칸: 번호, 종류, 길이, 현지 촬영 시각, 카메라 번호(-1=없음), 의심(0/1), 미리보기(0/1), 방향(0=그대로) |
+| `GET /api/catalog/thumb?id=&v=` | 검사 때 저장한 내장 미리보기. `v`(목록의 version)를 붙이면 1시간 캐시한다 |
+| `GET /api/preview?device_id=&id=` | 원본에서 그 파일만 읽어 크게 보기 JPEG. 작업 중 409, 다른 디스크 400, 못 보는 종류 415, 너무 큼 413 |
 
 ### progress.json
 ```json

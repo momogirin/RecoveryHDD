@@ -21,7 +21,7 @@ from . import compat
 from .jsonl import read_jsonl
 from .ownership import expand
 from .scan import BS, CHUNK, REPO
-from .timeutil import local_month
+from .timeutil import local_month, to_local
 
 MIN_JPEG = 20_000
 MIN_BMFF = 50_000
@@ -320,6 +320,49 @@ def summarize(session):
             "structure": {k: dict(v) for k, v in structure.items()},
             "months": dict(sorted(months.items())), "undated": undated,
             "models": dict(models.most_common(10)), "skipped": stats.get("skipped", 0)}
+
+
+_browse_cache = {}
+
+
+def browse_items(session):
+    """꺼내기 전 탐색 화면용 전체 목록(짧은 형태). 화면이 거르고 묶으므로 한 번에 보낸다(항목당 약 40바이트).
+    rows: [번호, 종류, 길이, 현지 촬영 시각|None, 카메라 번호(-1=없음), 의심(0/1), 미리보기(0/1), EXIF 방향(0=모름·그대로)]
+    version: 기록 파일이 바뀌면 달라진다(화면이 미리보기 주소에 붙여 옛 미리보기를 캐시에서 쓰지 않게)."""
+    session = os.path.realpath(expand(session))
+    path = os.path.join(session, "catalog.jsonl")
+    try:
+        st = os.stat(path)
+    except OSError:
+        return None
+    key = (path, st.st_mtime_ns, st.st_size)
+    hit = _browse_cache.get(session)
+    if hit and hit[0] == key:
+        return hit[1]
+    stats = {}
+    models, model_ix, rows, index = [], {}, [], {}
+    for r in compat.clean_lines(read_jsonl(path, stats), compat.catalog_record, stats):
+        orient = r.get("orient") if r.get("orient") in (2, 3, 4, 5, 6, 7, 8) else 0
+        index[r["id"]] = (r["offset"], r["length"], r["kind"], orient)
+        dt = to_local(r.get("taken"), r.get("taken_utc", False))
+        m = r.get("model")
+        if m and m not in model_ix:
+            model_ix[m] = len(models)
+            models.append(m)
+        rows.append([r["id"], r["kind"], r["length"], dt.strftime("%Y-%m-%dT%H:%M:%S") if dt else None,
+                     model_ix.get(m, -1) if m else -1, 0 if r["structure"] == "ok" else 1, 1 if r.get("thumb") else 0, orient])
+    out = {"fields": ["id", "kind", "length", "taken", "model", "suspect", "thumb", "orient"], "rows": rows, "models": models,
+           "skipped": stats.get("skipped", 0), "version": "%d-%d" % (st.st_mtime_ns // 1000000, st.st_size)}
+    _browse_cache.clear()  # 세션 하나만 둔다(목록이 클 수 있다)
+    _browse_cache[session] = (key, out, index)
+    return out
+
+
+def item_location(session, rid):
+    """항목 번호 → (위치, 길이, 종류, EXIF 방향). 없으면 None. browse_items 와 같은 캐시를 쓴다."""
+    if browse_items(session) is None:
+        return None
+    return _browse_cache[os.path.realpath(expand(session))][2].get(rid)
 
 
 def print_summary(session):

@@ -58,17 +58,36 @@ def load_extracted(session):
     return done
 
 
+def _id_set(v):
+    out = set()
+    for x in v or ():
+        try:
+            out.add(int(x))
+        except (TypeError, ValueError):
+            pass
+    return out
+
+
 def select(records, plan):
-    """계획의 필터(종류, 날짜, 의심 포함)에 맞는 항목을 오프셋 순으로 반환."""
+    """계획의 필터에 맞는 항목을 오프셋 순으로 반환.
+    필터: 종류(kinds), 의심 포함(include_suspect) / 의심만(only_suspect), 카메라(models, 없으면 모두),
+    촬영 날짜(date_from·date_to, include_undated), 그리고 화면에서 체크를 끈 항목(exclude_ids)."""
     kinds = set(plan.get("kinds") or [])
     inc_suspect = bool(plan.get("include_suspect"))
+    only_suspect = bool(plan.get("only_suspect"))
+    models = set(m for m in (plan.get("models") or []) if isinstance(m, str))
+    excluded = _id_set(plan.get("exclude_ids"))
     inc_undated = plan.get("include_undated", True)
     d_from, d_to = plan.get("date_from"), plan.get("date_to")
     out = []
     for r in records:
-        if r["kind"] not in kinds:
+        if r["kind"] not in kinds or r["id"] in excluded:
             continue
-        if r["structure"] != "ok" and not inc_suspect:
+        if r["structure"] != "ok" and not (inc_suspect or only_suspect):
+            continue
+        if only_suspect and r["structure"] == "ok":
+            continue
+        if models and r.get("model") not in models:
             continue
         d = local_date(r)
         if d is None:

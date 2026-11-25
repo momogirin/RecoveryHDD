@@ -98,6 +98,8 @@ def parse_tiff(buf: bytes) -> dict:
                         out.setdefault("pix_h", val)
                     elif tag == 0x8769:
                         ifd(val, depth + 1)
+                    elif tag == 0x0112 and depth == 0 and 2 <= val <= 8:  # 방향(1=그대로는 적지 않는다). 미리보기를 돌려 보일 때 쓴다
+                        out.setdefault("orient", val)
             except (struct.error, IndexError):
                 continue
 

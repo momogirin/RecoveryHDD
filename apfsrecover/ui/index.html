@@ -531,6 +531,88 @@ main h1 { font-size: 18px; line-height: 28px; }
 .helpcard { padding: 6px 20px; } .helpcard ul { margin: 0; padding-left: 18px; } .helpcard li { margin: 10px 0; }
 .side { padding: 0; }
 @media (max-width: 760px) { .shell { min-width: 960px; } }
+/* =====================================================================
+   v6 꺼내기 전 탐색 (design/mockup/ui-v6-browse.html)
+   고정 높이: 종류 줄 44 · 타임라인 92 · 아래 버튼 줄 64. 격자와 미리보기는 남은 높이 안에서 각자 스크롤.
+   격자 칸 128x96 고정, 가상 스크롤(보이는 줄만 그림). 미리보기 칸 300px 고정.
+   ===================================================================== */
+.content.bx-on { overflow: hidden; }
+.content.bx-on > main { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+#s-settings.on { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.bx-kinds { flex: none; height: 44px; display: flex; align-items: center; gap: 8px; overflow: hidden; }
+.bx-kc { height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; flex: none; }
+.bx-kc b { font-weight: 600; } .bx-kc span { color: var(--sub); }
+.bx-kc.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); } .bx-kc.on span { color: var(--accent); }
+.bx-kc:disabled { opacity: .45; cursor: default; }
+.bx-kc i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 10px; line-height: 1; font-style: normal; }
+.bx-tl { flex: none; height: 92px; display: flex; flex-direction: column; padding-bottom: 6px; }
+.bx-tl .hd { flex: none; height: 30px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
+.bx-tl .hd b { color: var(--text); font-weight: 600; flex: none; } .bx-tl .hd .r { flex: 1; } .bx-tl .hd .linkish { flex: none; font-size: 12.5px; }
+.bx-dd { height: 28px; border: 1px solid var(--line2); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; font-size: 13px; padding: 0 8px; width: 156px; flex: none; }
+.bx-dd.narrow { width: 120px; }
+.bx-tl .bx-bars { display: flex; align-items: flex-end; gap: 2px; height: 36px; flex: none; }
+.bx-tl .bx-bar { flex: 1; min-width: 2px; background: var(--line2); border-radius: 2px 2px 0 0; cursor: pointer; }
+.bx-tl .bx-bar:hover { background: var(--sub); } .bx-tl .bx-bar.in { background: var(--accent); }
+.bx-tl .bx-bar.zero { background: var(--line); height: 2px !important; cursor: default; }
+.bx-tl .ax { flex: none; height: 16px; font-size: 11.5px; color: var(--faint); margin-top: 4px; position: relative; overflow: hidden; }
+.bx-tl .ax span { position: absolute; white-space: nowrap; }
+.bx-tl .none { height: 52px; display: flex; align-items: center; font-size: 13px; color: var(--sub); }
+.bx-main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; padding-bottom: 12px; }
+.bx-gw { min-height: 0; overflow-y: auto; position: relative; border-top: 1px solid var(--line); outline: none; }
+.bx-gin { position: relative; }
+.bx-row { position: absolute; left: 0; right: 0; display: flex; gap: 10px; }
+.bx-head { position: absolute; left: 0; right: 0; height: 44px; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.bx-head .d { font-weight: 600; width: 132px; flex: none; } .bx-head .n { color: var(--sub); font-size: 13px; flex: 1; }
+.bx-head.undated .d { color: var(--sub); }
+.bx-cb { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--line2); background: var(--card); display: grid; place-items: center; flex: none; cursor: pointer; padding: 0; color: transparent; }
+.bx-cb svg.i { width: 13px; height: 13px; stroke-width: 3; }
+.bx-cb.on, .bx-cb.part { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.bx-cb.part::after { content: ""; width: 9px; height: 2px; background: var(--accent-ink); border-radius: 1px; }
+.bxt { width: 128px; height: 96px; flex: none; border-radius: 8px; position: relative; overflow: hidden; cursor: pointer; background: var(--line); border: 0; padding: 0; font: inherit; color: inherit; }
+.bxt img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.bxt img.o3, .bx-pv .big img.o3 { transform: rotate(180deg); }
+.bxt img.o6, .bxt img.o8 { width: 96px; height: 128px; left: 16px; top: -16px; } .bxt img.o6 { transform: rotate(90deg); } .bxt img.o8 { transform: rotate(-90deg); }
+.bx-pv .big img.o6, .bx-pv .big img.o8 { position: absolute; width: 200px; height: 266px; left: 33px; top: -33px; } .bx-pv .big img.o6 { transform: rotate(90deg); } .bx-pv .big img.o8 { transform: rotate(-90deg); }
+.bxt .lab { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--sub); font-size: 12px; }
+.bxt .lab b { font-size: 14px; color: var(--text); letter-spacing: .5px; }
+.bxt.vid { background: linear-gradient(160deg, #3d3a5c, #1d1b30); }
+.bxt.vid::after { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 20px; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.bxt .bx-cb { position: absolute; top: 6px; right: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); z-index: 2; }
+.bxt .bd { position: absolute; left: 6px; bottom: 6px; height: 18px; line-height: 18px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: rgba(0,0,0,.6); color: #fff; z-index: 2; }
+.bxt .bd.sus { top: 6px; bottom: auto; background: var(--warn); }
+.bxt.off img, .bxt.off .lab, .bxt.off.vid::after { opacity: .35; }
+.bxt.cur { box-shadow: 0 0 0 3px var(--accent); }
+.bxt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.bx-empty { padding: 48px 12px; text-align: center; color: var(--sub); }
+.bx-empty b { display: block; color: var(--text); font-size: 16px; margin-bottom: 6px; }
+.bx-skt { width: 128px; height: 96px; border-radius: 8px; flex: none; }
+.bx-pv { min-height: 0; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; }
+.bx-pv > * { flex: none; }
+.bx-pv .big { width: 266px; height: 200px; border-radius: 8px; position: relative; overflow: hidden; background: var(--line); }
+.bx-pv .big img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bx-pv .big .lab { position: absolute; inset: 0; display: grid; place-items: center; color: var(--sub); font-size: 13px; text-align: center; padding: 12px; }
+.bx-pv .note2 { font-size: 12px; color: var(--faint); height: 18px; margin-top: 6px; }
+.bx-pv h3 { margin: 10px 0 2px; font-size: 16px; height: 22px; }
+.bx-pv dl { margin: 8px 0 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); row-gap: 6px; font-size: 13px; }
+.bx-pv dt { color: var(--sub); } .bx-pv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.bx-pv dd.mono { font-size: 12px; }
+.bx-pv .acts2 { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.bx-pv .acts2 .btn { width: 100%; }
+.bx-pv .acts2 .hint { height: 18px; font-size: 12px; }
+.bx-pv.blank { display: grid; place-items: center; text-align: center; color: var(--sub); font-size: 14px; }
+#exdlg { width: 540px; }
+#exdlg .ex-sec { margin: 16px 0 8px; } #exdlg .row .btn { width: 120px; flex: none; }
+#exdlg .free { margin-top: 6px; } #exdlg .free .chip { width: auto; padding: 0 10px; } #exdlg .brow2 { margin-top: 12px; } #exdlg .bnote { margin-top: 4px; }
+#exdlg .summary { margin-top: 14px; height: auto; min-height: 64px; max-height: 180px; padding: 12px 14px; font-size: 14px; }
+.ex-notes { margin: 12px 0 0 18px; padding: 0; color: var(--sub); font-size: 13px; } .ex-notes li { margin: 3px 0; }
+.ex-notes .mono { font-size: 12px; }
+.bxview { width: min(92vw, 1280px); max-width: none; height: min(90vh, 900px); padding: 0; display: none; flex-direction: column; overflow: hidden; }
+.bxview[open] { display: flex; }
+.bxv-head { flex: none; height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+.bxv-head b { flex: none; max-width: 40%; } .bxv-head .hint { flex: 1; }
+.bxv-body { flex: 1; min-height: 0; display: grid; place-items: center; background: #111; position: relative; }
+.bxv-body img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }  /* 세로 사진도 잘리지 않게 칸 안에 맞춘다 */
+.bxv-body .msg { color: #ddd; font-size: 14px; display: flex; gap: 10px; align-items: center; padding: 24px; text-align: center; }
 </style>
 </head>
 <body>
@@ -551,6 +633,7 @@ main h1 { font-size: 18px; line-height: 28px; }
   <symbol id="cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
   <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
   <symbol id="alert" viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/></symbol>
 </svg>
 <div class="shell">
   <nav class="side" aria-label="메뉴">
@@ -626,22 +709,13 @@ main h1 { font-size: 18px; line-height: 28px; }
     </section>
 
     <!-- 장치 > 추출: 설정 -->
-    <section class="screen" id="s-settings">
-      <div class="split">
-        <div class="split-l">
-          <h1 class="ell">무엇을 꺼낼까요?</h1>
-          <p class="lead ell" id="settings-lead">검사 결과입니다. 꺼낼 종류를 고르세요.</p>
-          <div class="types" id="types"></div>
-        </div>
-        <aside class="card split-r">
-          <div class="sec">저장할 폴더</div>
-          <div class="field"><span>📁</span><span class="path empty" id="destpath">폴더를 선택하세요</span></div>
-          <div class="row prow"><div class="free" id="free"></div><button class="btn" id="pickdest">폴더 선택</button></div>
-          <div class="switch" id="suspect-sw" role="switch" tabindex="0" aria-checked="true"><span class="tg" id="suspect-tg"></span><span>깨졌을 수 있는 파일도 함께 꺼내기<br><span class="faint">‘_의심’ 폴더에 따로 저장</span></span></div>
-          <div class="brow2"><span>한 번에 꺼낼 양</span><input type="number" id="batch" min="0.01" step="any" placeholder="전부"><span>GB</span></div>
-          <div class="hint bnote">비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼내요.</div>
-          <div class="summary" id="summary"><div class="tx" id="sumtx">저장할 폴더를 먼저 고르세요.</div></div>
-        </aside>
+    <!-- 장치 > 추출: 찾은 파일 탐색(v6). 고르고 [꺼내기…] → 확인 창(#exdlg) -->
+    <section class="screen" id="s-settings" aria-label="찾은 파일">
+      <div class="bx-kinds" id="bx-kinds"></div>
+      <div class="bx-tl" id="bx-tl"></div>
+      <div class="bx-main">
+        <div class="bx-gw" id="bx-gw" tabindex="-1" aria-label="찾은 파일 목록. 화살표로 옮기고 Space 로 선택을 바꿔요"><div class="bx-gin" id="bx-gin"></div></div>
+        <aside class="card bx-pv" id="bx-pv" aria-live="polite"></aside>
       </div>
     </section>
 
@@ -730,6 +804,24 @@ main h1 { font-size: 18px; line-height: 28px; }
   <div class="newrow" id="pk-newrow" hidden><input type="text" id="pk-name" placeholder="새 폴더 이름" maxlength="100"><button class="btn" id="pk-make" type="button">만들기</button></div>
   <div class="acts"><button class="btn ghost" id="pk-up" type="button">↑ 상위 폴더</button><button class="btn ghost" id="pk-new" type="button">＋ 새 폴더</button>
     <span class="sp"></span><button class="btn" id="pk-cancel" type="button">취소</button><button class="btn primary" id="pk-ok" type="button">이 폴더 선택</button></div>
+</dialog>
+
+<dialog id="exdlg" aria-labelledby="ex-title">
+  <h2 id="ex-title">꺼내기</h2>
+  <div class="hint ell" id="ex-what"></div>
+  <div class="sec ex-sec">저장할 폴더</div>
+  <div class="row"><div class="field"><svg class="i"><use href="#folder"/></svg><span class="path empty" id="destpath">폴더를 선택하세요</span></div><button class="btn" id="pickdest" type="button">폴더 선택</button></div>
+  <div class="free" id="free"></div>
+  <div class="brow2"><span>한 번에 꺼낼 양</span><input type="number" id="batch" min="0.01" step="any" placeholder="전부"><span>GB</span></div>
+  <div class="hint bnote">비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼내요.</div>
+  <div class="summary" id="summary"><div class="tx" id="sumtx">저장할 폴더를 먼저 고르세요.</div></div>
+  <ul class="ex-notes" id="ex-notes"></ul>
+  <div class="acts"><button class="btn ghost" id="ex-cancel" type="button">취소</button><button class="btn primary" id="start" type="button" disabled>꺼내기 시작</button></div>
+</dialog>
+
+<dialog id="bxview" class="bxview" aria-labelledby="bxv-title">
+  <div class="bxv-head"><b class="ell" id="bxv-title"></b><span class="hint ell" id="bxv-sub"></span><button class="btn small" id="bxv-close" type="button">닫기</button></div>
+  <div class="bxv-body" id="bxv-body"></div>
 </dialog>
 
 <dialog id="ask">
@@ -848,7 +940,9 @@ function go(name) {
   if (name === 'over') loadOver();
   if (name === 'scanops') loadScanOps();
   if (name === 'scan') setActions(btn('취소', '', cancelJob, { id: 'scancancel' }), '|', '취소해도 나중에 이어서 할 수 있어요');
-  if (name === 'settings') { setActions('|', btn('꺼내기 시작', 'primary', startRun, { id: 'start', disabled: true })); initSettings(); }
+  $('#content').classList.toggle('bx-on', name === 'settings');  // 탐색 화면은 격자와 미리보기가 각자 스크롤한다
+  if (name !== 'settings') { banner('', '', 'bxscan'); banner('', '', 'bxold'); }
+  if (name === 'settings') { if (S.banners.msg && S.banners.msg.text.includes('[추출] 탭')) banner('', '', 'msg'); initSettings(); }  // 이미 추출 탭이다
   if (name === 'run') { if (S.flow === 'verify') setActions(btn('확인 건너뛰기', '', cancelJob, { id: 'stop' }), '|', '확인을 건너뛰어도 꺼낸 파일은 그대로 있어요');
     else setActions(btn('일시 중지', '', pauseJob, { id: 'pause' }), btn('중단', 'danger', stopJob, { id: 'stop' }), '|', '멈춰도 이미 꺼낸 파일은 그대로 있고, 이어서 할 수 있어요'); }
   if (name === 'result') loadResult();
@@ -1528,7 +1622,7 @@ async function onFinished(j) {
   if (j.state === 'done' && (j.kind === 'scan' || j.kind === 'extract')) S.dur[j.kind] = j.elapsed_s;
   if (j.kind === 'scan') {
     if (j.state === 'done' && !(j.result && j.result.found === 0)) { S.hold = null; go('over'); try { await loadSummary(); } catch (e) { }
-      banner('ok', '검사를 마쳤어요. [추출] 탭에서 꺼낼 종류를 고르세요.', 'msg', { label: '추출로', fn: () => { banner('', '', 'msg'); go('settings'); } }); return; }
+      banner('ok', '검사를 마쳤어요. [추출] 탭에서 찾은 파일을 보고 꺼낼 것을 고르세요.', 'msg', { label: '추출로', fn: () => { banner('', '', 'msg'); go('settings'); } }); return; }
     S.hold = 'scan';
     const pct = p.total_bytes ? 100 * p.done_bytes / p.total_bytes : 0;
     const base = { now: 0, pct, ring: '멈춤', stale: false, stats: [[num(p.found || 0) + '개', '지금까지 찾은 파일'], [p.total_bytes ? fmtSize(p.done_bytes || 0) + ' / ' + fmtSize(p.total_bytes) : '-', '읽은 양'], ['멈춤', '상태']] };
@@ -1585,7 +1679,7 @@ async function onFinished(j) {
       const T = { unstable: '디스크 읽기가 불안정해서 멈췄어요', nospace: '저장 공간이 부족해서 멈췄어요', refused: '시작할 수 없었어요' };
       heading('run', T[j.state] || '문제가 생겨 멈췄어요', '꺼낸 ' + num(got) + '개는 저장 폴더에 그대로 있어요.'); hero('alert');
       m.append(sit('bad', 'alert', stateMsg(j), para('원본 디스크는 읽기만 했으므로 안전해요. 꺼낸 파일은 그대로 있어요.')));
-      if (j.state === 'unstable') resumeActions(first, startRun, true); else setActions(...first, '|', j.state === 'nospace' ? btn('저장 폴더 바꾸기', 'primary', () => go('settings')) : '');
+      if (j.state === 'unstable') resumeActions(first, startRun, true); else setActions(...first, '|', j.state === 'nospace' ? btn('저장 폴더 바꾸기', 'primary', () => { BX.openAfter = true; go('settings'); }) : '');
     }
     S.pausing = false; return;
   }
@@ -1595,45 +1689,361 @@ async function onFinished(j) {
   }
 }
 
-// ---- 2. 복구 설정 ----
+// ---- 2. 꺼내기 전 탐색 (v6: design/mockup/ui-v6-browse.html) ----
+// 선택 = 필터(종류·카메라·판정·촬영 월) + 체크를 끈 항목(exclude). plan.json 에 같은 모양으로 저장된다.
+// 화면의 거르기와 엔진(extract.select)의 거르기는 같은 규칙이어야 한다(tests/test_browse.py SelectTest).
+const GROUP_OF = {}; Object.entries(GROUPS).forEach(([g, v]) => v.kinds.forEach(k => GROUP_OF[k] = g));
+const KIND_LABEL = { jpeg: 'JPG', 'raw-cr3': 'CR3', 'video-mp4': 'MP4', 'video-mov': 'MOV' };
+const kindLabel = k => KIND_LABEL[k] || k.toUpperCase();
+const PREVIEWABLE = new Set(['jpeg', 'png', 'gif', 'webp', 'bmp', 'raw-cr3']);
+const BX = { sid: null, items: null, byId: new Map(), version: '', models: [], model: '', verdict: 'all', from: null, to: null,
+  exclude: new Set(), cur: null, anchor: null, rows: [], visible: [], tiles: new Map(), cols: 4, loading: false, timer: null, openAfter: false };
+function bxReset() {
+  Object.assign(BX, { sid: null, items: null, byId: new Map(), version: '', models: [], model: '', verdict: 'all', from: null, to: null,
+    exclude: new Set(), cur: null, anchor: null, rows: [], visible: [], tiles: new Map() });
+}
 function applyPlan(plan) {
-  S.dest = plan.dest || S.dest; S.suspect = !!plan.include_suspect;
+  S.dest = plan.dest || S.dest;
   for (const k of Object.keys(GROUPS)) S.kinds[k] = GROUPS[k].kinds.some(x => (plan.kinds || []).includes(x));
   S.batchGb = plan.batch && plan.batch.unit === 'gb' && plan.batch.size < 1e6 ? String(plan.batch.size) : '';
+  BX.verdict = plan.only_suspect ? 'suspect' : plan.include_suspect === false ? 'ok' : 'all';
+  BX.model = (plan.models || [])[0] || '';
+  BX.from = plan.date_from ? String(plan.date_from).slice(0, 7) : null;
+  BX.to = plan.date_to ? String(plan.date_to).slice(0, 7) : BX.from;
+  BX.exclude = new Set((plan.exclude_ids || []).map(Number));
+  BX.tiles.clear(); BX.sid = S.curSid;  // 이 장치의 계획이다(탐색 화면을 열 때 지우지 않게)
 }
 function buildPlan() {
   const kinds = Object.entries(GROUPS).filter(([k]) => S.kinds[k]).flatMap(([, g]) => g.kinds);
   const gbv = parseFloat(S.batchGb);
-  return { dest: S.dest.trim(), kinds, include_suspect: S.suspect, batch: gbv > 0 ? { unit: 'gb', size: gbv } : { unit: 'n', size: 1e9 } };
+  const ex = BX.items ? BX.visible.filter(r => BX.exclude.has(r.id)).map(r => r.id) : [...BX.exclude];
+  return { dest: S.dest.trim(), kinds, include_suspect: BX.verdict !== 'ok', only_suspect: BX.verdict === 'suspect',
+    models: BX.model ? [BX.model] : [], date_from: BX.from ? BX.from + '-01' : null, date_to: BX.to ? BX.to + '-31' : null,
+    include_undated: !BX.from, exclude_ids: ex, batch: gbv > 0 ? { unit: 'gb', size: gbv } : { unit: 'n', size: 1e9 } };
 }
-function groupStat(g) {
-  const s = S.summary; if (!s) return { n: 0, b: 0 };
-  return { n: g.kinds.reduce((a, k) => a + (s.kinds[k] || 0), 0), b: g.kinds.reduce((a, k) => a + (s.bytes[k] || 0), 0) };
+function bxMatch(r, ignoreKind, ignoreDate) {
+  if (!r.g) return false;  // 이 화면이 모르는 종류는 꺼내지 않는다(위 배너로 알림)
+  if (!ignoreKind && !S.kinds[r.g]) return false;
+  if (BX.model && r.model !== BX.model) return false;
+  if (BX.verdict === 'ok' && r.suspect) return false;
+  if (BX.verdict === 'suspect' && !r.suspect) return false;
+  if (!ignoreDate && BX.from) { if (!r.month || r.month < BX.from || r.month > BX.to) return false; }
+  return true;
+}
+const bxSel = r => !BX.exclude.has(r.id);
+const scanningHere = () => jobRunning() && jobMine(S.job) && S.job.kind === 'scan';
+
+async function bxLoad() {
+  const d = await api('/api/catalog/items');
+  if (d.version === BX.version && BX.sid === S.curSid) return false;
+  const f = d.fields, ix = n => f.indexOf(n);
+  const [iId, iKind, iLen, iTaken, iModel, iSus, iThumb, iOr] = ['id', 'kind', 'length', 'taken', 'model', 'suspect', 'thumb', 'orient'].map(ix);
+  BX.items = d.rows.map(row => {
+    const taken = row[iTaken];
+    return { id: row[iId], kind: row[iKind], length: row[iLen], taken, day: taken ? taken.slice(0, 10) : null, month: taken ? taken.slice(0, 7) : null,
+      model: row[iModel] >= 0 ? d.models[row[iModel]] : null, suspect: !!row[iSus], thumb: !!row[iThumb], orient: iOr >= 0 ? row[iOr] || 0 : 0, g: GROUP_OF[row[iKind]] || null };
+  });
+  // 날짜순(촬영 시각, 같으면 번호). 날짜 없는 것은 맨 뒤
+  BX.items.sort((a, b) => a.taken === b.taken ? a.id - b.id : !a.taken ? 1 : !b.taken ? -1 : a.taken < b.taken ? -1 : 1);
+  BX.byId = new Map(BX.items.map(r => [r.id, r]));
+  BX.version = d.version; BX.models = d.models; BX.sid = S.curSid; BX.tiles.clear();
+  return true;
 }
 async function initSettings() {
-  if (!S.summary) { try { await loadSummary(); } catch (e) { banner('bad', '검사 결과가 없습니다. 장치를 먼저 검사하세요.', 'msg'); go('scanops'); return; } }
+  if (BX.sid !== S.curSid) bxReset();
   if (!S.dest && S.session && S.session.dest) S.dest = S.session.dest;
-  const total = Object.values(GROUPS).reduce((a, g) => a + groupStat(g).n, 0);
-  const unk = (S.summary.total || 0) - total, sk = S.summary.skipped || 0;  // 이 화면이 모르는 종류 / 읽지 못한 줄: 조용히 사라지지 않게 알린다
+  setActions(btn('모두 선택', '', () => bxSetAll(true), { id: 'bx-all' }), btn('모두 해제', '', () => bxSetAll(false), { id: 'bx-none' }),
+    '|', ' ', btn('꺼내기…', 'primary', openEx, { id: 'bx-go', disabled: true }));
+  if (!BX.items) { BX.loading = true; bxRender(); }
+  try { await loadSummary(); await bxLoad(); }
+  catch (e) { BX.loading = false; banner('bad', '검사 결과가 없습니다. 장치를 먼저 검사하세요.', 'msg'); go('scanops'); return; }
+  BX.loading = false;
+  const known = BX.items.filter(r => r.g).length, sk = S.summary.skipped || 0;
+  const unk = BX.items.length - known;  // 이 화면이 모르는 종류 / 읽지 못한 줄: 조용히 사라지지 않게 알린다
   banner(unk > 0 ? 'warn' : '', unk > 0 ? '이 검사 기록에는 이 화면이 모르는 종류의 파일이 ' + num(unk) + '개 있어요. 꺼내지 않고 그대로 둡니다.' : '', 'unk');
   banner(sk > 0 ? 'warn' : '', sk > 0 ? '검사 기록 ' + num(sk) + '줄을 읽지 못해 건너뛰었어요.' : '', 'skip');
-  for (const k of Object.keys(GROUPS)) if (!groupStat(GROUPS[k]).n) S.kinds[k] = false;
-  $('#settings-lead').textContent = total ? '디스크를 훑어 본 결과입니다. 꺼낼 종류를 고르세요.' : '이 디스크에서 사진이나 영상을 찾지 못했습니다.';
-  renderTypes(); renderDest(); $('#batch').value = S.batchGb;
-  schedCheck();
+  const cnt = {}; BX.items.forEach(r => { if (r.g) cnt[r.g] = (cnt[r.g] || 0) + 1; });
+  for (const k of Object.keys(GROUPS)) if (!cnt[k]) S.kinds[k] = false;
+  // 미리보기가 하나도 없는데 사진은 많다 = 이전 버전으로 검사한 기록
+  const photos = BX.items.filter(r => (r.kind === 'jpeg' || r.kind === 'raw-cr3') && r.taken).length;
+  const legacy = photos >= 20 && !BX.items.some(r => r.thumb);
+  banner(legacy ? 'warn' : '', legacy ? '이전 버전으로 검사한 기록이라 사진 미리보기가 없어요. 다시 검사하면 생겨요(이전 결과를 활용하면 빨라요).' : '', 'bxold',
+    legacy ? { label: '다시 검사', fn: () => go('scanops') } : null);
+  bxWatchScan();
+  if (BX.cur == null || !BX.byId.has(BX.cur)) BX.cur = null;
+  bxRender();
+  if (BX.cur == null) { const first = BX.visible[0]; if (first) { BX.cur = first.id; bxPaint(); bxRenderPv(); } }
+  if (BX.openAfter) { BX.openAfter = false; openEx(); }
 }
-function renderTypes() {
-  const box = clear($('#types'));
-  Object.entries(GROUPS).forEach(([k, g]) => {
-    const st = groupStat(g);
-    const el = h('div', { class: 'type' + (S.kinds[k] ? ' on' : '') + (st.n ? '' : ' none'), tabindex: 0, role: 'checkbox', 'aria-checked': String(!!S.kinds[k]) },
-      h('span', { class: 'check' }, '✓'), h('div', { class: 'em' }, g.icon), h('div', { class: 't' }, g.label), h('div', { class: 's' }, g.sub),
-      h('div', { class: 'n' }, st.n ? num(st.n) + g.unit : '없음'), h('div', { class: 'g' }, st.n ? fmtSize(st.b) : '-'));
-    const tog = () => { if (!st.n) return; S.kinds[k] = !S.kinds[k]; renderTypes(); schedCheck(); };
-    el.onclick = tog; el.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tog(); } };
-    box.append(el);
+// 검사 중에도 이 화면을 볼 수 있다: 찾는 대로 5초마다 더한다. 꺼내기는 검사가 끝나야 켜진다
+function bxWatchScan() {
+  clearInterval(BX.timer); BX.timer = null;
+  banner(scanningHere() ? 'info' : '', scanningHere() ? '검사 중이에요. 찾는 대로 여기에 더해져요. 꺼내기는 검사가 끝난 뒤에 할 수 있어요.' : '', 'bxscan',
+    scanningHere() ? { label: '검사 보기', fn: () => go('scan') } : null);
+  if (!scanningHere()) return;
+  BX.timer = setInterval(async () => {
+    if (S.screen !== 'settings') { clearInterval(BX.timer); BX.timer = null; return; }
+    try { if (await bxLoad()) bxRender(); } catch (e) { }
+    if (!scanningHere()) { bxWatchScan(); bxRenderSel(); }
+  }, 5000);
+}
+function bxRender() { bxRenderKinds(); bxRenderTl(); bxLayout(); bxPaint(); bxRenderSel(); bxRenderPv(); }
+
+// 종류 칩
+function bxRenderKinds() {
+  const box = clear($('#bx-kinds'));
+  for (const [k, g] of Object.entries(GROUPS)) {
+    const rs = (BX.items || []).filter(r => r.g === k && bxMatch(r, true, false));
+    const on = !!S.kinds[k];
+    const b = h('button', { class: 'bx-kc' + (on ? ' on' : ''), type: 'button', 'aria-pressed': String(on),
+      title: g.label + ' ' + num(rs.length) + g.unit + ' · ' + fmtSize(rs.reduce((a, r) => a + r.length, 0)) + ' (' + g.sub + ')' },
+      h('i', {}, on ? '✓' : ''), h('b', {}, g.label), h('span', {}, num(rs.length)));
+    if (!rs.length && !on) b.disabled = true;
+    b.onclick = () => { S.kinds[k] = !on; bxRender(); };
+    box.append(b);
+  }
+}
+// 타임라인: 월별 막대. 누르면 그 달, Shift+누르면 범위. 카메라·판정 선택은 같은 줄 오른쪽
+function bxMonths() {
+  const ms = (BX.items || []).filter(r => r.month && r.g).map(r => r.month);
+  if (!ms.length) return [];
+  let lo = ms[0], hi = ms[0]; for (const m of ms) { if (m < lo) lo = m; if (m > hi) hi = m; }
+  const out = []; let [y, mo] = lo.split('-').map(Number); const [ey, em] = hi.split('-').map(Number);
+  while ((y < ey || (y === ey && mo <= em)) && out.length < 600) { out.push(y + '-' + String(mo).padStart(2, '0')); if (++mo > 12) { mo = 1; y++; } }
+  return out;
+}
+function bxRenderTl() {
+  const box = clear($('#bx-tl'));
+  const d = (BX.items || []).filter(r => bxMatch(r, false, true));
+  const ms = bxMonths();
+  const cnt = {}; d.forEach(r => { if (r.month) cnt[r.month] = (cnt[r.month] || 0) + 1; });
+  const undated = d.filter(r => !r.month).length;
+  const max = Math.max(1, ...Object.values(cnt));
+  const range = BX.from ? (BX.from === BX.to ? BX.from.replace('-', '년 ') + '월' : BX.from.replace('-', '.') + ' ~ ' + BX.to.replace('-', '.')) : '전체 기간';
+  const models = h('select', { class: 'bx-dd', 'aria-label': '카메라' }, h('option', { value: '' }, '카메라: 모두'), BX.models.map(m => h('option', { value: m }, m)));
+  models.value = BX.model; models.onchange = e => { BX.model = e.target.value; bxRender(); };
+  const ver = h('select', { class: 'bx-dd narrow', 'aria-label': '판정' }, h('option', { value: 'all' }, '판정: 모두'), h('option', { value: 'ok' }, '확인됨만'), h('option', { value: 'suspect' }, '의심만'));
+  ver.value = BX.verdict; ver.onchange = e => { BX.verdict = e.target.value; bxRender(); };
+  const note = BX.from ? ' · 날짜 없는 파일은 빠져요' : undated ? ' · 날짜 없음 ' + num(undated) + '개 포함' : '';
+  box.append(h('div', { class: 'hd' }, h('b', {}, '촬영 월'), h('span', { class: 'r ell', title: range + note }, range + note),
+    BX.from ? h('button', { class: 'linkish', type: 'button', onclick: () => { BX.from = BX.to = null; bxRender(); } }, '기간 해제') : null, models, ver));
+  if (!ms.length) { box.append(h('div', { class: 'none' }, '촬영 날짜를 읽은 파일이 없어요.')); return; }
+  const bars = h('div', { class: 'bx-bars' }), ax = h('div', { class: 'ax' });
+  ms.forEach((m, i) => {
+    const n = cnt[m] || 0, inR = BX.from && m >= BX.from && m <= BX.to;
+    const b = h('div', { class: 'bx-bar' + (n ? '' : ' zero') + (inR ? ' in' : ''), title: m.replace('-', '년 ') + '월 · ' + num(n) + '개', style: 'height:' + Math.max(4, Math.round(36 * Math.sqrt(n / max))) + 'px' });
+    b.onclick = e => {
+      if (!n) return;
+      if (e.shiftKey && BX.from) { BX.from = m < BX.from ? m : BX.from; BX.to = m > BX.to ? m : BX.to; }
+      else if (BX.from === m && BX.to === m) BX.from = BX.to = null;
+      else BX.from = BX.to = m;
+      bxRender();
+    };
+    bars.append(b);
+    if (i === 0 || m.endsWith('-01')) ax.append(h('span', { style: 'left:' + (100 * i / ms.length) + '%' }, i === 0 && !m.endsWith('-01') ? m.replace('-', '.') : m.slice(0, 4)));
   });
+  box.append(bars, ax);
 }
+// 격자: 날짜별 묶음, 가상 스크롤
+const BX_TW = 128, BX_TH = 96, BX_GAP = 10, BX_HEAD = 44, BX_ROWH = BX_TH + BX_GAP;
+function bxLayout() {
+  const gw = $('#bx-gw');
+  BX.cols = Math.max(1, Math.floor((gw.clientWidth - 12 + BX_GAP) / (BX_TW + BX_GAP)));
+  BX.visible = (BX.items || []).filter(r => bxMatch(r));
+  const groups = new Map();
+  for (const r of BX.visible) { const k = r.day || ''; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+  BX.rows = []; let y = 0;
+  for (const [day, items] of groups) {
+    BX.rows.push({ y, h: BX_HEAD, head: day || '-', items }); y += BX_HEAD;
+    for (let i = 0; i < items.length; i += BX.cols) { BX.rows.push({ y, h: BX_ROWH, items: items.slice(i, i + BX.cols) }); y += BX_ROWH; }
+  }
+  $('#bx-gin').style.height = (y + 8) + 'px';
+}
+function bxDay(d) {
+  if (d === '-') return '날짜 없음';
+  const t = new Date(d + 'T00:00:00'); return d.replace(/-/g, '.') + ' (' + '일월화수목금토'[t.getDay()] + ')';
+}
+const bxOrient = r => ({ 3: 'o3', 6: 'o6', 8: 'o8' })[r.orient] || '';  // 내장 미리보기는 돌려 저장돼 있지 않다(EXIF 방향대로 화면에서 돌린다)
+const bxThumbUrl = r => '/api/catalog/thumb?token=' + encodeURIComponent(T) + '&id=' + r.id + '&v=' + encodeURIComponent(BX.version);
+function bxTileLabel(r) { return h('div', { class: 'lab' }, h('b', {}, kindLabel(r.kind)), h('span', {}, fmtSize(r.length))); }
+function bxTile(r) {  // 칸은 만든 뒤 다시 쓴다(스크롤할 때 그림을 다시 받지 않게). 선택 상태만 bxTileState 로 바꾼다
+  let t = BX.tiles.get(r.id);
+  if (!t) {
+    const vid = r.g === 'video';
+    t = h('button', { class: 'bxt' + (vid ? ' vid' : ''), type: 'button', 'data-id': r.id });
+    if (r.thumb) {
+      const img = h('img', { alt: '', loading: 'lazy', decoding: 'async', src: bxThumbUrl(r), class: bxOrient(r) });
+      img.onerror = () => { img.replaceWith(bxTileLabel(r)); };
+      t.append(img);
+    } else if (!vid) t.append(bxTileLabel(r));
+    if ((r.g === 'raw' && r.thumb) || vid) t.append(h('span', { class: 'bd' }, kindLabel(r.kind)));  // 그림이 없으면 가운데에 이미 종류가 있다
+    if (r.suspect) t.append(h('span', { class: 'bd sus' }, '의심'));
+    const cb = h('span', { class: 'bx-cb', 'aria-hidden': 'true' }); cb.append(ico('check')); t.append(cb);
+    t.onclick = e => bxOnTile(e, r);
+    if (BX.tiles.size > 4000) BX.tiles.clear();
+    BX.tiles.set(r.id, t);
+  }
+  bxTileState(t, r);
+  return t;
+}
+function bxTileState(t, r) {
+  const sel = bxSel(r);
+  t.classList.toggle('off', !sel); t.classList.toggle('cur', BX.cur === r.id);
+  t.querySelector('.bx-cb').classList.toggle('on', sel);
+  t.setAttribute('aria-pressed', String(sel));
+  t.setAttribute('aria-label', (r.taken ? r.taken.replace('T', ' ') : '날짜 없음') + ' ' + kindLabel(r.kind) + ' ' + fmtSize(r.length) + (r.suspect ? ' 의심' : '') + (sel ? ' 선택됨' : ' 선택 안 됨'));
+}
+function bxGroupState(items) { const n = items.filter(bxSel).length; return n === 0 ? '' : n === items.length ? 'on' : 'part'; }
+function bxPaint() {
+  const gw = $('#bx-gw'), gin = $('#bx-gin');
+  if (BX.loading || !BX.items) {
+    gin.style.height = 'auto';
+    clear(gin).append(...[0, 1, 2].map(i => h('div', { class: 'bx-row', style: 'position:relative;margin-top:' + (i ? 10 : 54) + 'px' },
+      ...Array.from({ length: BX.cols || 4 }, () => h('div', { class: 'bx-skt skel' })))));
+    return;
+  }
+  if (!BX.visible.length) {
+    gin.style.height = 'auto';
+    const none = !BX.items.some(r => r.g);
+    clear(gin).append(none
+      ? h('div', { class: 'bx-empty' }, h('b', {}, scanningHere() ? '아직 찾은 파일이 없어요' : '찾은 파일이 없어요'), scanningHere() ? '찾는 대로 여기에 나타나요.' : '데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 다른 검사로 더 찾아볼 수 있어요.')
+      : h('div', { class: 'bx-empty' }, h('b', {}, '조건에 맞는 파일이 없어요'), '종류·기간·카메라·판정 조건을 바꿔 보세요. ',
+        h('button', { class: 'linkish', type: 'button', onclick: bxResetFilters }, '조건 모두 해제')));
+    return;
+  }
+  const top = gw.scrollTop - 300, bot = gw.scrollTop + gw.clientHeight + 300;
+  const kids = [];
+  for (const row of BX.rows) {
+    if (row.y + row.h < top || row.y > bot) continue;
+    if (row.head) {
+      const gs = bxGroupState(row.items);
+      const cb = h('button', { class: 'bx-cb' + (gs ? ' ' + gs : ''), type: 'button', 'aria-label': bxDay(row.head) + ' 모두 ' + (gs === 'on' ? '해제' : '선택') });
+      if (gs === 'on') cb.append(ico('check'));
+      cb.onclick = () => { const all = gs === 'on'; row.items.forEach(r => all ? BX.exclude.add(r.id) : BX.exclude.delete(r.id)); bxRefresh(); };
+      const bytes = row.items.reduce((a, r) => a + r.length, 0);
+      kids.push(h('div', { class: 'bx-head' + (row.head === '-' ? ' undated' : ''), style: 'top:' + row.y + 'px' }, cb, h('span', { class: 'd' }, bxDay(row.head)),
+        h('span', { class: 'n ell' }, num(row.items.length) + '개 · ' + fmtSize(bytes) + (row.head === '-' ? ' · 촬영 정보가 없는 파일' : ''))));
+    } else {
+      const el = h('div', { class: 'bx-row', style: 'top:' + row.y + 'px' }); el.append(...row.items.map(bxTile)); kids.push(el);
+    }
+  }
+  clear(gin).append(...kids);
+}
+function bxFocusCur() { requestAnimationFrame(() => { const el = $('.bxt[data-id="' + BX.cur + '"]'); if (el) el.focus({ preventScroll: true }); }); }
+function bxOnTile(e, r) {
+  if (e.shiftKey && BX.anchor != null && BX.byId.has(BX.anchor)) {  // Shift+누르기: 기준 항목과 같은 상태로 범위를 맞춘다
+    const ids = BX.visible.map(x => x.id); const a = ids.indexOf(BX.anchor), b = ids.indexOf(r.id);
+    if (a >= 0 && b >= 0) { const on = bxSel(BX.byId.get(BX.anchor)); for (let i = Math.min(a, b); i <= Math.max(a, b); i++) on ? BX.exclude.delete(ids[i]) : BX.exclude.add(ids[i]); }
+  } else if (BX.cur === r.id || e.target.closest('.bx-cb')) {  // 보고 있는 것을 다시 누르거나 체크 칸을 누르면 선택 바꾸기
+    bxSel(r) ? BX.exclude.add(r.id) : BX.exclude.delete(r.id);
+    BX.anchor = r.id;
+  } else BX.anchor = r.id;
+  BX.cur = r.id;
+  bxRefresh(); bxRenderPv(); bxFocusCur();
+}
+$('#bx-gw').addEventListener('scroll', () => requestAnimationFrame(bxPaint));
+$('#bx-gw').addEventListener('keydown', e => {  // 화살표로 옮기고 Space 로 선택을 바꾼다
+  if (!BX.visible.length) return;
+  let i = BX.visible.findIndex(r => r.id === BX.cur);
+  if (e.key === ' ' && i >= 0) { e.preventDefault(); const r = BX.visible[i]; bxSel(r) ? BX.exclude.add(r.id) : BX.exclude.delete(r.id); BX.anchor = r.id; bxRefresh(); bxRenderPv(); bxFocusCur(); return; }
+  const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: BX.cols, ArrowUp: -BX.cols }[e.key];
+  if (!step) return;
+  e.preventDefault(); i = Math.max(0, Math.min(BX.visible.length - 1, (i < 0 ? 0 : i + step)));
+  BX.cur = BX.anchor = BX.visible[i].id;
+  const row = BX.rows.find(rw => !rw.head && rw.items.some(x => x.id === BX.cur)), gw = $('#bx-gw');
+  if (row && (row.y < gw.scrollTop || row.y + BX_TH > gw.scrollTop + gw.clientHeight)) gw.scrollTop = row.y - gw.clientHeight / 2;
+  bxPaint(); bxRenderPv(); bxFocusCur();
+});
+window.addEventListener('resize', () => { if (S.screen === 'settings') { bxLayout(); bxPaint(); } });
+
+// 자세히 보기
+function bxDestName(r) {  // 엔진의 이름 규칙(extract.file_name, 07-roadmap D)과 같게
+  const dir = GROUPS[r.g].dir + (r.suspect ? '/_의심' : '') + '/' + (r.day || '날짜불명');
+  const ext = kindLabel(r.kind).toLowerCase();
+  if (!r.taken) return dir + '/' + ext + '_' + String(r.id).padStart(6, '0') + '_blk….' + ext;
+  const tag = (r.model || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 16);
+  return dir + '/' + r.taken.replace(/[-:]/g, '').replace('T', '_') + (tag ? '_' + tag : '') + '_' + String(r.id).padStart(6, '0') + '.' + ext;
+}
+function bxRenderPv() {
+  const pv = $('#bx-pv'); const r = BX.cur != null ? BX.byId.get(BX.cur) : null;
+  if (!r || !bxMatch(r)) {
+    pv.className = 'card bx-pv blank';
+    clear(pv).append(h('div', {}, BX.items && BX.visible.length ? '파일을 누르면 여기에서 자세히 봐요.' : '', h('br'),
+      h('span', { class: 'hint' }, BX.items && BX.visible.length ? '다시 누르거나 Space 로 선택을 바꿔요. Shift 로 범위를 골라요.' : '')));
+    return;
+  }
+  pv.className = 'card bx-pv';
+  const big = h('div', { class: 'big' });
+  if (r.thumb) big.append(h('img', { alt: '', src: bxThumbUrl(r), class: bxOrient(r) }));
+  else big.append(h('div', { class: 'lab' }, r.g === 'video' ? '영상은 미리보기가 없어요' : '파일 안에 미리보기가 없어요'));
+  const sel = bxSel(r);
+  const canBig = PREVIEWABLE.has(r.kind) && !jobRunning() && !!S.sel;
+  const why = !PREVIEWABLE.has(r.kind) ? '이 종류는 꺼낸 뒤 열어 보세요' : jobRunning() ? '작업 중에는 원본을 읽지 않아요(작업이 느려져요)' : !S.sel ? '장치가 연결돼 있어야 해요' : '원본에서 이 파일만 읽어요(쓰지 않아요)';
+  const zoom = btn('원본으로 크게 보기', '', () => bxView(r)); zoom.prepend(ico('zoom')); zoom.disabled = !canBig;
+  const tog = btn(sel ? '이 파일 빼기' : '이 파일 넣기', sel ? '' : 'primary', () => { sel ? BX.exclude.add(r.id) : BX.exclude.delete(r.id); bxRefresh(); bxRenderPv(); });
+  clear(pv).append(big,
+    h('div', { class: 'note2 ell' }, r.thumb ? '파일 안에 든 작은 미리보기를 키운 것이에요(흐릴 수 있어요)' : ''),
+    h('h3', { class: 'ell' }, r.taken ? r.taken.slice(0, 10).replace(/-/g, '.') + ' ' + r.taken.slice(11, 19) : '촬영 시각 없음'),
+    h('dl', {},
+      h('dt', {}, '종류'), h('dd', {}, kindLabel(r.kind) + ' · ' + fmtSize(r.length)),
+      h('dt', {}, '카메라'), h('dd', {}, r.model || '알 수 없음'),
+      h('dt', {}, '판정'), h('dd', {}, r.suspect ? '의심 (구조 일부가 맞지 않음, 열리지 않을 수 있음)' : '확인됨 (구조가 끝까지 맞음)'),
+      h('dt', {}, '꺼낼 이름'), h('dd', { class: 'mono' }, bxDestName(r))),
+    h('div', { class: 'acts2' }, zoom, h('div', { class: 'hint ell', title: why }, why), tog));
+}
+// 원본으로 크게 보기: 원본 장치에서 이 파일만 읽어 줄인 그림(서버 /api/preview)
+async function bxView(r) {
+  const d = $('#bxview'), body = clear($('#bxv-body'));
+  $('#bxv-title').textContent = r.taken ? r.taken.replace('T', ' ') : '촬영 시각 없음';
+  $('#bxv-sub').textContent = kindLabel(r.kind) + ' · ' + fmtSize(r.length) + (r.model ? ' · ' + r.model : '') + ' · 원본에서 읽은 그림(읽기만 해요)';
+  body.append(h('div', { class: 'msg' }, h('span', { class: 'spin' }), '원본에서 읽는 중…'));
+  d.showModal();
+  try {
+    const res = await fetch('/api/preview?device_id=' + encodeURIComponent(S.sel) + '&id=' + r.id, { headers: { 'X-Token': T } });
+    if (!res.ok) { let m = res.statusText; try { m = (await res.json()).error || m; } catch (e) { } throw new Error(m); }
+    const url = URL.createObjectURL(await res.blob());
+    const img = h('img', { alt: '' }); img.onload = () => URL.revokeObjectURL(url);
+    img.onerror = () => { URL.revokeObjectURL(url); if (d.open) clear(body).append(h('div', { class: 'msg' }, '그림을 보여 주지 못했어요.')); };
+    img.src = url;
+    if (d.open) clear(body).append(img);
+  } catch (e) { if (d.open) clear(body).append(h('div', { class: 'msg' }, e.network ? '도구와 통신하지 못했어요.' : e.message)); }
+}
+$('#bxv-close').onclick = () => $('#bxview').close();
+$('#bxview').onclick = e => { if (e.target === $('#bxview')) $('#bxview').close(); };
+
+// 아래 줄: 선택 요약 · 모두 선택/해제 · [꺼내기…]
+function bxRenderSel() {
+  const all = $('#bx-all'), none = $('#bx-none'), go2 = $('#bx-go'), hint = $('#actions .hint');
+  if (!go2) return;
+  const n = BX.visible.filter(bxSel), bytes = n.reduce((a, r) => a + r.length, 0), sus = n.filter(r => r.suspect).length;
+  const off = BX.visible.length - n.length;
+  const t = !BX.items ? '' : !BX.visible.length ? '꺼낼 파일 없음'
+    : num(n.length) + '개 · ' + fmtSize(bytes) + ' 꺼낼 예정 — 조건에 맞는 ' + num(BX.visible.length) + '개 중 ' + (off ? num(off) + '개 뺌' : '모두') + (sus ? ' · 의심 ' + num(sus) + '개 포함' : '');
+  if (hint) { hint.textContent = t; hint.title = t; }
+  all.disabled = !off; none.disabled = !n.length;
+  go2.disabled = !n.length || scanningHere() || BX.loading;
+  go2.title = scanningHere() ? '검사가 끝난 뒤에 꺼낼 수 있어요' : '꺼내기…';
+}
+function bxRefresh() { bxPaint(); bxRenderSel(); }
+function bxSetAll(on) { BX.visible.forEach(r => on ? BX.exclude.delete(r.id) : BX.exclude.add(r.id)); bxRefresh(); bxRenderPv(); }
+function bxResetFilters() { for (const k of Object.keys(GROUPS)) S.kinds[k] = (BX.items || []).some(r => r.g === k); BX.model = ''; BX.verdict = 'all'; BX.from = BX.to = null; bxRender(); }
+
+// [꺼내기…] 확인 창: 저장 폴더 · 나눠서 꺼내기 · 서버가 계산한 요약(plan/check)
+function openEx() {
+  const n = BX.visible.filter(bxSel); const by = {};
+  if (!n.length) return;
+  n.forEach(r => by[r.g] = (by[r.g] || 0) + 1);
+  const what = Object.entries(by).map(([g, c]) => GROUPS[g].label + ' ' + num(c)).join(' · ') + ' — 모두 ' + num(n.length) + '개';
+  $('#ex-what').textContent = what; $('#ex-what').title = what;
+  const sus = n.filter(r => r.suspect).length, ex = n.find(r => r.taken && r.model) || n.find(r => r.taken);
+  clear($('#ex-notes')).append(...[  // DOM append 는 null 을 "null" 글자로 넣으므로 걸러 낸다
+    h('li', {}, '파일 이름은 촬영 시각으로 지어요', ex ? h('span', {}, ': ', h('span', { class: 'mono' }, bxDestName(ex).split('/').pop())) : null),
+    sus ? h('li', {}, '의심 ' + num(sus) + '개는 ‘_의심’ 폴더에 따로 둬요. 열리지 않을 수 있어요.') : null,
+    h('li', {}, '원본 장치에는 아무것도 쓰지 않아요')].filter(Boolean));
+  renderDest(); $('#batch').value = S.batchGb;
+  $('#exdlg').showModal(); schedCheck();
+}
+$('#ex-cancel').onclick = () => $('#exdlg').close();
 function renderDest() { const p = $('#destpath'); p.textContent = S.dest || '폴더를 선택하세요'; p.classList.toggle('empty', !S.dest); }
 let ct = null, seq = 0;
 function schedCheck() { clearTimeout(ct); S.check = null; renderSummary(); ct = setTimeout(checkPlan, 250); }
@@ -1654,7 +2064,7 @@ function renderSummary() {
   if (r.free != null) { free.append('여유 공간 ' + fmtSize(r.free)); if (r.ok) free.append(chip('', '충분합니다')); }
   const ov = r.overview || {};
   const allDone = (r.reasons || []).some(x => x.includes('모두 꺼냈습니다'));
-  if (allDone) { tx.append('이 설정의 파일은 이미 모두 꺼냈습니다.'); if (start) { start.disabled = false; start.textContent = '결과 보기'; start.onclick = () => { S.plan = buildPlan(); S.partial = false; go('result'); }; } return; }
+  if (allDone) { tx.append('이 설정의 파일은 이미 모두 꺼냈습니다.'); if (start) { start.disabled = false; start.textContent = '결과 보기'; start.onclick = () => { S.plan = buildPlan(); S.partial = false; $('#exdlg').close(); go('result'); }; } return; }
   if (!r.ok) {
     sum.classList.add('warn'); free.append(chip('warn', '확인이 필요합니다'));
     tx.append(h('b', {}, '지금은 시작할 수 없습니다.'), h('ul', {}, (r.reasons || []).map(x => h('li', {}, x))));
@@ -1668,8 +2078,6 @@ function renderSummary() {
   tx.append(...sentence);
   if (start) start.disabled = !(ov.next_files > 0);
 }
-$('#suspect-sw').onclick = () => { S.suspect = !S.suspect; $('#suspect-tg').classList.toggle('off', !S.suspect); $('#suspect-sw').setAttribute('aria-checked', String(S.suspect)); schedCheck(); };
-$('#suspect-sw').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#suspect-sw').onclick(); } };
 $('#batch').oninput = e => { S.batchGb = e.target.value; schedCheck(); };
 
 // ---- 3. 복구 실행 ----
@@ -1678,6 +2086,7 @@ async function startRun() {
   clearInterval(S.watch); S.hold = null; S.plan = buildPlan(); S.pausing = false;
   try {
     await api('/api/extract/start', { device_id: S.sel, plan: S.plan });
+    if ($('#exdlg').open) $('#exdlg').close();
     S.flow = 'extract'; S.seen = null; S.stripKey = ''; banner('', '', 'msg');
     S.job = null; S.lost = false; clear($('#runmsg')); clear($('#runmsg-top')); fillStrip([]); $('#runbox').classList.toggle('hide', false); $('#strip-title').textContent = '방금 꺼낸 사진';
     heading('run', '사진을 꺼내고 있어요', '창을 열어 두기만 하면 됩니다. 끝나면 꺼낸 파일이 잘 열리는지 자동으로 확인해요.');
