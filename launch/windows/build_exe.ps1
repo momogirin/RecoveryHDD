@@ -29,4 +29,15 @@ if ($env:RT_BUILD_NOADMIN -eq "1") {
 $piArgs += @("--name", $name, "launch\windows\RecoveryTool_entry.py")
 & $py -m PyInstaller @piArgs
 if ($LASTEXITCODE -ne 0) { throw "PyInstaller 실패" }
+# 영상 재생 확인·첫 장면(apfsrecover/media.py)은 exe 옆의 ffmpeg 폴더를 찾는다.
+# launch\windows\ffmpeg\ 에 ffmpeg.exe·ffprobe.exe 와 라이선스 파일을 넣어 두면 dist\ffmpeg\ 로 복사한다(exe 크기는 그대로).
+$ff = Join-Path $root "launch\windows\ffmpeg"
+if (Test-Path (Join-Path $ff "ffmpeg.exe")) {
+    $dst = Join-Path $root "dist\ffmpeg"
+    if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+    Copy-Item $ff $dst -Recurse
+    Write-Host "ffmpeg 를 함께 두었습니다: dist\ffmpeg"
+} else {
+    Write-Host "ffmpeg 없음(launch\windows\ffmpeg\ffmpeg.exe): 영상은 구조 확인까지만 합니다"
+}
 Write-Host "완료: dist\$name.exe"
