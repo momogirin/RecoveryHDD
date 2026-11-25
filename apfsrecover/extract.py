@@ -146,13 +146,13 @@ def taken_timestamp(rec):
 
 
 def resolve_layout(session, plan, has_done):
-    """이번 꺼내기에 쓸 이름 방식. 계획에 적혀 있으면 그것. 이미 꺼낸 파일이 있으면 그때 방식을 유지한다
-    (이어하는 중에 이름 규칙이 바뀌지 않게. layout 이 없는 옛 plan.json 은 이전 방식). 처음이면 촬영 시각 방식."""
-    if plan.get("layout") in LAYOUTS:
-        return plan["layout"]
-    if has_done:
+    """이번 꺼내기에 쓸 이름 방식. 이미 꺼낸 파일이 있으면 그때 방식을 유지한다(이어하는 중에 이름 규칙이 바뀌지 않게.
+    layout 이 없는 옛 plan.json 은 이전 방식). 처음이면 계획(설정)에 적힌 방식, 없으면 촬영 시각 방식."""
+    if has_done:  # 이미 꺼낸 파일이 있으면 계획(설정)과 상관없이 그때 방식을 지킨다(한 폴더에 두 규칙이 섞이지 않게)
         prev = compat.read_json(os.path.join(session, "plan.json"), {}).get("layout")
         return prev if prev in LAYOUTS else LAYOUT_V1
+    if plan.get("layout") in LAYOUTS:
+        return plan["layout"]
     return LAYOUT_TAKEN
 
 
