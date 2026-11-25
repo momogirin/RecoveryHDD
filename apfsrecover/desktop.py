@@ -109,7 +109,7 @@ def _open_window(app, httpd, url, server):
     except ImportError:
         return False
     _taskbar_id()
-    window = webview.create_window(TITLE, url, width=1200, height=860, min_size=(900, 640))
+    window = webview.create_window(TITLE, url, width=1280, height=900, min_size=(1100, 720))
 
     def on_closing():
         if app.job and app.job.state == "running":

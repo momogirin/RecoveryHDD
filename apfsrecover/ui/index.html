@@ -246,7 +246,7 @@ body { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; line-h
 .status #st-l { flex: 1; } .status #st-r { width: 170px; text-align: right; flex: none; }
 
 #banner { height: 48px; flex: none; padding: 6px 32px 0; max-width: 1100px; width: 100%; }
-#banner:empty { display: block; } #banner { min-width: 0; overflow: hidden; } #banner .notice { min-width: 0; max-width: 100%; width: 100%; }
+#banner:empty { display: none; } #banner { height: auto; padding: 8px 32px 0; } #banner { min-width: 0; overflow: hidden; } #banner .notice { min-width: 0; max-width: 100%; width: 100%; }
 .notice { height: 40px; padding: 0 14px; }
 .notice span.t { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .notice .btn { width: 112px; height: 28px; flex: none; }
@@ -389,6 +389,11 @@ details.d summary { white-space: nowrap; overflow: hidden; text-overflow: ellips
 .un .s { font-size: 12.5px; color: var(--sub); height: 18px; line-height: 18px; }
 .un.off .n, .un.off .s { color: var(--faint); }
 .un.sk { background: var(--line); opacity: .6; cursor: default; }
+.loading { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 44px; }
+.loading .spin { flex: none; }
+.loading .tx { min-width: 0; }
+.loading .a { font-size: 14px; } .loading .b { font-size: 12.5px; color: var(--sub); margin-top: 2px; }
+#units .loading { padding: 10px 12px; height: 64px; font-size: 13px; color: var(--sub); }
 .uempty { padding: 10px 12px; font-size: 13px; color: var(--sub); height: 64px; }
 
 .content { grid-row: 1; overflow: auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
@@ -442,6 +447,44 @@ main h1 { font-size: 18px; line-height: 28px; }
 .seg button:disabled { opacity: .45; cursor: default; }
 #names-card { margin-top: 14px; } #names-card .a { display: flex; align-items: center; gap: 10px; } #names-act .btn { width: 150px; }
 .health { margin-bottom: 12px; }
+
+/* v12: 추출 2단 */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+.split-l .types { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 0; }
+.split-r { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.split-r .sec { margin: 0; }
+.split-r .prow { justify-content: space-between; }
+.split-r .prow .free { margin: 0; flex: 1; min-width: 0; }
+.split-r .prow .btn#pickdest { width: 110px; flex: none; }
+.split-r .switch { height: auto; margin: 4px 0 0; align-items: flex-start; color: var(--text); }
+.split-r .switch .tg { margin-top: 2px; flex: none; }
+.faint { color: var(--faint); font-size: 12.5px; }
+.brow2 { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.brow2 span:first-child { flex: 1; }
+.brow2 input { width: 96px; padding: 7px 10px; border: 1px solid var(--line2); border-radius: 8px; background: var(--win); color: var(--text); font: inherit; }
+.bnote { margin-top: -4px; font-size: 12.5px; }
+.split-r .summary { margin-top: 4px; height: auto; min-height: 96px; max-height: 200px; padding: 12px 14px; font-size: 14px; }
+.split-r .summary .tx { font-size: 14px; }
+/* v12: 건강 상태 */
+.card.next.health { display: block; height: auto; padding: 14px 20px 16px; }
+.health .hh { display: flex; align-items: center; gap: 10px; height: 24px; font-size: 13px; color: var(--sub); }
+.health .hh .sp { flex: 1; }
+.health .hv { font-size: 17px; font-weight: 600; height: 26px; margin-top: 4px; }
+.health .hb { font-size: 13px; color: var(--sub); height: 20px; }
+.health .hs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.health .hs .m { background: var(--win); border-radius: 8px; padding: 6px 12px; height: 48px; }
+.health .hs .m.empty { visibility: hidden; }
+.health .hs .v { font-weight: 600; font-size: 15px; height: 20px; }
+.health .hs .l { font-size: 12px; color: var(--sub); height: 18px; }
+/* v12: 확인 필요 파일 */
+.fails { padding: 14px 18px; margin-top: 12px; }
+.fails .fh { display: flex; align-items: center; gap: 12px; height: 30px; }
+.fails .fh b { flex: none; } .fails .fh .hint { flex: 1; min-width: 0; }
+.fails .fl { margin-top: 8px; max-height: 240px; overflow: auto; }
+.fails .fr { display: flex; align-items: center; gap: 10px; height: 48px; border-top: 1px solid var(--line); }
+.fails .fr .fx { flex: 1; min-width: 0; } .fails .fr .r { font-size: 12.5px; color: var(--sub); }
+.fails .fr .btn { width: 92px; min-width: 0; flex: none; }
+.fails .fr.done .mono { color: var(--sub); }
 
 /* 홈 · 개요 */
 .secx { font-size: 13px; color: var(--sub); margin: 20px 0 8px; font-weight: 600; height: 20px; }
@@ -584,27 +627,22 @@ main h1 { font-size: 18px; line-height: 28px; }
 
     <!-- 장치 > 추출: 설정 -->
     <section class="screen" id="s-settings">
-      <h1 class="ell">무엇을 꺼낼까요?</h1>
-      <p class="lead ell" id="settings-lead">검사 결과입니다. 꺼낼 종류를 고르세요.</p>
-      <div class="types" id="types"></div>
-
-      <div class="sec">저장할 폴더</div>
-      <div class="row">
-        <div class="field"><span>📁</span><span class="path empty" id="destpath">폴더를 선택하세요</span></div>
-        <button class="btn" id="pickdest">폴더 선택</button>
-      </div>
-      <div class="free" id="free"></div>
-
-      <div class="switch" id="suspect-sw" role="switch" tabindex="0" aria-checked="true"><span class="tg" id="suspect-tg"></span><span class="ell">깨졌을 수 있는 파일도 함께 꺼내기 <span style="color:var(--faint)">(‘_의심’ 폴더에 따로 저장)</span></span></div>
-
-      <div class="summary" id="summary"><span style="font-size:22px">📦</span><div class="tx" id="sumtx">저장할 폴더를 먼저 고르세요.</div></div>
-
-      <details class="adv">
-        <summary>고급 설정</summary>
-        <div class="box">
-          <div class="row"><span>한 번에 꺼낼 양</span><input type="number" id="batch" min="0.01" step="any" placeholder="전부"><span>GB <span class="hint">(비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼냅니다)</span></span></div>
+      <div class="split">
+        <div class="split-l">
+          <h1 class="ell">무엇을 꺼낼까요?</h1>
+          <p class="lead ell" id="settings-lead">검사 결과입니다. 꺼낼 종류를 고르세요.</p>
+          <div class="types" id="types"></div>
         </div>
-      </details>
+        <aside class="card split-r">
+          <div class="sec">저장할 폴더</div>
+          <div class="field"><span>📁</span><span class="path empty" id="destpath">폴더를 선택하세요</span></div>
+          <div class="row prow"><div class="free" id="free"></div><button class="btn" id="pickdest">폴더 선택</button></div>
+          <div class="switch" id="suspect-sw" role="switch" tabindex="0" aria-checked="true"><span class="tg" id="suspect-tg"></span><span>깨졌을 수 있는 파일도 함께 꺼내기<br><span class="faint">‘_의심’ 폴더에 따로 저장</span></span></div>
+          <div class="brow2"><span>한 번에 꺼낼 양</span><input type="number" id="batch" min="0.01" step="any" placeholder="전부"><span>GB</span></div>
+          <div class="hint bnote">비워 두면 한 번에 전부. 저장 공간이 모자랄 때 나눠서 꺼내요.</div>
+          <div class="summary" id="summary"><div class="tx" id="sumtx">저장할 폴더를 먼저 고르세요.</div></div>
+        </aside>
+      </div>
     </section>
 
     <!-- 장치 > 추출: 꺼내기 · 열림 확인 진행 -->
@@ -784,6 +822,7 @@ function setActions(...items) {
   const i = items.indexOf('|'); const left = (i < 0 ? items : items.slice(0, i)).filter(x => x instanceof Node);
   const right = i < 0 ? [] : items.slice(i + 1); const hint = right.find(x => typeof x === 'string' && x) || '';
   clear($('#actions')).append(h('div', { class: 'al' }, ...left), h('span', { class: 'hint ell', title: hint }, hint), h('div', { class: 'ar' }, ...right.filter(x => x instanceof Node)));
+  $('#actions').style.display = left.length || right.some(x => x instanceof Node) ? '' : 'none';
 }
 // ---- 화면 전환: 사이드바(홈 / 장치 목록 / 시스템) + 장치 화면의 탭 ----
 const TABS = [['over', '개요'], ['scan', '검사'], ['ext', '추출'], ['res', '결과'], ['bak', '백업'], ['fmt', '포맷 점검']];
@@ -853,7 +892,7 @@ function renderHead() {
   if (S.view !== 'unit') {
     const p = PAGE[S.view] || ['', ''];
     t.textContent = p[0]; t.title = p[0]; c.style.visibility = 'hidden';
-    const meta = S.view === 'home' ? '연결된 장치 ' + num(S.units.filter(u => u.connected).length) + '개 · 기록이 있는 장치 ' + num(S.units.filter(u => u.sid).length) + '개' + (jobRunning() ? ' · 작업 1개 진행 중' : '') : p[1];
+    const meta = S.view === 'home' && !S.loaded ? '장치를 찾는 중…' : S.view === 'home' ? '연결된 장치 ' + num(S.units.filter(u => u.connected).length) + '개 · 기록이 있는 장치 ' + num(S.units.filter(u => u.sid).length) + '개' + (jobRunning() ? ' · 작업 1개 진행 중' : '') : p[1];
     m.textContent = meta; m.title = meta; return;
   }
   const u = curUnit(); if (!u) return;
@@ -868,8 +907,12 @@ function renderHead() {
 }
 
 // ---- 장치 목록 ----
-async function loadUnits(force) {
-  if (S.unitsBusy && !force) return; S.unitsBusy = true;
+function loadUnits(force) {
+  if (S.unitsP && !force) return S.unitsP;
+  const p = S.unitsP = loadUnits0(force).finally(() => { if (S.unitsP === p) S.unitsP = null; });
+  return p;
+}
+async function loadUnits0(force) {
   try {
     const r = await api('/api/units' + (force === 'fresh' ? '?fresh=1' : '')); S.units = r.units; S.unitsMeta = r; S.isAdmin = r.is_root; S.images = r.images;
     if (S.unit && !curUnit()) {  // 장치를 뺐다가 다시 꽂으면 key 가 바뀔 수 있다: 같은 기록 폴더의 장치로 이어 준다
@@ -883,10 +926,12 @@ async function loadUnits(force) {
     if (S.screen === 'home') renderHome();
     if (S.screen === 'over' && force) loadOver();  // 작업이 끝난 뒤 숫자를 새로 보여 준다
   } catch (e) { if (!S.units.length) clear($('#units')).append(h('div', { class: 'uempty' }, '장치 목록을 불러오지 못했어요')); }
-  finally { S.unitsBusy = false; statusBar(); }
+  finally { if (!S.loaded) { S.loaded = true; if (S.screen === 'home') renderHome(); } statusBar(); }
 }
+const loadingRow = (a, b) => h('div', { class: 'loading' }, h('span', { class: 'spin' }), h('div', { class: 'tx' }, h('div', { class: 'a ell' }, a), b ? h('div', { class: 'b ell' }, b) : null));
 function renderUnits() {
   const box = clear($('#units'));
+  if (!S.loaded) { box.append(loadingRow('장치를 찾는 중…')); return; }
   if (!S.units.length) { box.append(h('div', { class: 'uempty' }, '연결된 장치가 없어요. 케이블을 연결하면 자동으로 나타나요.')); return; }
   S.units.forEach(u => {
     const st = unitState(u), dot = st[1] === '작업 중' ? 'run' : !u.sid ? 'none' : st[0] === 'ok' ? 'ok' : st[0] === 'alert' ? 'warn' : '';
@@ -899,7 +944,13 @@ function renderUnits() {
 }
 async function openUnit(key, screen) {
   if (S.unit !== key) {
-    let r; try { r = await api('/api/select', { key }); } catch (e) { banner('bad', e.message, 'msg'); return; }
+    const pu = S.units.find(x => x.key === key), back = S.screen;
+    document.querySelectorAll('.un').forEach(n => n.classList.toggle('on', n.dataset.key === key));
+    document.querySelectorAll('.nv').forEach(n => n.classList.remove('on'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 's-over'));
+    if (pu) { $('#p-title').textContent = pu.name; $('#p-meta').textContent = ''; $('#p-chip').style.visibility = 'hidden'; clear($('#p-tabs')); }
+    clear($('#over-box')).append(h('div', { class: 'card' }, loadingRow('장치 기록을 불러오는 중…', '처음 한 번은 몇 초 걸릴 수 있어요.')));
+    let r; try { r = await api('/api/select', { key }); } catch (e) { banner('bad', e.message, 'msg'); go(back); return; }
     S.unit = key; S.curSid = r.session; S.hold = null; S.summary = null; S.check = null; S.plan = null; S.partial = false; S.tail = null; S.flow = null;
     clear($('#fmt-list')); banner('', '', 'msg');
     try { S.session = await api('/api/session'); } catch (e) { S.session = null; }
@@ -934,6 +985,10 @@ function statusBar() {
 async function loadHome() { renderHome(); loadUnits(); }
 function renderHome() {
   const box = clear($('#home-box')); const j = S.job, run = jobRunning();
+  if (!S.loaded) {
+    box.append(h('div', { class: 'card next hot' }, loadingRow('연결된 장치를 찾는 중이에요', '디스크 정보를 운영체제에 물어보고 있어요. 몇 초 걸릴 수 있어요. 원본은 읽기만 해요.')));
+    renderHead(); return;
+  }
   const ju = run ? S.units.find(u => jobOf(u)) : null;
   box.append(h('div', { class: 'secx' }, '진행 중인 작업'));
   box.append(run
@@ -997,7 +1052,7 @@ async function loadOver() {
     row('검사', u.finished ? '검사 범위 앞쪽 ' + fmtSize(u.scanned || 0) + ' · ' + num(u.found) + '개 찾음' : '중간에 멈춤 · 지금까지 ' + num(u.found) + '개 찾음', u.finished ? ['ok', '완료'] : ['alert', '멈춤']),
     row('끝부분 검사', !t || !t.can && !t.state ? (t && t.why) || '-' : !t.state ? '아직 안 함' : (TAIL_VERDICT[tv] || TAIL_VERDICT.partial)[2], !t || (!t.can && !t.state) ? ['pause', '-'] : !t.state ? ['pause', '안 함'] : (TAIL_VERDICT[tv] || TAIL_VERDICT.partial).slice(0, 2)),
     row('추출', u.extracted ? num(u.extracted) + '개 꺼냄' + (it && it.kind === 'extract' ? ' · 중간에 멈춤' : '') : '아직 꺼내지 않았어요', u.extracted ? (it && it.kind === 'extract' ? ['alert', '멈춤'] : ['ok', '완료']) : ['pause', '안 함']),
-    row('열림 확인', vs ? '정상 ' + num(vs.ok) + (vs.fixed ? ' · 복원본 ' + num(vs.fixed) : '') + ' · 확인 필요 ' + num(vs.fail) + (vs.unchecked ? ' · 미확인 ' + num(vs.unchecked) : '') : '아직 안 함', vs ? (vs.fail ? ['alert', '확인 필요'] : ['ok', '완료']) : ['pause', '안 함']));
+    row('열림 확인', vs ? '정상 ' + num(vs.ok) + (vs.fixed ? ' · 복원본 ' + num(vs.fixed) : '') + ' · 확인 필요 ' + num(vs.fail) + (vs.unchecked ? ' · 미확인 ' + num(vs.unchecked) : '') + (vs.acked ? ' · 문제없음 표시 ' + num(vs.acked) : '') : '아직 안 함', vs ? (vs.fail ? ['alert', '확인 필요'] : ['ok', '완료']) : ['pause', '안 함']));
 }
 
 // ---- 장치 > 검사 ----
@@ -1110,16 +1165,29 @@ async function startSide(path, body, kind) {
 }
 
 // ---- 개요 > 건강 상태 ----
+const HEALTH = {
+  ok: ['ok', '정상', '지금은 고장 징후가 없어요', '그래도 중요한 파일은 먼저 꺼내 두세요.'],
+  warn: ['alert', '주의', '읽기 오류가 있었어요', '오래 읽는 작업(전체 검사·백업)은 줄이고, 필요한 파일부터 꺼내세요.'],
+  bad: ['bad', '위험', '하드가 고장 나고 있을 수 있어요', '필요한 파일부터 바로 꺼내세요. 오래 읽는 작업은 피하세요.'],
+  unknown: ['pause', '알 수 없음', '건강 정보를 알 수 없어요', ''],
+};
 async function loadHealth(slot) {
   const u = curUnit();
-  const fill = (chipv, a, b) => { clear(slot).append(h('div', { class: 'tx' }, h('div', { class: 'a ell', title: a }, a), h('div', { class: 'b ell', title: b }, b)), chip(chipv[0], chipv[1])); };
-  if (!u || !u.connected) return fill(['pause', '-'], '하드 건강 상태', '장치가 연결돼 있지 않아요.');
-  fill(['pause', '확인 중'], '하드 건강 상태', '운영체제에 물어보는 중이에요…');
-  let r; try { r = await api('/api/health?device_id=' + encodeURIComponent(u.device_id)); } catch (e) { return fill(['pause', '-'], '하드 건강 상태', '확인하지 못했어요: ' + e.message); }
+  const fill = (st, a, b, items) => {
+    clear(slot).append(h('div', { class: 'hh' }, h('span', { class: 'k' }, '하드 건강 상태'), chip(st[0], st[1]), h('span', { class: 'sp' })),
+      h('div', { class: 'hv ell', title: a }, a), h('div', { class: 'hb ell', title: b || '' }, b || ''),
+      h('div', { class: 'hs' }, ...[0, 1, 2, 3].map(i => { const x = (items || [])[i];
+        return h('div', { class: 'm' + (x ? '' : ' empty') }, h('div', { class: 'v num ell' }, x ? x[1] : ''), h('div', { class: 'l ell' }, x ? x[0] : '')); })));
+  };
+  if (!u || !u.connected) return fill(['pause', '-'], '장치가 연결돼 있지 않아요', '하드를 연결하면 운영체제에 물어볼게요.');
+  fill(['pause', '확인 중'], '운영체제에 물어보는 중이에요…', '몇 초 걸릴 수 있어요.');
+  let r; try { r = await api('/api/health?device_id=' + encodeURIComponent(u.device_id)); } catch (e) { return fill(['pause', '-'], '확인하지 못했어요', e.message); }
   if (S.screen !== 'over' || (curUnit() || {}).key !== u.key) return;
-  const st = { ok: ['ok', '정상'], warn: ['alert', '주의'], bad: ['bad', '위험'], unknown: ['pause', '정보 없음'] }[r.status] || ['pause', '정보 없음'];
-  const items = (r.items || []).map(x => x[0] + ' ' + x[1]).join(' · ');
-  fill(st, '하드 건강 상태' + (items ? ' — ' + items : ''), r.note || (r.status === 'bad' ? '하드가 고장 나고 있을 수 있어요. 필요한 파일부터 먼저 꺼내고, 백업을 고려하세요.' : r.status === 'warn' ? '읽기 오류가 있었어요. 오래 읽는 작업(전체 검사·백업)은 하드에 부담이 될 수 있어요.' : '운영체제가 알려 준 정보예요(' + (r.source || '') + ').'));
+  const H = HEALTH[r.status] || HEALTH.unknown;
+  const want = ['고치지 못한 읽기 오류', '온도', '사용 시간', '켜고 끈 횟수', '읽기 오류(전체)', '닳은 정도', 'SMART 상태', '윈도우 판정'];
+  const items = want.map(k => (r.items || []).find(x => x[0] === k)).filter(Boolean).slice(0, 4);
+  const sub = r.status === 'unknown' ? (r.note || '') : r.note ? H[3] + ' (' + r.note + ')' : H[3];
+  fill([H[0], H[1]], H[2], sub, items);
 }
 
 // ---- 검사 > 파티션 찾기 ----
@@ -1442,7 +1510,7 @@ function watchReconnect(onMatch) {
   clearInterval(S.watch);
   S.watch = setInterval(async () => {
     try {
-      const d = await api('/api/devices'); const m = d.devices.find(x => x.matches_session);
+      const d = await api('/api/devices?fresh=1'); const m = d.devices.find(x => x.matches_session);
       if (!m) return;
       clearInterval(S.watch); S.sel = m.id; onMatch();
     } catch (e) { }
@@ -1648,7 +1716,8 @@ async function loadResult() {
     h('span', { class: 'sp' }),
     rem ? btn('다음 묶음 꺼내기', 'primary', () => { S.partial = false; startRun(); }) : null,
     btn('폴더 열기', rem ? '' : 'primary', () => api('/api/open-folder', {}).catch(e => banner('bad', e.message, 'msg')))));
-  if (r.samples.length) box.append(h('div', { class: 'grid' }, r.samples.map(thumbEl)));
+  if ((v.failures || []).length) box.append(failCard(v));
+  if (r.samples.length) box.append(h('div', { class: 'grid' }, r.samples.slice(0, 6).map(thumbEl)));
   const range = r.first_day ? ' · 촬영일 ' + r.first_day.slice(0, 7) + (r.last_day && r.last_day.slice(0, 7) !== r.first_day.slice(0, 7) ? ' ~ ' + r.last_day.slice(0, 7) : '') : '';
   box.append(h('div', { class: 'more' }, h('span', {}, (r.dest || '') + range), h('button', { class: 'linkish', onclick: () => api('/api/open-folder', {}).catch(() => { }) }, '전체 보기')));
   loadNames(box);
@@ -1658,7 +1727,6 @@ async function loadResult() {
     fail ? num(fail) + '개는 열리지 않거나 일부만 열렸습니다' : fixed ? 'ZIP ' + num(fixed) + '개는 복원본을 만들었어요' : '검증 방법과 참고 사항'));
   (v.fixed || []).slice(0, 20).forEach(f => { const sv = f.salvage || {};
     det.append(h('p', {}, h('span', { class: 'mono' }, f.path), ' → 복원본 ', h('span', { class: 'mono' }, sv.path || ''), ' (온전한 항목 ' + num(sv.entries || 0) + '개' + (sv.lost ? ', 마지막 항목 하나는 잘려서 뺐어요' : '') + ')')); });
-  if (fails.length) det.append(h('ul', {}, fails.slice(0, 20).map(f => h('li', {}, h('span', { class: 'mono' }, f.path), ' — ' + f.reason))));
   if (r.suspect) det.append(h('p', {}, '깨졌을 수 있는 파일 ' + num(r.suspect) + '개는 각 종류 폴더 안의 _의심 폴더에 따로 두었습니다.'));
   if (r.duplicates) det.append(h('p', {}, '내용이 같은 파일 ' + num(r.duplicates) + '개는 하나만 저장했습니다.'));
   if (vs) det.append(h('p', {}, '검증 수준: ' + Object.entries(vs.levels).map(([k, n]) => ({ structure: '구조 확인', decode: '사진 끝까지 열기', probe: '영상 정보 읽기' }[k] || k) + ' ' + num(n)).join(', ')
@@ -1666,6 +1734,29 @@ async function loadResult() {
   else det.append(h('p', {}, '아직 열림 확인을 하지 않았습니다.'));
   det.append(h('p', {}, '원래 파일명과 폴더 구조는 복구할 수 없습니다. 지워진 옛 파일이 섞여 있을 수 있습니다.'));
   box.append(det);
+}
+// 확인 필요 파일: 직접 열어 보고 괜찮으면 '문제없음'으로 표시(기록에만 남기고 파일은 건드리지 않는다)
+function failCard(v) {
+  const fails = v.failures || [], left = fails.filter(f => !f.ack);
+  const ack = async (paths, on) => {
+    try { await api('/api/verify/ack', { paths, ack: on }); toast(on ? '문제없음으로 표시했어요' : '확인 필요로 되돌렸어요'); loadUnits(); loadResult(); }
+    catch (e) { banner('bad', e.message, 'msg'); }
+  };
+  const card = h('div', { class: 'card fails' },
+    h('div', { class: 'fh' }, h('b', {}, left.length ? '확인 필요 ' + num(left.length) + '개' : '확인 필요한 파일을 모두 확인했어요'),
+      h('span', { class: 'hint ell' }, left.length ? '직접 열어 보고 괜찮으면 [문제없음]을 누르세요. 파일은 바뀌지 않아요.' : '되돌리려면 [되돌리기]를 누르세요.'),
+      left.length > 1 ? btn('모두 문제없음', 'small', () => ack(left.map(f => f.path), true)) : null));
+  const list = h('div', { class: 'fl' });
+  fails.forEach(f => {
+    const missing = /파일이 없음/.test(f.reason || '');
+    list.append(h('div', { class: 'fr' + (f.ack ? ' done' : '') },
+      h('div', { class: 'fx' }, h('div', { class: 'mono ell', title: f.path }, f.path), h('div', { class: 'r ell', title: f.reason }, f.ack ? '문제없음으로 표시함 · ' + f.ack : f.reason)),
+      f.ack ? chip('ok', '문제없음') : chip('alert', '확인 필요'),
+      btn('열어 보기', 'small', () => api('/api/open-file', { path: f.path }).catch(e => banner('bad', e.message, 'msg')), { disabled: missing, title: missing ? '저장 폴더에 이 파일이 없어요' : '' }),
+      f.ack ? btn('되돌리기', 'small', () => ack([f.path], false)) : btn('문제없음', 'small primary', () => ack([f.path], true))));
+  });
+  card.append(list);
+  return card;
 }
 async function saveReport() {
   try { const r = await api('/api/report/save', {}); toast('저장했습니다: ' + r.path); } catch (e) { banner('bad', e.message, 'msg'); }
@@ -1728,7 +1819,8 @@ $('#pk-name').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $(
 
 (async function init() {
   theme();
-  await loadUnits(true);
+  renderUnits(); go('home');
+  await loadUnits();
   try {
     const j = (await api('/api/job')).job;
     const u = j && j.state === 'running' ? S.units.find(x => x.sid && x.sid === j.session) : null;
@@ -1742,7 +1834,7 @@ $('#pk-name').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $(
     if (j && j.state === 'running') { S.job = j; poll(); }
   } catch (e) { }
   loadDevices();
-  go('home');
+  renderHome();
 })();
 </script>
 </body>

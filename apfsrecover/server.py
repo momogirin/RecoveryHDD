@@ -232,7 +232,57 @@ class App:
             vs = vf.load_summary(s) or {}
             need += vs.get("fail", 0)
             fixed += vs.get("fixed", 0)
+        need = max(0, need - self.view(path).acked_count())
         return found, got, need, fixed
+
+    # ---- 확인 필요 파일을 사람이 보고 '문제없음'으로 표시 ----
+    ACK_FILE = "ack.json"
+
+    def acks(self):
+        """{꺼낸 파일 경로: 표시한 시각}. 이 장치의 기록 폴더(가장 최근 것)에 둔다."""
+        d = compat.read_json(os.path.join(self.session, self.ACK_FILE), {})
+        return d.get("paths", {}) if isinstance(d, dict) and isinstance(d.get("paths"), dict) else {}
+
+    def all_failures(self):
+        """이어진 기록 전체의 열림 확인 실패(개수 제한 없음). 파일 수정 시각으로 기억해 둔다."""
+        out = []
+        for c in self.related_sessions():
+            p = os.path.join(c, "verify.jsonl")
+            try:
+                st = os.stat(p)
+            except OSError:
+                continue
+            key = ("fails", p)
+            hit = self._shared.get(key)
+            if not hit or hit[0] != (st.st_mtime, st.st_size):
+                hit = ((st.st_mtime, st.st_size), vf.load_failures(c, limit=10 ** 9))
+                self._shared[key] = hit
+            out += hit[1]
+        return out
+
+    def acked_count(self):
+        a = self.acks()
+        if not a:
+            return 0
+        return len({f["path"] for f in self.all_failures() if f["path"] in a})
+
+    def set_ack(self, paths, on):
+        fails = {f["path"] for f in self.all_failures()}
+        bad = [p for p in paths if p not in fails]
+        if bad:
+            raise ValueError("확인 필요 목록에 없는 파일이에요: " + bad[0])
+        a = self.acks()
+        for p in paths:
+            if on:
+                a[p] = time.strftime("%Y-%m-%d %H:%M")
+            else:
+                a.pop(p, None)
+        os.makedirs(self.session, exist_ok=True)
+        tmp = os.path.join(self.session, self.ACK_FILE + ".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({"paths": a}, f, ensure_ascii=False)
+        os.replace(tmp, os.path.join(self.session, self.ACK_FILE))
+        return a
 
     def _devices_cached(self, fresh=False, ttl=8):
         """장치 목록(윈도우는 PowerShell 로 1~2초 걸린다)을 잠깐 기억해 둔다. 새로 고침 버튼은 fresh=True."""
@@ -265,6 +315,7 @@ class App:
         for k, r in sorted(prim.items(), key=lambda kv: -kv[1]["mtime"]):
             if k not in used:
                 out.append(self._unit(None, r, running_sid))
+        self._shared["units_last"] = out
         return out
 
     def _unit(self, d, r, running_sid):
@@ -282,8 +333,11 @@ class App:
         return u
 
     def unit_session(self, key):
-        """장치 목록의 key 에 해당하는 기록 폴더 경로(없으면 새로 쓸 폴더 이름). 모르는 key 면 None."""
-        for u in self.units():
+        """장치 목록의 key 에 해당하는 기록 폴더 경로(없으면 새로 쓸 폴더 이름). 모르는 key 면 None.
+        화면이 방금 보여 준 목록을 먼저 쓴다(장치 목록을 다시 만들면 윈도우에서 1~2초 걸려 클릭이 느려진다)."""
+        last = self._shared.get("units_last") or []
+        units = last if any(u["key"] == key for u in last) else self.units()
+        for u in units:
             if u["key"] != key:
                 continue
             if u["sid"]:
@@ -588,6 +642,7 @@ class App:
                 no_verify += len(done)
             for k in vsum:
                 vsum[k] += (vs or {}).get(k, 0)
+        vsum["fail"] = max(0, vsum["fail"] - self.acked_count())
         # 1) 저장 위치가 원본 디스크와 다른가
         if not dests:
             items[1] = ["bad", "아직 꺼낸 파일이 없어요."]
@@ -869,8 +924,13 @@ class App:
                     for k in ("levels", "reasons"):
                         for kk, n in vs[k].items():
                             out[k][kk] = out[k].get(kk, 0) + n
-            fails += vf.load_failures(c)
             fixed += vf.load_fixed(c)
+        a = self.acks()
+        fails = [dict(f, ack=a.get(f["path"])) for f in self.all_failures()]
+        fails.sort(key=lambda f: bool(f["ack"]))  # 아직 안 본 것부터
+        if out is not None:
+            out["acked"] = sum(1 for f in fails if f["ack"])
+            out["fail"] = max(0, out["fail"] - out["acked"])
         return {"summary": out, "failures": fails[:200], "fixed": fixed[:200]}
 
     def result_summary(self, n_samples=12):
@@ -931,7 +991,7 @@ class App:
                 lines.append("  복원본: %s — 온전한 항목 %s개%s → %s" % (r.get("path", ""), sv.get("entries", "?"),
                                                                  ", 마지막 항목 하나는 잘려서 뺌" if sv.get("lost") else "", sv.get("path", "")))
             for r in vo["failures"][:50]:
-                lines.append("  실패: %s — %s" % (r.get("path", ""), r.get("reason", "")))
+                lines.append("  %s: %s — %s" % ("문제없음(직접 확인 %s)" % r["ack"] if r.get("ack") else "실패", r.get("path", ""), r.get("reason", "")))
         tc = tailcheck.load(self.session)
         if tc:
             v = tailcheck.verdict(tc)
@@ -1014,12 +1074,13 @@ def make_handler(app):
                 if u.path == "/":
                     with open(UI_PATH, "rb") as f:
                         return self._send(200, f.read(), "text/html; charset=utf-8")
-                if u.path == "/api/devices":
-                    devs = app.devices()
+                if u.path == "/api/devices":  # fresh=1: 다시 꽂혔는지 확인할 때(목록·지문을 새로 읽는다)
+                    fresh = (q.get("fresh") or ["0"])[0] == "1"
+                    devs = app._devices_cached(fresh)
                     dj = app.session_device()
                     for d in devs:
                         d["matches_session"] = bool(dj and dj.get("fingerprint") and d["readable"]
-                                                    and app.fingerprint(d) == dj["fingerprint"])
+                                                    and (app.fingerprint(d) if fresh else app._fp_cached(d)) == dj["fingerprint"])
                     return self._send(200, {"devices": devs, "images": bool(app.images),
                                             "is_root": is_admin()})
                 if u.path == "/api/session":
@@ -1140,6 +1201,26 @@ def make_handler(app):
                     return self._err(400, " / ".join(early["reasons"]))
                 job = app.start_job("auto", app.view().auto_target(dev, plan, bool(body.get("full")), bool(body.get("resume"))))
                 return self._send(200, {"job": job.to_dict()}) if job else self._err(409, "다른 작업이 실행 중입니다.")
+            if path == "/api/verify/ack":  # 확인 필요 파일을 '문제없음'으로 표시하거나 되돌린다(기록 폴더의 ack.json 에만 쓴다)
+                paths = body.get("paths") or []
+                if not isinstance(paths, list) or not all(isinstance(p, str) for p in paths):
+                    return self._err(400, "잘못된 요청입니다.")
+                try:
+                    app.set_ack(paths, bool(body.get("ack", True)))
+                except ValueError as e:
+                    return self._err(400, str(e))
+                return self._send(200, app.verify_overview())
+            if path == "/api/open-file":  # 꺼낸 파일 하나를 연결된 프로그램으로 연다(저장 폴더 안의 파일만)
+                dest = app.saved_dest()
+                rel = body.get("path") or ""
+                if not dest or not isinstance(rel, str):
+                    return self._err(404, "저장 폴더를 찾을 수 없습니다.")
+                base = os.path.realpath(expand(dest))
+                p = os.path.realpath(os.path.join(base, rel))
+                if not guards._under(p, base) or not os.path.isfile(p):
+                    return self._err(404, "파일이 저장 폴더에 없어요.")
+                open_folder(p)
+                return self._send(200, {"ok": True})
             if path == "/api/open-folder":
                 dest = app.saved_dest()
                 if not dest or not os.path.isdir(os.path.realpath(expand(dest))):
