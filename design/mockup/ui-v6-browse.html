@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시안 v6 · 꺼내기 전 탐색</title>
+<!--
+  07-roadmap C 시안. 서버 없이 가짜 데이터(약 9,000개)로 동작한다. 숫자·사진은 모두 예시다.
+  지금 화면(apfsrecover/ui/index.html v12)의 색 토큰·사이드바·탭·고정 레이아웃 규칙을 그대로 쓴다.
+  오른쪽 아래 "시안 상태"로 상황을 바꿔 볼 수 있다(실제 화면에는 없다).
+-->
+<style>
+:root {
+  --win: #fbfbfb; --card: #ffffff; --line: #e5e5e5; --line2: #d4d4d4; --side: #f3f3f3;
+  --text: #1b1b1b; --sub: #5f5f5f; --faint: #8a8a8a;
+  --accent: #0067c0; --accent-ink: #ffffff; --accent-soft: #e6f0fa;
+  --ok: #107c10; --ok-soft: #e7f4e7; --warn: #9d5d00; --warn-soft: #fdf3e1; --bad: #c42b1c; --bad-soft: #fde7e9;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a; --side: #202020;
+    --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+    --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+    --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --win: #272727; --card: #2f2f2f; --line: #3b3b3b; --line2: #4a4a4a; --side: #202020;
+  --text: #f2f2f2; --sub: #b4b4b4; --faint: #8c8c8c;
+  --accent: #4cc2ff; --accent-ink: #00263d; --accent-soft: #1e3a4d;
+  --ok: #6ccb5f; --ok-soft: #223a22; --warn: #fce100; --warn-soft: #43391a; --bad: #ff99a4; --bad-soft: #442726; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: auto; }
+body { background: var(--win); color: var(--text); font: 15px/20px "Segoe UI Variable Text", "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+svg.i { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.btn { height: 36px; min-width: 96px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; border: 1px solid var(--line2); background: var(--card); color: var(--text); border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--sub); }
+.btn.small { height: 28px; min-width: 0; padding: 0 12px; font-size: 13px; }
+button:focus-visible, .tile:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.chip { display: inline-block; width: 96px; height: 24px; line-height: 24px; text-align: center; border-radius: 99px; font-size: 12.5px; flex: none; white-space: nowrap; background: var(--ok-soft); color: var(--ok); }
+.chip.pause { background: var(--line); color: var(--sub); } .chip.warn { background: var(--warn-soft); color: var(--warn); }
+.hint { color: var(--sub); font-size: 13px; }
+
+/* 틀(v10~v12 와 같음) */
+.shell { display: grid; grid-template-columns: 264px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 36px; height: 100vh; min-width: 960px; min-height: 620px; }
+.side { background: var(--side); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.grp { flex: none; padding: 8px 10px; }
+.nv { width: 100%; height: 38px; border: 0; background: transparent; color: var(--text); border-radius: 8px; text-align: left; padding: 0 12px; font: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.nv svg.i { color: var(--sub); }
+.sep { flex: none; height: 1px; background: var(--line); margin: 0 16px; }
+.shead { flex: none; height: 40px; display: flex; align-items: center; padding: 0 14px 0 20px; }
+.shead b { font-size: 12px; color: var(--sub); font-weight: 600; }
+.units { flex: 1; padding: 0 10px 8px; }
+.un { display: flex; gap: 12px; align-items: center; height: 64px; padding: 0 12px; border-radius: 10px; position: relative; }
+.un.on { background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.un.on::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
+.un .ic { width: 36px; height: 36px; border-radius: 9px; flex: none; background: linear-gradient(160deg, #3a4a63, #1d2636); display: grid; place-items: center; color: #fff; position: relative; }
+.un .ic i { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--side); background: var(--ok); }
+.un .tx { flex: 1; min-width: 0; } .un .n { font-weight: 600; font-size: 14px; height: 20px; } .un .s { font-size: 12.5px; color: var(--sub); height: 18px; line-height: 18px; }
+.content { overflow: hidden; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.phead { flex: none; height: 125px; padding: 18px 32px 0; border-bottom: 1px solid var(--line); background: var(--win); }
+.phead .t1 { display: flex; align-items: center; gap: 12px; height: 34px; }
+.phead h1 { font-size: 22px; line-height: 34px; font-weight: 600; margin: 0; }
+.phead .meta { font-size: 13px; color: var(--sub); height: 20px; }
+.tabs { display: flex; gap: 4px; margin-top: 10px; height: 42px; }
+.tab { height: 42px; padding: 0 14px; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--sub); cursor: pointer; position: relative; }
+.tab.on { color: var(--text); font-weight: 600; }
+.tab.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px; background: var(--accent); }
+.status { grid-column: 1 / 3; border-top: 1px solid var(--line); background: var(--side); display: flex; align-items: center; gap: 14px; padding: 0 16px; font-size: 12.5px; color: var(--sub); }
+.status .who { width: 220px; flex: none; color: var(--text); } .status .what { flex: 1; }
+.status .pb { width: 200px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; flex: none; } .status .pb i { display: block; height: 100%; background: var(--accent); }
+.status.idle .pb { visibility: hidden; }
+
+/* ===== v6: 꺼내기 전 탐색 =====
+   고정 높이: 배너 줄 48 · 필터 줄 44 · 타임라인 72 · 아래 버튼 줄 64. 격자와 미리보기는 남은 높이 안에서 각자 스크롤.
+   격자 칸 128x96 고정(가상 스크롤: 보이는 줄만 그림). 미리보기 칸 300px 고정. */
+.browse { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 32px; }
+.bslot { flex: none; height: 48px; padding-top: 8px; }
+.bslot:empty { height: 8px; padding: 0; }
+.notice { display: flex; gap: 12px; align-items: center; height: 40px; padding: 0 14px; border-radius: 10px; font-size: 14px; background: var(--accent-soft); }
+.notice.warn { background: var(--warn-soft); }
+.notice .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notice .btn { width: 112px; height: 28px; min-width: 0; flex: none; font-size: 13px; }
+.notice .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line2); border-top-color: var(--accent); animation: sp 1s linear infinite; flex: none; }
+@keyframes sp { to { transform: rotate(360deg); } }
+
+.fbar { flex: none; height: 44px; display: flex; align-items: center; gap: 8px; }
+.kc { height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; flex: none; }
+.kc b { font-weight: 600; } .kc span { color: var(--sub); }
+.kc.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); } .kc.on span { color: var(--accent); }
+.kc.none { opacity: .45; cursor: default; }
+.kc .x { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 10px; line-height: 1; }
+.fbar .sp { flex: 1; }
+.dd { height: 32px; border: 1px solid var(--line2); border-radius: 8px; background: var(--card); color: var(--text); font: inherit; font-size: 13px; padding: 0 8px; width: 156px; flex: none; }
+.dd.narrow { width: 120px; }
+
+.tl { flex: none; height: 92px; display: flex; flex-direction: column; padding-bottom: 6px; }
+.tl .bars { display: flex; align-items: flex-end; gap: 2px; height: 36px; flex: none; }
+.tl .bar { flex: 1; min-width: 3px; background: var(--line2); border-radius: 2px 2px 0 0; cursor: pointer; position: relative; }
+.tl .bar:hover { background: var(--sub); }
+.tl .bar.in { background: var(--accent); }
+.tl .bar.zero { background: var(--line); height: 2px !important; cursor: default; }
+.tl .ax { flex: none; height: 16px; font-size: 11.5px; color: var(--faint); margin-top: 4px; position: relative; }
+.tl .ax span { position: absolute; transform: translateX(-2px); white-space: nowrap; }
+.tl .hd { flex: none; height: 30px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--sub); margin-bottom: 4px; }
+.tl .hd b { color: var(--text); font-weight: 600; flex: none; } .tl .hd .r { flex: 1; } .tl .hd .linkish { flex: none; }
+.tl .hd .dd { height: 28px; }
+.linkish { color: var(--accent); background: none; border: 0; padding: 0; font: inherit; font-size: 12.5px; cursor: pointer; }
+.linkish:hover { text-decoration: underline; }
+
+.bmain { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; padding-bottom: 12px; }
+.gwrap { min-height: 0; overflow-y: auto; position: relative; border-top: 1px solid var(--line); }
+.gin { position: relative; }
+.grow { position: absolute; left: 0; right: 0; display: flex; gap: 10px; }
+.ghead { position: absolute; left: 0; right: 0; height: 44px; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.ghead .d { font-weight: 600; width: 128px; flex: none; } .ghead .n { color: var(--sub); font-size: 13px; flex: 1; }
+.ghead.undated .d { color: var(--sub); }
+.cb { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--line2); background: var(--card); display: grid; place-items: center; flex: none; cursor: pointer; padding: 0; color: transparent; }
+.cb svg.i { width: 13px; height: 13px; stroke-width: 3; }
+.cb.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cb.part { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cb.part::after { content: ""; width: 9px; height: 2px; background: var(--accent-ink); border-radius: 1px; }
+.tile { width: 128px; height: 96px; flex: none; border-radius: 8px; position: relative; overflow: hidden; cursor: pointer; background: var(--line); border: 0; padding: 0; font: inherit; color: inherit; }
+.tile .ph { position: absolute; inset: 0; }
+.tile .lab { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--sub); font-size: 12px; }
+.tile .lab b { font-size: 14px; color: var(--text); letter-spacing: .5px; }
+.tile.vid .ph::after { content: "▶"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 20px; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+.tile .cb { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; box-shadow: 0 0 0 1px rgba(0,0,0,.15); }
+.tile .bd { position: absolute; left: 6px; bottom: 6px; height: 18px; line-height: 18px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: rgba(0,0,0,.6); color: #fff; }
+.tile .bd.sus { left: 6px; top: 6px; bottom: auto; background: var(--warn); color: #fff; }
+.tile.off .ph, .tile.off .lab { opacity: .35; }
+.tile.cur { box-shadow: 0 0 0 3px var(--accent); }
+.empty { padding: 48px 12px; text-align: center; color: var(--sub); }
+.empty b { display: block; color: var(--text); font-size: 16px; margin-bottom: 6px; }
+.skt { width: 128px; height: 96px; border-radius: 8px; flex: none; background: linear-gradient(90deg, var(--line) 0, var(--line2) 50%, var(--line) 100%); background-size: 200% 100%; animation: sh 1.2s linear infinite; }
+@keyframes sh { to { background-position: -200% 0; } }
+
+.pv { min-height: 0; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; }
+.pv > * { flex: none; }  /* 칸이 낮아도 줄어들지 않고 스크롤된다 */
+.pv .big { width: 266px; height: 200px; border-radius: 8px; position: relative; overflow: hidden; background: var(--line); flex: none; }
+.pv .big .lab { position: absolute; inset: 0; display: grid; place-items: center; color: var(--sub); font-size: 13px; text-align: center; padding: 12px; }
+.pv .note2 { font-size: 12px; color: var(--faint); height: 18px; margin-top: 6px; }
+.pv h3 { margin: 10px 0 2px; font-size: 16px; height: 22px; }
+.pv dl { margin: 8px 0 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); row-gap: 6px; font-size: 13px; }
+.pv dt { color: var(--sub); } .pv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.pv .mono { font-family: "Cascadia Mono", Consolas, Menlo, monospace; font-size: 12px; }
+.pv .acts { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.pv .acts .btn { width: 100%; }
+.pv .acts .hint { height: 18px; font-size: 12px; }
+.pv.blank { display: grid; place-items: center; text-align: center; color: var(--sub); font-size: 14px; }
+
+footer.actions { flex: none; height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 32px; border-top: 1px solid var(--line); background: var(--win); }
+footer .selsum { flex: 1; min-width: 0; }
+footer .selsum b { font-size: 15px; } footer .selsum .s { font-size: 12.5px; color: var(--sub); height: 18px; }
+footer .btn { width: 120px; } footer .btn.primary { width: 160px; }
+
+/* 꺼내기 확인 창 */
+dialog { background: var(--win); color: var(--text); border: 1px solid var(--line2); border-radius: 12px; width: 520px; padding: 22px; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog h2 { margin: 0 0 4px; font-size: 19px; font-weight: 600; }
+dialog .sec { font-weight: 600; font-size: 14px; margin: 16px 0 8px; }
+.field { border: 1px solid var(--line2); background: var(--card); border-radius: 8px; padding: 0 12px; height: 40px; display: flex; gap: 10px; align-items: center; min-width: 0; flex: 1; }
+.field .path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prow { display: flex; gap: 10px; align-items: center; }
+.free { font-size: 13px; color: var(--sub); height: 20px; margin-top: 6px; display: flex; gap: 8px; align-items: center; }
+.swr { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; margin-top: 12px; cursor: pointer; }
+.sw { width: 40px; height: 22px; border-radius: 11px; background: var(--line2); position: relative; flex: none; border: 0; cursor: pointer; margin-top: 1px; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+.sw.on { background: var(--accent); } .sw.on::after { left: 21px; }
+.sw + span small { display: block; color: var(--sub); font-size: 12.5px; }
+.sumbox { margin-top: 16px; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); font-size: 14px; }
+.sumbox ul { margin: 6px 0 0 18px; padding: 0; color: var(--sub); font-size: 13px; }
+dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+/* 시안 전용 조작 */
+.mock { position: fixed; right: 12px; top: 12px; z-index: 50; background: var(--text); color: var(--win); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; box-shadow: 0 4px 18px rgba(0,0,0,.25); width: 220px; }
+.mock b { display: block; margin-bottom: 6px; }
+.mock select { width: 100%; height: 28px; font: inherit; font-size: 12.5px; margin-bottom: 6px; }
+.mock label { display: flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></symbol>
+  <symbol id="disk" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 14h.01M11 14h6"/></symbol>
+  <symbol id="cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="zoom" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/></symbol>
+</svg>
+<div class="shell">
+  <nav class="side" aria-label="메뉴">
+    <div class="grp"><button class="nv" type="button"><svg class="i"><use href="#home"/></svg>홈</button></div>
+    <div class="sep"></div>
+    <div class="shead"><b>장치 목록</b></div>
+    <div class="units">
+      <div class="un on"><div class="ic"><svg class="i"><use href="#disk"/></svg><i></i></div>
+        <div class="tx"><div class="n ell">Seagate 5TB</div><div class="s ell" id="unit-s">검사 끝</div></div></div>
+    </div>
+    <div class="sep"></div>
+    <div class="shead"><b>시스템</b></div>
+    <div class="grp">
+      <button class="nv" type="button"><svg class="i"><use href="#cog"/></svg>설정</button>
+      <button class="nv" type="button"><svg class="i"><use href="#alert"/></svg>도움말</button>
+    </div>
+  </nav>
+  <div class="content">
+    <header class="phead">
+      <div class="t1"><h1 class="ell">Seagate 5TB</h1><span class="chip" id="hchip">검사 끝</span></div>
+      <div class="meta ell">외장 · USB · 5.0TB · APFS(초기화됨) · 읽기만 해요</div>
+      <div class="tabs"><button class="tab">개요</button><button class="tab">검사</button><button class="tab on">꺼내기</button><button class="tab">결과</button><button class="tab">백업</button><button class="tab">포맷 점검</button></div>
+    </header>
+    <section class="browse" aria-label="찾은 파일">
+      <div class="bslot" id="slot"></div>
+      <div class="fbar" id="fbar"></div>
+      <div class="tl" id="tl"></div>
+      <div class="bmain">
+        <div class="gwrap" id="gw" tabindex="-1"><div class="gin" id="gin"></div></div>
+        <aside class="card pv" id="pv" aria-live="polite"></aside>
+      </div>
+    </section>
+    <footer class="actions">
+      <div class="selsum"><b id="sel1">-</b><div class="s ell" id="sel2"></div></div>
+      <button class="btn ghost" id="selall" type="button">모두 선택</button>
+      <button class="btn ghost" id="selnone" type="button">모두 해제</button>
+      <button class="btn primary" id="go" type="button">꺼내기…</button>
+    </footer>
+  </div>
+  <footer class="status idle" id="status"><span class="who ell">Seagate 5TB</span><span class="what ell" id="st">대기 중</span><span class="pb"><i id="stpb" style="width:0%"></i></span></footer>
+</div>
+
+<dialog id="dlg">
+  <h2>꺼내기</h2>
+  <div class="hint" id="dlg-what"></div>
+  <div class="sec">저장할 폴더</div>
+  <div class="prow"><div class="field"><svg class="i"><use href="#folder"/></svg><span class="path">D:\복구\Seagate</span></div><button class="btn" type="button">폴더 선택</button></div>
+  <div class="free"><span class="chip">충분해요</span><span>여유 412GB · 필요 <span id="dlg-need"></span></span></div>
+  <label class="swr"><button class="sw on" type="button" aria-label="깨졌을 수 있는 파일도 꺼내기"></button><span>깨졌을 수 있는 파일도 함께 꺼내기<small>‘_의심’ 폴더에 따로 둬요. 열리지 않을 수 있어요.</small></span></label>
+  <label class="swr"><button class="sw" type="button" aria-label="나눠서 꺼내기"></button><span>나눠서 꺼내기<small>저장 공간이 모자랄 때 GB 단위로 나눠요.</small></span></label>
+  <div class="sumbox"><b>파일 이름은 촬영 시각으로 지어요</b>
+    <ul><li>사진/2024-03-06/20240306_143012_CanonEOSR8_000123.jpg</li><li>촬영 시각이 없으면 사진/날짜불명/jpg_000123_blk25792.jpg</li><li>원본 장치에는 아무것도 쓰지 않아요</li></ul></div>
+  <div class="acts"><button class="btn ghost" type="button" id="dlg-x">취소</button><button class="btn primary" type="button" id="dlg-ok">꺼내기 시작</button></div>
+</dialog>
+
+<div class="mock" aria-label="시안 조작(실제 화면에는 없음)">
+  <b>시안 상태 (실제 화면에 없음)</b>
+  <select id="mstate">
+    <option value="normal">검사 끝 · 미리보기 있음</option>
+    <option value="scanning">검사 중 (결과가 쌓이는 중)</option>
+    <option value="legacy">이전 버전 기록 · 미리보기 없음</option>
+    <option value="loading">목록 불러오는 중</option>
+    <option value="nothing">찾은 파일 없음</option>
+  </select>
+  <label><input type="checkbox" id="mdark"> 어두운 테마</label>
+</div>
+
+<script>
+'use strict';
+// ---------- 가짜 데이터: 실제 기록(catalog.jsonl)과 같은 모양 ----------
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+const R = rng(42);
+const KINDS = [
+  { k: 'photo', label: '사진', ex: ['jpeg', 'heic', 'png'] },
+  { k: 'raw', label: 'RAW', ex: ['raw-cr3'] },
+  { k: 'video', label: '영상', ex: ['video-mp4', 'video-mov'] },
+  { k: 'doc', label: '문서', ex: ['pdf', 'docx', 'xlsx', 'hwp'] },
+  { k: 'arc', label: '압축', ex: ['zip', '7z'] },
+];
+const KIND_OF = {}; KINDS.forEach(g => g.ex.forEach(e => KIND_OF[e] = g.k));
+const EXT = { jpeg: 'JPG', heic: 'HEIC', png: 'PNG', 'raw-cr3': 'CR3', 'video-mp4': 'MP4', 'video-mov': 'MOV', pdf: 'PDF', docx: 'DOCX', xlsx: 'XLSX', hwp: 'HWP', zip: 'ZIP', '7z': '7Z' };
+const DIR = { photo: '사진', raw: 'RAW', video: '영상', doc: '문서', arc: '압축' };
+let ALL = [];
+function build() {
+  const out = []; let id = 1, off = 25792;
+  const push = (o) => { o.id = id++; o.offset = off * 4096; off += Math.ceil(o.length / 4096) + 1; out.push(o); };
+  const trips = [['2023-05-12', 4, 700], ['2023-08-02', 3, 420], ['2023-12-23', 3, 380], ['2024-03-06', 6, 1600], ['2024-06-15', 2, 300], ['2024-10-03', 5, 900]];
+  for (const [start, days, n] of trips) {
+    const t0 = new Date(start + 'T08:00:00');
+    for (let i = 0; i < n; i++) {
+      const t = new Date(t0.getTime() + Math.floor(R() * days) * 864e5 + Math.floor(R() * 12 * 3600) * 1000);
+      const taken = t.toISOString().slice(0, 19);
+      const sus = R() < 0.02;
+      if (R() < 0.05) { push({ kind: R() < .5 ? 'video-mp4' : 'video-mov', length: 2e8 + R() * 1.4e9 | 0, structure: sus || R() < .12 ? 'suspect' : 'ok', taken, model: 'Canon EOS R8', thumb: false, hue: R() * 360 }); continue; }
+      push({ kind: 'jpeg', length: 4e6 + R() * 5e6 | 0, structure: sus ? 'suspect' : 'ok', taken, model: 'Canon EOS R8', thumb: R() < .97, hue: R() * 360 });
+      if (R() < .45) push({ kind: 'raw-cr3', length: 2.4e7 + R() * 8e6 | 0, structure: 'ok', taken, model: 'Canon EOS R8', thumb: true, hue: out[out.length - 1].hue });
+    }
+  }
+  // 휴대폰 사진(날마다 조금씩)
+  for (let i = 0; i < 2200; i++) {
+    const t = new Date(new Date('2023-03-01').getTime() + R() * 640 * 864e5);
+    push({ kind: R() < .7 ? 'jpeg' : 'heic', length: 1.5e6 + R() * 3e6 | 0, structure: 'ok', taken: t.toISOString().slice(0, 19), model: 'iPhone 13', thumb: R() < .9, hue: R() * 360 });
+  }
+  // 날짜 없는 것: EXIF 없는 사진·화면 캡처, 문서, 압축
+  for (let i = 0; i < 260; i++) push({ kind: R() < .6 ? 'jpeg' : 'png', length: 2e5 + R() * 2e6 | 0, structure: 'ok', taken: null, model: null, thumb: false, hue: R() * 360 });
+  for (let i = 0; i < 64; i++) push({ kind: ['pdf', 'docx', 'xlsx', 'hwp'][i % 4], length: 5e4 + R() * 6e6 | 0, structure: R() < .1 ? 'suspect' : 'ok', taken: null, model: null, thumb: false });
+  for (let i = 0; i < 7; i++) push({ kind: i % 3 ? 'zip' : '7z', length: 1e6 + R() * 3e8 | 0, structure: i < 5 ? 'suspect' : 'ok', taken: null, model: null, thumb: false });
+  out.forEach(r => { r.g = KIND_OF[r.kind]; r.day = r.taken ? r.taken.slice(0, 10) : null; r.month = r.taken ? r.taken.slice(0, 7) : null; });
+  out.sort((a, b) => (a.taken || '9') < (b.taken || '9') ? -1 : (a.taken || '9') > (b.taken || '9') ? 1 : a.id - b.id);
+  return out;
+}
+ALL = build();
+
+// ---------- 상태: 계획(plan.json)과 같은 방식 = 필터 + 예외 ----------
+const st = {
+  kinds: new Set(['photo', 'raw', 'video']),   // 처음에는 사진·RAW·영상 (문서·압축은 끔: 지금 화면의 기본과 같음)
+  model: '', verdict: 'all', from: null, to: null,
+  exclude: new Set(),                          // 필터에 맞지만 체크를 끈 항목(plan.exclude_ids)
+  cur: null, anchor: null, mode: 'normal',
+};
+const $ = (id) => document.getElementById(id);
+const h = (tag, attrs, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); } for (const c of kids.flat()) if (c != null) e.append(c); return e; };
+const svg = (id) => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'i'); const u = document.createElementNS('http://www.w3.org/2000/svg', 'use'); u.setAttribute('href', '#' + id); s.append(u); return s; };
+const nf = new Intl.NumberFormat('ko-KR');
+const gb = (b) => b >= 1e9 ? (b / 1e9).toFixed(b >= 1e11 ? 0 : 1) + 'GB' : b >= 1e6 ? (b / 1e6).toFixed(0) + 'MB' : Math.max(1, b / 1e3 | 0) + 'KB';
+
+function data() { return st.mode === 'nothing' ? [] : st.mode === 'scanning' ? ALL.slice(0, Math.floor(ALL.length * .42)) : ALL; }
+function match(r, ignoreKind, ignoreDate) {
+  if (!ignoreKind && !st.kinds.has(r.g)) return false;
+  if (st.model && r.model !== st.model) return false;
+  if (st.verdict === 'ok' && r.structure !== 'ok') return false;
+  if (st.verdict === 'suspect' && r.structure === 'ok') return false;
+  if (!ignoreDate && (st.from || st.to)) { if (!r.month) return false; if (st.from && r.month < st.from) return false; if (st.to && r.month > st.to) return false; }
+  return true;
+}
+const isSel = (r) => !st.exclude.has(r.id);
+
+// ---------- 필터 줄 ----------
+function renderFbar() {
+  const box = $('fbar'); box.replaceChildren();
+  const d = data();
+  for (const g of KINDS) {
+    const rs = d.filter(r => r.g === g.k && match(r, true, false));
+    const on = st.kinds.has(g.k);
+    const b = h('button', { class: 'kc' + (on ? ' on' : '') + (rs.length ? '' : ' none'), type: 'button', 'aria-pressed': on, title: g.label + ' ' + nf.format(rs.length) + '개 · ' + gb(rs.reduce((a, r) => a + r.length, 0)),
+      onclick: () => { if (!rs.length && !on) return; on ? st.kinds.delete(g.k) : st.kinds.add(g.k); renderAll(); } },
+      h('i', { class: 'x' }, on ? '✓' : ''), h('b', {}, g.label), h('span', {}, nf.format(rs.length)));
+    box.append(b);
+  }
+}
+function filterSelects() {   // 카메라·판정: 타임라인 제목 줄 오른쪽(최소 창 960 에서도 필터 줄이 넘치지 않게)
+  const models = [...new Set(data().map(r => r.model).filter(Boolean))];
+  const sel = h('select', { class: 'dd', 'aria-label': '카메라', onchange: (e) => { st.model = e.target.value; renderAll(); } },
+    h('option', { value: '' }, '카메라: 모두'), models.map(m => h('option', { value: m, selected: st.model === m }, m)));
+  const ver = h('select', { class: 'dd narrow', 'aria-label': '판정', onchange: (e) => { st.verdict = e.target.value; renderAll(); } },
+    h('option', { value: 'all' }, '판정: 모두'), h('option', { value: 'ok', selected: st.verdict === 'ok' }, '확인됨만'), h('option', { value: 'suspect', selected: st.verdict === 'suspect' }, '의심만'));
+  return [sel, ver];
+}
+
+// ---------- 타임라인: 월별 막대. 누르면 그 달, Shift+누르면 범위 ----------
+function months(d) {
+  const ms = d.filter(r => r.month).map(r => r.month).sort();
+  if (!ms.length) return [];
+  const out = []; let [y, m] = ms[0].split('-').map(Number); const [ey, em] = ms[ms.length - 1].split('-').map(Number);
+  while (y < ey || (y === ey && m <= em)) { out.push(y + '-' + String(m).padStart(2, '0')); if (++m > 12) { m = 1; y++; } }
+  return out;
+}
+function renderTl() {
+  const box = $('tl'); box.replaceChildren();
+  const d = data().filter(r => match(r, false, true));
+  const ms = months(data());
+  const cnt = {}; d.forEach(r => { if (r.month) cnt[r.month] = (cnt[r.month] || 0) + 1; });
+  const undated = d.filter(r => !r.month).length;
+  const max = Math.max(1, ...Object.values(cnt));
+  const range = st.from ? (st.from === st.to ? st.from.replace('-', '년 ') + '월' : st.from.replace('-', '.') + ' ~ ' + st.to.replace('-', '.')) : '전체 기간';
+  box.append(h('div', { class: 'hd' }, h('b', {}, '촬영 월'), h('span', { class: 'r ell' }, range + (undated && !st.from ? ' · 날짜 없음 ' + nf.format(undated) + '개 포함' : st.from ? ' · 날짜 없는 파일은 빠져요' : '')),
+    st.from ? h('button', { class: 'linkish', type: 'button', onclick: () => { st.from = st.to = null; renderAll(); } }, '기간 해제') : null, ...filterSelects()));
+  const bars = h('div', { class: 'bars' }); const ax = h('div', { class: 'ax' });
+  ms.forEach((m, i) => {
+    const n = cnt[m] || 0;
+    const inR = st.from && m >= st.from && m <= st.to;
+    const b = h('div', { class: 'bar' + (n ? '' : ' zero') + (inR || (!st.from && n) ? ' in' : ''), title: m.replace('-', '년 ') + '월 · ' + nf.format(n) + '개', style: 'height:' + Math.max(4, Math.round(40 * Math.sqrt(n / max))) + 'px' });
+    if (!st.from && n) b.classList.remove('in');
+    b.onclick = (e) => { if (!n) return; if (e.shiftKey && st.from) { const a = [st.from, m].sort(); st.from = a[0]; st.to = st.to > a[1] ? st.to : a[1]; if (m < st.from) st.from = m; } else if (st.from === m && st.to === m) { st.from = st.to = null; } else { st.from = st.to = m; } renderAll(); };
+    bars.append(b);
+    if (m.endsWith('-01') || i === 0) ax.append(h('span', { style: 'left:' + (100 * i / ms.length) + '%' }, m.slice(0, 4) + (m.endsWith('-01') ? '' : '.' + m.slice(5))));
+  });
+  box.append(bars, ax);
+}
+
+// ---------- 격자: 날짜별 묶음, 가상 스크롤 ----------
+const TW = 128, TH = 96, GAP = 10, HEAD = 44, ROWH = TH + GAP;
+let rows = [], visible = [];
+function layout() {
+  const gw = $('gw');
+  const cols = Math.max(1, Math.floor((gw.clientWidth - 12 + GAP) / (TW + GAP)));
+  visible = data().filter(r => match(r));
+  const groups = new Map();
+  for (const r of visible) { const k = r.day || '날짜불명'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); }
+  rows = []; let y = 0;
+  for (const [day, items] of groups) {
+    rows.push({ y, h: HEAD, head: day, items }); y += HEAD;
+    for (let i = 0; i < items.length; i += cols) { rows.push({ y, h: ROWH, items: items.slice(i, i + cols) }); y += ROWH; }
+  }
+  $('gin').style.height = (y + 8) + 'px';
+  $('gin').dataset.cols = cols;
+}
+function dayLabel(d) {
+  if (d === '날짜불명') return '날짜 없음';
+  const t = new Date(d + 'T00:00:00'); return d.replace(/-/g, '.') + ' (' + '일월화수목금토'[t.getDay()] + ')';
+}
+function thumbBg(r) { return 'background: linear-gradient(' + (r.hue % 180) + 'deg, hsl(' + r.hue + ' 45% 62%), hsl(' + ((r.hue + 50) % 360) + ' 40% 32%))'; }
+function tile(r) {
+  const sel = isSel(r);
+  const t = h('button', { class: 'tile' + (sel ? '' : ' off') + (st.cur === r.id ? ' cur' : '') + (r.g === 'video' ? ' vid' : ''), type: 'button', 'data-id': r.id, 'aria-pressed': sel,
+    'aria-label': (r.taken ? r.taken.replace('T', ' ') : '날짜 없음') + ' ' + EXT[r.kind] + ' ' + gb(r.length) + (r.structure === 'ok' ? '' : ' 의심') + (sel ? ' 선택됨' : ' 선택 안 됨') });
+  const showThumb = r.thumb && st.mode !== 'legacy';
+  if (showThumb) t.append(h('div', { class: 'ph', style: thumbBg(r) }));
+  else if (r.g === 'video') t.append(h('div', { class: 'ph', style: 'background: linear-gradient(160deg, #3d3a5c, #1d1b30)' }));
+  else t.append(h('div', { class: 'lab' }, h('b', {}, EXT[r.kind]), h('span', {}, gb(r.length))));
+  if ((r.g === 'raw' && showThumb) || r.g === 'video') t.append(h('span', { class: 'bd' }, EXT[r.kind]));  // 그림이 없으면 가운데에 이미 종류가 있다
+  if (r.structure !== 'ok') t.append(h('span', { class: 'bd sus' }, '의심'));
+  const cb = h('span', { class: 'cb' + (sel ? ' on' : ''), 'aria-hidden': true }); cb.append(svg('check')); t.append(cb);
+  t.onclick = (e) => onTile(e, r);
+  return t;
+}
+function groupState(items) { const n = items.filter(isSel).length; return n === 0 ? '' : n === items.length ? 'on' : 'part'; }
+function paint() {
+  const gw = $('gw'), gin = $('gin');
+  if (st.mode === 'loading') { gin.style.height = 'auto'; gin.replaceChildren(...[0, 1, 2].map(i => h('div', { class: 'grow', style: 'position:relative;margin-top:' + (i ? 10 : 54) + 'px' }, ...Array.from({ length: +gin.dataset.cols || 4 }, () => h('div', { class: 'skt' }))))); return; }
+  if (!visible.length) {
+    gin.style.height = 'auto';
+    gin.replaceChildren(st.mode === 'nothing'
+      ? h('div', { class: 'empty' }, h('b', {}, '찾은 파일이 없어요'), '데이터가 덮어써졌거나 지원하지 않는 형식일 수 있어요. [검사] 탭의 고급 검사로 더 찾아볼 수 있어요.')
+      : h('div', { class: 'empty' }, h('b', {}, '조건에 맞는 파일이 없어요'), '종류·기간·카메라 조건을 바꿔 보세요. ', h('button', { class: 'linkish', type: 'button', onclick: resetFilters }, '조건 모두 해제')));
+    return;
+  }
+  const top = gw.scrollTop - 200, bot = gw.scrollTop + gw.clientHeight + 200;
+  const kids = [];
+  for (const row of rows) {
+    if (row.y + row.h < top || row.y > bot) continue;
+    if (row.head) {
+      const gs = groupState(row.items);
+      const cb = h('button', { class: 'cb' + (gs ? ' ' + gs : ''), type: 'button', 'aria-label': dayLabel(row.head) + ' 모두 ' + (gs === 'on' ? '해제' : '선택'), onclick: () => { const all = gs === 'on'; row.items.forEach(r => all ? st.exclude.add(r.id) : st.exclude.delete(r.id)); refresh(); } });
+      if (gs === 'on') cb.append(svg('check'));
+      kids.push(h('div', { class: 'ghead' + (row.head === '날짜불명' ? ' undated' : ''), style: 'top:' + row.y + 'px' }, cb, h('span', { class: 'd' }, dayLabel(row.head)),
+        h('span', { class: 'n ell' }, nf.format(row.items.length) + '개 · ' + gb(row.items.reduce((a, r) => a + r.length, 0)) + (row.head === '날짜불명' ? ' · 촬영 정보가 없는 파일' : ''))));
+    } else kids.push(h('div', { class: 'grow', style: 'top:' + row.y + 'px' }, row.items.map(tile)));
+  }
+  gin.replaceChildren(...kids);
+}
+function onTile(e, r) {
+  if (e.shiftKey && st.anchor != null) {   // Shift+누르기: 범위를 기준 항목과 같은 상태로
+    const ids = visible.map(x => x.id); const a = ids.indexOf(st.anchor), b = ids.indexOf(r.id);
+    const on = isSel(visible[a]);
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i++) on ? st.exclude.delete(ids[i]) : st.exclude.add(ids[i]);
+  } else if (st.cur === r.id || e.target.closest('.cb')) {   // 이미 보고 있는 것을 다시 누르거나 체크 칸을 누르면 선택 바꾸기
+    isSel(r) ? st.exclude.add(r.id) : st.exclude.delete(r.id);
+    st.anchor = r.id;
+  } else { st.anchor = r.id; }
+  st.cur = r.id;
+  refresh(); renderPv();
+  requestAnimationFrame(() => { const el = document.querySelector('.tile[data-id="' + r.id + '"]'); if (el) el.focus({ preventScroll: true }); });
+}
+$('gw').addEventListener('scroll', () => requestAnimationFrame(paint));
+$('gw').addEventListener('keydown', (e) => {   // 화살표로 옮기고 Space 로 선택
+  if (st.cur == null || !visible.length) return;
+  const cols = +$('gin').dataset.cols; const i = visible.findIndex(r => r.id === st.cur);
+  let j = i;
+  if (e.key === 'ArrowRight') j = i + 1; else if (e.key === 'ArrowLeft') j = i - 1; else if (e.key === 'ArrowDown') j = i + cols; else if (e.key === 'ArrowUp') j = i - cols;
+  else if (e.key === ' ') { e.preventDefault(); const r = visible[i]; isSel(r) ? st.exclude.add(r.id) : st.exclude.delete(r.id); refresh(); return; }
+  else return;
+  e.preventDefault(); j = Math.max(0, Math.min(visible.length - 1, j)); st.cur = st.anchor = visible[j].id;
+  const row = rows.find(rw => !rw.head && rw.items.some(x => x.id === st.cur)); const gw = $('gw');
+  if (row && (row.y < gw.scrollTop || row.y + TH > gw.scrollTop + gw.clientHeight)) gw.scrollTop = row.y - gw.clientHeight / 2;
+  paint(); renderPv(); const el = document.querySelector('.tile[data-id="' + st.cur + '"]'); if (el) el.focus({ preventScroll: true });
+});
+
+// ---------- 미리보기 ----------
+function destName(r) {
+  const dir = DIR[r.g] + (r.structure !== 'ok' ? '/_의심' : '') + '/' + (r.day || '날짜불명');
+  const ext = EXT[r.kind].toLowerCase().replace('jpg', 'jpg');
+  if (!r.taken) return dir + '/' + ext + '_' + String(r.id).padStart(6, '0') + '_blk' + (r.offset / 4096) + '.' + ext;
+  const t = r.taken.replace(/[-:]/g, '').replace('T', '_');
+  return dir + '/' + t + (r.model ? '_' + r.model.replace(/[^A-Za-z0-9]/g, '').slice(0, 16) : '') + '_' + String(r.id).padStart(6, '0') + '.' + ext;
+}
+function renderPv() {
+  const pv = $('pv');
+  const r = ALL.find(x => x.id === st.cur);
+  if (!r || !match(r)) { pv.className = 'card pv blank'; pv.replaceChildren(h('div', {}, '파일을 누르면 여기에서 자세히 봐요.', h('br'), h('span', { class: 'hint' }, '다시 누르거나 Space 로 선택을 바꿔요. Shift 로 범위를 골라요.'))); return; }
+  pv.className = 'card pv';
+  const big = h('div', { class: 'big' });
+  const showThumb = r.thumb && st.mode !== 'legacy';
+  if (showThumb) big.append(h('div', { style: 'position:absolute;inset:0;' + thumbBg(r) }));
+  else big.append(h('div', { class: 'lab' }, r.g === 'video' ? '영상은 미리보기가 없어요' : st.mode === 'legacy' && r.thumb ? '이전 버전으로 검사한 기록이라 미리보기가 없어요' : '파일 안에 미리보기가 없어요'));
+  const scanning = st.mode === 'scanning';
+  const sel = isSel(r);
+  pv.replaceChildren(
+    big,
+    h('div', { class: 'note2 ell' }, showThumb ? '파일 안에 든 작은 미리보기를 키운 것이에요(흐릴 수 있어요)' : ''),
+    h('h3', { class: 'ell' }, r.taken ? r.taken.slice(0, 10).replace(/-/g, '.') + ' ' + r.taken.slice(11, 19) : '촬영 시각 없음'),
+    h('dl', {},
+      h('dt', {}, '종류'), h('dd', {}, EXT[r.kind] + ' · ' + gb(r.length)),
+      h('dt', {}, '카메라'), h('dd', {}, r.model || '알 수 없음'),
+      h('dt', {}, '판정'), h('dd', {}, r.structure === 'ok' ? '확인됨 (구조가 끝까지 맞음)' : '의심 (구조 일부가 맞지 않음, 열리지 않을 수 있음)'),
+      h('dt', {}, '꺼낼 이름'), h('dd', { class: 'mono' }, destName(r)),
+      h('dt', {}, '디스크 위치'), h('dd', { class: 'mono' }, nf.format(r.offset / 4096) + '번째 블록')),
+    h('div', { class: 'acts' },
+      h('button', { class: 'btn', type: 'button', disabled: scanning || r.g === 'doc' || r.g === 'arc' }, svg('zoom'), '원본으로 크게 보기'),
+      h('div', { class: 'hint ell' }, scanning ? '검사 중에는 디스크를 읽지 않아요(검사가 느려져요)' : r.g === 'doc' || r.g === 'arc' ? '문서·압축은 꺼낸 뒤 열어 보세요' : '디스크에서 이 파일만 읽어요(쓰지 않아요)'),
+      h('button', { class: 'btn' + (sel ? '' : ' primary'), type: 'button', onclick: () => { sel ? st.exclude.add(r.id) : st.exclude.delete(r.id); refresh(); renderPv(); } }, sel ? '이 파일 빼기' : '이 파일 넣기'))
+  );
+}
+
+// ---------- 배너 · 선택 요약 · 상태 바 ----------
+function renderSlot() {
+  const s = $('slot'); s.replaceChildren();
+  if (st.mode === 'scanning') s.append(h('div', { class: 'notice' }, h('span', { class: 'spin' }), h('span', { class: 't' }, '검사 중이에요 (42%). 찾는 대로 여기에 더해져요. 꺼내기는 검사가 끝난 뒤에 할 수 있어요.'), h('button', { class: 'btn', type: 'button' }, '검사 보기')));
+  else if (st.mode === 'legacy') s.append(h('div', { class: 'notice warn' }, h('span', { class: 't' }, '이전 버전으로 검사한 기록이라 사진 미리보기가 없어요. 다시 검사하면 생겨요(이전 결과를 활용하면 빨라요).'), h('button', { class: 'btn', type: 'button' }, '다시 검사')));
+}
+function renderSel() {
+  const n = visible.filter(isSel), bytes = n.reduce((a, r) => a + r.length, 0);
+  const sus = n.filter(r => r.structure !== 'ok').length;
+  $('sel1').textContent = visible.length ? nf.format(n.length) + '개 · ' + gb(bytes) + ' 꺼낼 예정' : '꺼낼 파일 없음';
+  const off = visible.length - n.length;
+  $('sel2').textContent = visible.length ? '조건에 맞는 ' + nf.format(visible.length) + '개 중' + (off ? ' ' + nf.format(off) + '개 뺌' : ' 모두') + (sus ? ' · 의심 ' + nf.format(sus) + '개 포함' : '') : '';
+  $('go').disabled = !n.length || st.mode === 'scanning' || st.mode === 'loading';
+  $('selall').disabled = !off; $('selnone').disabled = !n.length;
+  const scanning = st.mode === 'scanning';
+  $('hchip').textContent = scanning ? '검사 중' : '검사 끝'; $('hchip').className = 'chip' + (scanning ? ' pause' : '');
+  $('unit-s').textContent = scanning ? '검사 중 · 42%' : '검사 끝 · ' + nf.format(data().length) + '개 찾음';
+  const status = $('status');
+  status.classList.toggle('idle', st.mode !== 'scanning');
+  $('st').textContent = st.mode === 'scanning' ? '검사 중 · 42% · 찾은 파일 ' + nf.format(data().length) + '개' : '대기 중';
+  $('stpb').style.width = st.mode === 'scanning' ? '42%' : '0%';
+}
+function refresh() { paint(); renderSel(); }
+function renderAll() { renderSlot(); renderFbar(); renderTl(); layout(); paint(); renderSel(); renderPv(); }
+function resetFilters() { st.kinds = new Set(KINDS.map(k => k.k)); st.model = ''; st.verdict = 'all'; st.from = st.to = null; renderAll(); }
+$('selall').onclick = () => { visible.forEach(r => st.exclude.delete(r.id)); refresh(); renderPv(); };
+$('selnone').onclick = () => { visible.forEach(r => st.exclude.add(r.id)); refresh(); renderPv(); };
+$('go').onclick = () => {
+  const n = visible.filter(isSel);
+  const byKind = {}; n.forEach(r => byKind[r.g] = (byKind[r.g] || 0) + 1);
+  $('dlg-what').textContent = Object.entries(byKind).map(([k, c]) => KINDS.find(g => g.k === k).label + ' ' + nf.format(c)).join(' · ') + ' — 모두 ' + nf.format(n.length) + '개';
+  $('dlg-need').textContent = gb(n.reduce((a, r) => a + r.length, 0));
+  $('dlg').showModal();
+};
+$('dlg-x').onclick = () => $('dlg').close();
+$('dlg-ok').onclick = () => $('dlg').close();
+document.querySelectorAll('dialog .sw').forEach(b => b.onclick = (e) => { e.preventDefault(); b.classList.toggle('on'); });
+$('mstate').onchange = (e) => { st.mode = e.target.value; st.cur = null; renderAll(); };
+$('mdark').onchange = (e) => { document.documentElement.dataset.theme = e.target.checked ? 'dark' : 'light'; };
+window.addEventListener('resize', () => { layout(); paint(); });
+// 주소의 #state=legacy&dark=1&filter=1 로 시안 상태를 고를 수 있다(스크린샷용)
+const hp = new URLSearchParams(location.hash.slice(1));
+if (hp.get('state')) { st.mode = hp.get('state'); $('mstate').value = st.mode; }
+if (hp.get('dark')) { document.documentElement.dataset.theme = 'dark'; $('mdark').checked = true; }
+if (hp.get('filter')) { st.from = '2024-03'; st.to = '2024-03'; st.model = 'Canon EOS R8'; st.kinds.delete('video'); }
+// 처음에는 가장 최근 묶음의 첫 사진을 보여 준다
+renderAll();
+st.cur = visible.find(r => r.day === '2024-03-06' && r.thumb)?.id ?? null;
+const firstRow = rows.find(rw => !rw.head && rw.items.some(x => x.id === st.cur));
+if (firstRow) $('gw').scrollTop = firstRow.y - 44 - 10;
+paint(); renderPv();
+if (hp.get('dialog')) $('go').click();
+</script>
+</body>
+</html>
