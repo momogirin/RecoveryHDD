@@ -80,12 +80,35 @@ def main(argv):
     return 0
 
 
+APP_ID = "RecoveryHDD.App"
+
+
+def _icon_path():
+    """창·작업 표시줄 아이콘 파일. exe 안에 함께 묶은 app.ico, 개발 중에는 launch/windows/app.ico."""
+    base = getattr(sys, "_MEIPASS", None)
+    cands = [os.path.join(base, "app.ico")] if base else []
+    cands.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "launch", "windows", "app.ico"))
+    return next((p for p in cands if os.path.isfile(p)), None)
+
+
+def _taskbar_id():
+    """윈도우 작업 표시줄이 이 프로그램을 따로 묶고 프로그램 아이콘을 쓰게 한다(python/pywebview 기본 아이콘 대신)."""
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
+    except (AttributeError, OSError):
+        pass
+
+
 def _open_window(app, httpd, url, server):
     """전용 창을 연다. 창을 쓸 수 없으면 False(호출한 쪽이 브라우저로 대신 연다)."""
     try:
         import webview
     except ImportError:
         return False
+    _taskbar_id()
     window = webview.create_window(TITLE, url, width=1200, height=860, min_size=(900, 640))
 
     def on_closing():
@@ -108,7 +131,7 @@ def _open_window(app, httpd, url, server):
     window.events.loaded += lambda: window.evaluate_js("document.documentElement.classList.add('native')")
     threading.Thread(target=watch_server, daemon=True).start()
     try:
-        webview.start()
+        webview.start(icon=_icon_path())
     except Exception:  # WebView2 런타임이 없는 등
         return False
     return True
